@@ -52,7 +52,7 @@
     padding:12px 20px; max-width:1080px; margin:0 auto;
   }
   .brand{display:flex; align-items:center; gap:9px; font-family:'Fredoka',sans-serif,sans-serif; font-weight:600; letter-spacing:0.02em; font-size:17px;}
-  .brand-dot{width:26px;height:26px;border-radius:50%;background:conic-gradient(from 180deg, var(--green-bright), var(--gold), var(--green-bright)); box-shadow:0 0 0 2px rgba(232,212,77,0.5);}
+  .brand-dot{width:26px;height:26px;border-radius:50%;object-fit:cover; box-shadow:0 0 0 2px rgba(232,212,77,0.5);}
   .nav-links{display:none; gap:26px; font-size:14px; font-weight:500; color:var(--ink-dim);}
   .nav-links a:hover{color:var(--gold);}
   @media(min-width:720px){ .nav-links{display:flex;} }
@@ -272,14 +272,15 @@
     max-width:520px; margin:0 auto 18px; font-size:12px; line-height:1.6; color:var(--ink-dim);
     font-family:'IBM Plex Mono',monospace,monospace;
   }
-  .foot-brand{font-family:'Fredoka',sans-serif,sans-serif; font-weight:600; font-size:14px; color:var(--ink-dim);}
+  .foot-brand{display:flex; align-items:center; justify-content:center; gap:8px; font-family:'Fredoka',sans-serif,sans-serif; font-weight:600; font-size:14px; color:var(--ink-dim);}
+  .foot-logo{width:22px;height:22px;border-radius:50%;object-fit:cover;}
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="brand"><span class="brand-dot"></span> ROBIN THE FACE</div>
+    <div class="brand"><img src="/logo.png" alt="Robin the Face logo" class="brand-dot"> ROBIN THE FACE</div>
     <nav class="nav-links">
       <a href="#lore">Lore</a>
       <a href="#faces">Faces</a>
@@ -519,7 +520,7 @@
 
 <footer>
   <p class="disclaimer">This is a community meme project built for entertainment and culture. Not financial advice. Nothing on this page is a promise of profit — always DYOR before interacting with any token or contract.</p>
-  <div class="foot-brand">🏹 ROBIN THE FACE — Every Candle Has a Face.</div>
+  <div class="foot-brand"><img src="/logo.png" alt="Robin the Face logo" class="foot-logo"> ROBIN THE FACE — Every Candle Has a Face.</div>
 </footer>
 
 <script>
