@@ -229,6 +229,8 @@
   .ledger-row:last-child{border-bottom:none;}
   .ledger-row .k{color:var(--ink-dim);}
   .ledger-row .v{color:var(--cream2); font-weight:600;}
+  .ledger-row.wrap{flex-wrap:wrap;}
+  .ledger-row.wrap .v{width:100%; word-break:break-all; margin-top:6px; font-size:12px; text-align:left;}
   .ledger-row .v.pending{color:var(--gold);}
 
   /* ---------- roadmap trail ---------- */
@@ -246,6 +248,7 @@
     display:flex; align-items:center; justify-content:center; font-size:10px;
   }
   .trail-step.active .trail-dot{background:var(--green-bright); box-shadow:0 0 0 4px rgba(111,207,58,0.18);}
+  .trail-step.done .trail-dot{background:var(--green-bright); border-color:var(--green-bright); color:var(--bg); font-weight:700;}
   .trail-phase{font-family:'IBM Plex Mono',monospace,monospace; font-size:11px; color:var(--gold); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:4px;}
   .trail-title{font-family:'Fredoka',sans-serif,sans-serif; font-weight:600; font-size:17px; color:var(--cream2); margin-bottom:6px;}
   .trail-desc{color:var(--ink-dim); font-size:14px; line-height:1.6;}
@@ -501,7 +504,7 @@
     <div class="ledger-row"><span class="k">Tax</span><span class="v">0% buy / 0% sell</span></div>
     <div class="ledger-row"><span class="k">LP</span><span class="v">Locked at launch</span></div>
     <div class="ledger-row"><span class="k">Team allocation</span><span class="v">0%</span></div>
-    <div class="ledger-row"><span class="k">Contract</span><span class="v" style="font-family:'IBM Plex Mono',monospace;font-size:0.85em;">0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274</span></div>
+    <div class="ledger-row wrap"><span class="k">Contract</span><span class="v" style="font-family:'IBM Plex Mono',monospace;">0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274</span></div>
   </div>
 </section>
 
@@ -512,21 +515,21 @@
     <p class="section-desc">Four stops on the way from teaser to takeover.</p>
   </div>
   <div class="trail">
-    <div class="trail-step active">
-      <div class="trail-dot"></div>
-      <div class="trail-phase">Phase 0 — Now</div>
+    <div class="trail-step done">
+      <div class="trail-dot">✓</div>
+      <div class="trail-phase">Phase 0</div>
       <div class="trail-title">Teaser</div>
       <div class="trail-desc">Faces start dropping. No name, no chart — just moods you recognize.</div>
     </div>
-    <div class="trail-step">
-      <div class="trail-dot"></div>
+    <div class="trail-step done">
+      <div class="trail-dot">✓</div>
       <div class="trail-phase">Phase 1</div>
       <div class="trail-title">Reveal &amp; Launch</div>
       <div class="trail-desc">Full lore thread, contract goes live, the hood opens its gates.</div>
     </div>
-    <div class="trail-step">
+    <div class="trail-step active">
       <div class="trail-dot"></div>
-      <div class="trail-phase">Phase 2</div>
+      <div class="trail-phase">Phase 2 — Now</div>
       <div class="trail-title">Momentum</div>
       <div class="trail-desc">Real-time face reactions to the market, community contests, first badges.</div>
     </div>
