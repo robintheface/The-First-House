@@ -65,19 +65,10 @@
   .sidebar{
     position:fixed; top:0; left:0; height:100vh; width:240px;
     background:#0c1710; border-right:1px solid var(--line);
-    padding:20px 16px; z-index:80; overflow-y:auto;
+    padding:26px 16px; z-index:80; overflow-y:auto; overflow-x:hidden;
     transform:translateX(-100%); transition:transform .25s ease;
   }
   .sidebar.open{transform:translateX(0);}
-  @media(min-width:1100px){
-    .sidebar{transform:translateX(0); position:sticky; align-self:flex-start;}
-  }
-
-  .sidebar-brand{
-    display:flex; align-items:center; gap:9px; font-family:'Fredoka',sans-serif,sans-serif;
-    font-weight:600; font-size:16px; margin-bottom:22px; padding:0 6px; color:var(--ink);
-  }
-  .sidebar-brand img{width:28px; height:28px; border-radius:50%; object-fit:contain; display:block;}
 
   .sidebar-nav{display:flex; flex-direction:column; gap:2px;}
   .sidebar-link{
@@ -85,6 +76,7 @@
     padding:10px 12px; border-radius:10px;
     color:var(--ink-dim); text-decoration:none; font-size:14px; font-weight:500;
     transition:background .15s ease, color .15s ease;
+    white-space:nowrap;
   }
   .sidebar-link:hover{background:rgba(255,255,255,0.05); color:var(--ink);}
   .sidebar-link .tag-soon{
@@ -95,9 +87,21 @@
   .sidebar-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:70;}
   .sidebar-overlay.show{display:block;}
 
+  .sidebar-collapse-btn{
+    display:none; position:fixed; top:24px; left:224px; z-index:85;
+    width:26px; height:26px; border-radius:50%;
+    background:#0c1710; border:1px solid var(--line); color:var(--ink-dim);
+    align-items:center; justify-content:center; cursor:pointer; font-size:14px; line-height:1;
+    transition:left .25s ease;
+  }
+
   @media(min-width:1100px){
-    .app-shell{display:flex; align-items:flex-start;}
-    .app-body{flex:1; min-width:0;}
+    .sidebar{transform:translateX(0);}
+    .app-body{margin-left:240px; transition:margin-left .25s ease;}
+    .sidebar-collapse-btn{display:flex;}
+    .app-shell.sidebar-collapsed .sidebar{transform:translateX(-100%);}
+    .app-shell.sidebar-collapsed .app-body{margin-left:0;}
+    .app-shell.sidebar-collapsed .sidebar-collapse-btn{left:4px;}
   }
 
   /* ---------- bottom tab bar (mobile) ---------- */
