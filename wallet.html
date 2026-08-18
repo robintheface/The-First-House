@@ -11,36 +11,15 @@
 </head>
 <body>
 
-<div class="app-shell">
-
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-  <aside class="sidebar" id="sidebar">
-    <nav class="sidebar-nav">
-      <a class="sidebar-link" href="index.html#top">🏠 Home</a>
-      <a class="sidebar-link" href="wallet.html" style="background:rgba(255,255,255,0.05); color:var(--ink);">👛 Wallet &amp; Rank</a>
-      <a class="sidebar-link" href="gacha.html">🎰 Gacha <span class="tag-soon">soon</span></a>
-      <a class="sidebar-link" href="tickets.html">🎟️ Tickets <span class="tag-soon">soon</span></a>
-      <a class="sidebar-link" href="burn.html">🔥 Burn Tracker <span class="tag-soon">soon</span></a>
-      <a class="sidebar-link" href="index.html#roadmap">🗺️ Roadmap</a>
-      <a class="sidebar-link" href="index.html#community">🔗 Community</a>
-    </nav>
-  </aside>
-  <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" aria-label="Toggle sidebar">‹</button>
-
-  <div class="app-body">
-
 <div class="topbar" id="top">
   <div class="topbar-inner">
-    <div style="display:flex;align-items:center;">
-      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Open menu">☰</button>
-      <a href="index.html" class="brand" style="text-decoration:none;"><img class="brand-logo" src="logo.png" alt="Robin The Face logo"> ROBIN THE FACE</a>
-    </div>
+    <a href="/" class="brand" style="text-decoration:none;"><img class="brand-logo" src="logo.png" alt="Robin The Face logo"> ROBIN THE FACE</a>
     <nav class="nav-links">
-      <a href="index.html#lore">Lore</a>
-      <a href="index.html#faces">Faces</a>
-      <a href="index.html#tokenomics">Tokenomics</a>
-      <a href="index.html#roadmap">Trail</a>
-      <a href="index.html#community">Community</a>
+      <a href="/#lore">Lore</a>
+      <a href="/#faces">Faces</a>
+      <a href="/#tokenomics">Tokenomics</a>
+      <a href="/#roadmap">Trail</a>
+      <a href="/#community">Community</a>
     </nav>
     <a class="topbar-cta" href="https://app.uniswap.org/swap?outputCurrency=0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274" target="_blank" rel="noopener noreferrer">Buy $HOODFACE</a>
   </div>
@@ -111,16 +90,6 @@
   <p class="disclaimer">This is a community meme project built for entertainment and culture. Not financial advice. Nothing on this page is a promise of profit — always DYOR before interacting with any token or contract.</p>
   <div class="foot-brand">🏹 ROBIN THE FACE — Every Candle Has a Face.</div>
 </footer>
-
-  </div><!-- /.app-body -->
-</div><!-- /.app-shell -->
-
-<nav class="bottom-nav">
-  <a href="index.html#top" class="bottom-nav-item"><span class="bn-icon">🏠</span>Home</a>
-  <a href="wallet.html" class="bottom-nav-item active"><span class="bn-icon">👛</span>Wallet</a>
-  <a href="gacha.html" class="bottom-nav-item"><span class="bn-icon">🎰</span>Gacha</a>
-  <a href="index.html#roadmap" class="bottom-nav-item"><span class="bn-icon">🗺️</span>Trail</a>
-</nav>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
 <script>
@@ -227,27 +196,6 @@
     window.ethereum.on('chainChanged', () => { window.location.reload(); });
   }
 
-  // ---------- sidebar toggle (mobile) ----------
-  const sidebar = document.getElementById('sidebar');
-  const sidebarToggle = document.getElementById('sidebarToggle');
-  const sidebarOverlay = document.getElementById('sidebarOverlay');
-  function openSidebar(){ sidebar.classList.add('open'); sidebarOverlay.classList.add('show'); }
-  function closeSidebar(){ sidebar.classList.remove('open'); sidebarOverlay.classList.remove('show'); }
-  sidebarToggle.addEventListener('click', () => {
-    sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
-  });
-  sidebarOverlay.addEventListener('click', closeSidebar);
-  document.querySelectorAll('.sidebar-link').forEach(link => {
-    link.addEventListener('click', closeSidebar);
-  });
-
-  // ---------- sidebar collapse (desktop) ----------
-  const appShell = document.querySelector('.app-shell');
-  const collapseBtn = document.getElementById('sidebarCollapseBtn');
-  collapseBtn.addEventListener('click', () => {
-    const collapsed = appShell.classList.toggle('sidebar-collapsed');
-    collapseBtn.textContent = collapsed ? '›' : '‹';
-  });
 </script>
 
 </body>

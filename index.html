@@ -11,30 +11,9 @@
 </head>
 <body>
 
-<div class="app-shell">
-
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-  <aside class="sidebar" id="sidebar">
-    <nav class="sidebar-nav">
-      <a class="sidebar-link" href="#top">🏠 Home</a>
-      <a class="sidebar-link" href="wallet.html">👛 Wallet &amp; Rank</a>
-      <a class="sidebar-link" href="gacha.html">🎰 Gacha <span class="tag-soon">soon</span></a>
-      <a class="sidebar-link" href="tickets.html">🎟️ Tickets <span class="tag-soon">soon</span></a>
-      <a class="sidebar-link" href="burn.html">🔥 Burn Tracker <span class="tag-soon">soon</span></a>
-      <a class="sidebar-link" href="#roadmap">🗺️ Roadmap</a>
-      <a class="sidebar-link" href="#community">🔗 Community</a>
-    </nav>
-  </aside>
-  <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" aria-label="Toggle sidebar">‹</button>
-
-  <div class="app-body">
-
 <div class="topbar" id="top">
   <div class="topbar-inner">
-    <div style="display:flex;align-items:center;">
-      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Open menu">☰</button>
-      <div class="brand"><img class="brand-logo" src="logo.png" alt="Robin The Face logo"> ROBIN THE FACE</div>
-    </div>
+    <div class="brand"><img class="brand-logo" src="logo.png" alt="Robin The Face logo"> ROBIN THE FACE</div>
     <nav class="nav-links">
       <a href="#lore">Lore</a>
       <a href="#faces">Faces</a>
@@ -241,6 +220,39 @@
   </div>
 </section>
 
+<section id="quicklinks">
+  <div class="section-head">
+    <div class="kicker">Explore</div>
+    <h2 class="section-title">More from the hood</h2>
+    <p class="section-desc">Check your rank, spin for badges, and more — coming online one by one.</p>
+  </div>
+  <div class="quicklink-grid">
+    <a class="quicklink-card" href="wallet">
+      <span class="ql-icon">👛</span>
+      <span class="ql-name">Wallet &amp; Rank</span>
+      <span class="ql-desc">Check your $HOODFACE balance</span>
+    </a>
+    <a class="quicklink-card" href="luckydraw">
+      <span class="ql-icon">🎰</span>
+      <span class="ql-name">Lucky Draw</span>
+      <span class="ql-desc">Spin to win face badges</span>
+      <span class="ql-soon">Soon</span>
+    </a>
+    <a class="quicklink-card" href="tickets">
+      <span class="ql-icon">🎟️</span>
+      <span class="ql-name">Tickets</span>
+      <span class="ql-desc">Free and paid entries</span>
+      <span class="ql-soon">Soon</span>
+    </a>
+    <a class="quicklink-card" href="burn">
+      <span class="ql-icon">🔥</span>
+      <span class="ql-name">Burn Tracker</span>
+      <span class="ql-desc">Total $HOODFACE burned</span>
+      <span class="ql-soon">Soon</span>
+    </a>
+  </div>
+</section>
+
 <section id="community">
   <div class="section-head">
     <div class="kicker">Join in</div>
@@ -271,16 +283,6 @@
   <div class="foot-brand">🏹 ROBIN THE FACE — Every Candle Has a Face.</div>
 </footer>
 
-  </div><!-- /.app-body -->
-</div><!-- /.app-shell -->
-
-<nav class="bottom-nav">
-  <a href="#top" class="bottom-nav-item active"><span class="bn-icon">🏠</span>Home</a>
-  <a href="wallet.html" class="bottom-nav-item"><span class="bn-icon">👛</span>Wallet</a>
-  <a href="gacha.html" class="bottom-nav-item"><span class="bn-icon">🎰</span>Gacha</a>
-  <a href="#roadmap" class="bottom-nav-item"><span class="bn-icon">🗺️</span>Trail</a>
-</nav>
-
 <script>
   const moods = [
     ["Green day", "😄"], ["Rekt", "😭"], ["3am watch", "😴"], ["Ape in", "😍"],
@@ -290,30 +292,6 @@
   const track = document.getElementById('tickerTrack');
   const set = moods.map(([label,emoji]) => `<div class="ticker-item">${emoji} <b>${label}</b></div>`).join('');
   track.innerHTML = set + set;
-
-  // ---------- sidebar toggle (mobile) ----------
-  const sidebar = document.getElementById('sidebar');
-  const sidebarToggle = document.getElementById('sidebarToggle');
-  const sidebarOverlay = document.getElementById('sidebarOverlay');
-
-  function openSidebar(){ sidebar.classList.add('open'); sidebarOverlay.classList.add('show'); }
-  function closeSidebar(){ sidebar.classList.remove('open'); sidebarOverlay.classList.remove('show'); }
-
-  sidebarToggle.addEventListener('click', () => {
-    sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
-  });
-  sidebarOverlay.addEventListener('click', closeSidebar);
-  document.querySelectorAll('.sidebar-link').forEach(link => {
-    link.addEventListener('click', closeSidebar);
-  });
-
-  // ---------- sidebar collapse (desktop) ----------
-  const appShell = document.querySelector('.app-shell');
-  const collapseBtn = document.getElementById('sidebarCollapseBtn');
-  collapseBtn.addEventListener('click', () => {
-    const collapsed = appShell.classList.toggle('sidebar-collapsed');
-    collapseBtn.textContent = collapsed ? '›' : '‹';
-  });
 </script>
 
 </body>
