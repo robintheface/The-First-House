@@ -21,7 +21,7 @@
       var(--bg);
     color:var(--ink);
     font-family:'IM Fell English',serif;
-    font-size:17px;
+    font-size:19px;
     -webkit-font-smoothing:antialiased;
     overflow-x:hidden;
   }
@@ -98,14 +98,14 @@
 
   h1.headline{
     font-family:'IM Fell English',serif; font-weight:400;
-    font-size:clamp(34px, 8.5vw, 58px);
+    font-size:clamp(38px, 9.5vw, 64px);
     line-height:1.08; margin:0 0 16px;
     color:var(--cream2);
   }
   h1.headline .accent{color:var(--green-bright);}
   .sub{
     max-width:480px; margin:0 auto 30px; color:var(--ink-dim);
-    font-size:18px; line-height:1.55;
+    font-size:20px; line-height:1.55;
   }
   .cta-row{display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-bottom:34px;}
   .btn{
@@ -153,10 +153,10 @@
     color:var(--gold); margin-bottom:10px;
   }
   h2.section-title{
-    font-family:'IM Fell English',serif; font-weight:400; font-size:clamp(26px,5.5vw,38px);
+    font-family:'IM Fell English',serif; font-weight:400; font-size:clamp(29px,6vw,42px);
     margin:0 0 12px; color:var(--cream2);
   }
-  .section-desc{color:var(--ink-dim); font-size:17px; line-height:1.6; margin:0;}
+  .section-desc{color:var(--ink-dim); font-size:19px; line-height:1.6; margin:0;}
 
   /* ---------- lore ---------- */
   .lore-card{
@@ -170,7 +170,7 @@
     background:var(--bg-2); border:1px solid var(--line); width:40px; height:40px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
   }
-  .lore-card p{color:var(--ink-dim); line-height:1.75; font-size:17px; margin:0 0 14px;}
+  .lore-card p{color:var(--ink-dim); line-height:1.75; font-size:19px; margin:0 0 14px;}
   .lore-card p:last-child{margin-bottom:0;}
   .lore-card strong{color:var(--cream2);}
   details.lore-toggle summary{
