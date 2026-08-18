@@ -215,7 +215,7 @@
   .ledger-row{
     display:flex; justify-content:space-between; align-items:center;
     padding:18px 20px; border-bottom:1px dashed var(--line);
-    font-family:'IBM Plex Mono',monospace,monospace; font-size:16px;
+    font-family:'IM Fell English',serif; font-size:18px;
   }
   .ledger-row:last-child{border-bottom:none;}
   .ledger-row .k{color:var(--ink-dim);}

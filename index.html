@@ -290,7 +290,7 @@
     ["Rugged", "😠"], ["Bullish", "🥰"], ["Ngoring", "😎"], ["Moon soon", "🚀"]
   ];
   const track = document.getElementById('tickerTrack');
-  const set = moods.map(([label,emoji]) => `<div class="ticker-item">${emoji} <b>${label}</b></div>`).join('');
+  const set = moods.map(([label]) => `<div class="ticker-item"><b>${label}</b></div>`).join('');
   track.innerHTML = set + set;
 </script>
 
