@@ -213,8 +213,8 @@
   .ticker-item b{color:var(--green-bright); font-weight:600;}
 
   /* ---------- section shells ---------- */
-  section{padding:70px 20px;}
-  .section-head{max-width:640px; margin:0 auto 36px; text-align:center;}
+  section{padding:96px 20px;}
+  .section-head{max-width:640px; margin:0 auto 48px; text-align:center;}
   .kicker{
     font-family:'IBM Plex Mono',monospace,monospace; font-size:11.5px; letter-spacing:0.14em; text-transform:uppercase;
     color:var(--gold); margin-bottom:10px;
@@ -227,9 +227,9 @@
 
   /* ---------- lore ---------- */
   .lore-card{
-    max-width:720px; margin:0 auto; padding:30px 24px;
-    background:linear-gradient(180deg, rgba(46,125,50,0.14), rgba(46,125,50,0.03));
-    border:1px solid var(--line); border-radius:18px;
+    max-width:680px; margin:0 auto; padding:36px 32px;
+    background:rgba(111,207,58,0.05);
+    border:0.5px solid rgba(111,207,58,0.18); border-radius:28px;
     position:relative;
   }
   .lore-card::before{
@@ -256,16 +256,16 @@
   .gallery-wrap::before{left:0; background:linear-gradient(90deg, var(--bg), transparent);}
   .gallery-wrap::after{right:0; background:linear-gradient(270deg, var(--bg), transparent);}
   .gallery-track{
-    display:flex; gap:16px; width:max-content;
+    display:flex; gap:22px; width:max-content;
     animation:gscroll 42s linear infinite;
     padding:4px 0 10px;
   }
   .gallery-wrap:hover .gallery-track, .gallery-wrap:active .gallery-track{animation-play-state:paused;}
   @keyframes gscroll{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
   .face-card{
-    width:152px; flex:0 0 auto;
-    background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:16px;
-    padding:14px 10px 12px; text-align:center;
+    width:188px; flex:0 0 auto;
+    background:rgba(255,255,255,0.025); border:0.5px solid rgba(255,255,255,0.06); border-radius:24px;
+    padding:18px 14px 16px; text-align:center;
   }
   .face-img{
     width:100%; aspect-ratio:1/1; background-size:contain; background-repeat:no-repeat; background-position:center;
@@ -276,7 +276,7 @@
 
   /* ---------- ledger / tokenomics ---------- */
   .ledger{
-    max-width:560px; margin:0 auto; border:1px solid var(--line); border-radius:16px;
+    max-width:560px; margin:0 auto; border:0.5px solid var(--line); border-radius:24px;
     overflow:hidden; background:rgba(255,255,255,0.025);
   }
   .ledger-row{
@@ -313,8 +313,8 @@
 
   /* ---------- holder check (modern rank card) ---------- */
   .rank-card{
-    max-width:420px; margin:0 auto; background:rgba(111,207,58,0.06);
-    border:1px solid rgba(111,207,58,0.22); border-radius:18px; padding:18px 20px;
+    max-width:420px; margin:0 auto; background:rgba(111,207,58,0.05);
+    border:0.5px solid rgba(111,207,58,0.18); border-radius:24px; padding:22px 24px;
   }
   .rank-card-top{display:flex; align-items:center; justify-content:space-between; gap:10px;}
   .rank-card-label{
@@ -356,7 +356,7 @@
   }
   @media(min-width:560px){ .community-grid{grid-template-columns:1fr 1fr 1fr;} }
   .comm-card{
-    border:1px solid var(--line); border-radius:16px; padding:22px 16px; text-align:center;
+    border:0.5px solid var(--line); border-radius:22px; padding:26px 18px; text-align:center;
     background:rgba(255,255,255,0.025); text-decoration:none; color:var(--ink);
     transition:transform .15s ease, border-color .15s ease;
   }
