@@ -45,7 +45,7 @@
   .brand{display:flex; align-items:center; gap:9px; font-family:'IM Fell English',serif; font-weight:400; letter-spacing:0.02em; font-size:19px;}
   .brand-dot{width:26px;height:26px;border-radius:50%;background:conic-gradient(from 180deg, var(--green-bright), var(--gold), var(--green-bright)); box-shadow:0 0 0 2px rgba(232,212,77,0.5);}
   .brand-logo{width:30px;height:30px;display:block;object-fit:contain;border-radius:50%;}
-  .nav-links{display:none; gap:26px; font-size:14px; font-weight:500; color:var(--ink-dim); font-family:'Inter',sans-serif;}
+  .nav-links{display:none; gap:28px; font-size:17px; font-weight:400; color:var(--ink-dim); font-family:'IM Fell English',serif;}
   .nav-links a:hover{color:var(--gold);}
   @media(min-width:720px){ .nav-links{display:flex;} }
   .topbar-cta{
@@ -324,10 +324,10 @@
     border-top:1px solid var(--line); padding:34px 20px 40px; text-align:center;
   }
   .disclaimer{
-    max-width:520px; margin:0 auto 18px; font-size:12px; line-height:1.6; color:var(--ink-dim);
-    font-family:'IBM Plex Mono',monospace,monospace;
+    max-width:560px; margin:0 auto 18px; font-size:15px; line-height:1.6; color:var(--ink-dim);
+    font-family:'IM Fell English',serif;
   }
-  .foot-brand{font-family:'IM Fell English',serif; font-weight:400; font-size:16px; color:var(--ink-dim);}
+  .foot-brand{font-family:'IM Fell English',serif; font-weight:400; font-size:18px; color:var(--ink-dim);}
 
 .hero{
     padding:64px 20px 40px;
