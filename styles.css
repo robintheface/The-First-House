@@ -65,22 +65,9 @@
   }
   .nav-links.open a{padding:12px 4px; border-bottom:1px solid rgba(241,234,220,0.08);}
   .nav-links.open a:last-child{border-bottom:none;}
-  /* Buy CTA duplicated inside the dropdown for mobile — see .topbar-cta below,
-     which hides itself out of the topbar row on the same breakpoint. */
-  .nav-cta-mobile{display:none;}
-  .nav-links.open .nav-cta-mobile{
-    /* .nav-links.open already carries 20px of side padding, so a 4px side
-       margin here lands the button 24px from the drawer edge — flush with
-       the nav links' own text (20px padding + 4px <a> padding = 24px). */
-    display:flex; align-items:center; justify-content:center;
-    height:60px; margin:24px 4px 0;
-    border-radius:30px; border-bottom:0 !important;
-    background:#f5e77a; color:#12220f; font-weight:600; font-size:22px; text-decoration:none;
-  }
   @media(min-width:720px){
     .nav-links{display:flex; position:static; flex-direction:row; background:none; backdrop-filter:none; border:0; padding:0;}
     .nav-links a{padding:0; border-bottom:0;}
-    .nav-cta-mobile{display:none !important;}
   }
   .topbar-cta{
     font-family:'IM Fell English',serif; font-size:16px; font-weight:400;
@@ -89,8 +76,8 @@
     background:#f5e77a; color:#12220f; text-decoration:none;
     white-space:nowrap; transition:box-shadow .2s ease, transform .15s ease;
   }
-  /* Below 720px the brand name needs the room: the CTA moves into the
-     mobile nav dropdown (.nav-cta-mobile) instead of sitting in the topbar row. */
+  /* Below 720px the topbar CTA hides so the brand name has room to stay on
+     one line — the hero's own "Buy $HOODFACE" button covers mobile instead. */
   @media(max-width:719px){ .topbar-cta{display:none;} }
 
   /* ---------- hero ---------- */
