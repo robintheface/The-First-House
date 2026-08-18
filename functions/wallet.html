@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Wallet &amp; Rank — ROBIN THE FACE</title>
+<link rel="icon" type="image/png" href="../favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=IM+Fell+English&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+<div class="topbar" id="top">
+  <div class="topbar-inner">
+    <a href="/" class="brand" style="text-decoration:none;"><img class="brand-logo" src="../logo.png" alt="Robin The Face logo"> ROBIN THE FACE</a>
+    <nav class="nav-links">
+      <a href="/#lore">Lore</a>
+      <a href="/#faces">Faces</a>
+      <a href="/#tokenomics">Tokenomics</a>
+      <a href="/#roadmap">Trail</a>
+      <a href="/#community">Community</a>
+    </nav>
+    <a class="topbar-cta" href="https://app.uniswap.org/swap?outputCurrency=0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274" target="_blank" rel="noopener noreferrer">Buy $HOODFACE</a>
+  </div>
+</div>
+
+<section id="holders" class="rank-hero-section">
+  <div class="rank-chain-badge">🍃 Built on Robinhood Chain</div>
+
+  <div class="rank-hero-grid">
+    <div class="rank-hero-text">
+      <div class="section-head" style="text-align:left; margin:0 0 24px;">
+        <div class="kicker">Prove it</div>
+        <h2 class="section-title" style="text-align:left;">Check your <span style="color:var(--green-bright);">face rank</span></h2>
+        <p class="section-desc" style="text-align:left; margin:10px 0 0;">Connect your wallet to see your $HOODFACE balance and hood status.</p>
+      </div>
+
+      <div class="rank-card">
+        <div class="rank-card-top">
+          <div class="rank-card-label">Your rank</div>
+          <button id="connectBtn" class="btn-connect">Connect Wallet</button>
+        </div>
+        <div id="holderResult" class="holder-result">
+          <div class="rank-hero">
+            <span id="holderTier" class="rank-hero-title">—</span>
+          </div>
+          <div id="holderAddr" class="holder-addr"></div>
+          <div class="rank-stats">
+            <div class="rank-stat">
+              <div class="rank-stat-label">Balance</div>
+              <div class="rank-stat-value" id="holderBalance">0</div>
+            </div>
+            <div class="rank-stat">
+              <div class="rank-stat-label">Symbol</div>
+              <div class="rank-stat-value">$HOODFACE</div>
+            </div>
+          </div>
+        </div>
+        <div id="holderError" class="holder-error"></div>
+      </div>
+    </div>
+
+    <div class="rank-hero-art">
+      <img src="logo-main.png" alt="Robin The Face">
+    </div>
+  </div>
+
+  <div class="rank-badges">
+    <div class="rank-badge-item">
+      <span class="rank-badge-icon">🤝</span>
+      <div><strong>Community First</strong><span>Built by the hood, for the hood.</span></div>
+    </div>
+    <div class="rank-badge-item">
+      <span class="rank-badge-icon">🛡️</span>
+      <div><strong>No Team</strong><span>No insiders. Just the hood.</span></div>
+    </div>
+    <div class="rank-badge-item">
+      <span class="rank-badge-icon">🎭</span>
+      <div><strong>No KYC</strong><span>No identity, just anonymity.</span></div>
+    </div>
+    <div class="rank-badge-item">
+      <span class="rank-badge-icon">👑</span>
+      <div><strong>Just The Hood</strong><span>Culture over everything.</span></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p class="disclaimer">This is a community meme project built for entertainment and culture. Not financial advice. Nothing on this page is a promise of profit — always DYOR before interacting with any token or contract.</p>
+  <div class="foot-brand">🏹 ROBIN THE FACE — Every Candle Has a Face.</div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+<script>
+  // ---------- wallet connect + holder check ----------
+  const HOODFACE_ADDRESS = "0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274";
+  const ROBINHOOD_CHAIN_ID_HEX = "0x1237"; // 4663 in hex
+  const ROBINHOOD_CHAIN_PARAMS = {
+    chainId: ROBINHOOD_CHAIN_ID_HEX,
+    chainName: "Robinhood Chain",
+    nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+    rpcUrls: ["https://rpc.mainnet.chain.robinhood.com"],
+    blockExplorerUrls: ["https://robinhoodchain.blockscout.com"]
+  };
+  const ERC20_ABI = [
+    "function balanceOf(address) view returns (uint256)",
+    "function decimals() view returns (uint8)",
+    "function totalSupply() view returns (uint256)"
+  ];
+
+  const connectBtn = document.getElementById('connectBtn');
+  const resultBox = document.getElementById('holderResult');
+  const errorBox = document.getElementById('holderError');
+  const addrEl = document.getElementById('holderAddr');
+  const balanceEl = document.getElementById('holderBalance');
+  const tierEl = document.getElementById('holderTier');
+
+  function showError(msg){
+    errorBox.textContent = msg;
+    errorBox.classList.add('show');
+    resultBox.classList.remove('show');
+  }
+  function shortAddr(a){ return a.slice(0,6) + "…" + a.slice(-4); }
+
+  function tierFor(balanceNum){
+    if (balanceNum >= 10000000) return "🐋 Whale";
+    if (balanceNum >= 1000000) return "💎 Diamond Hood";
+    if (balanceNum >= 100000) return "🧢 Hood Member";
+    if (balanceNum > 0) return "🌱 Fresh Face";
+    return "👀 Not holding yet";
+  }
+
+  async function ensureRobinhoodChain(provider){
+    const network = await provider.getNetwork();
+    if (network.chainId === 4663n) return;
+    try {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: ROBINHOOD_CHAIN_ID_HEX }]
+      });
+    } catch (switchErr) {
+      if (switchErr.code === 4902) {
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [ROBINHOOD_CHAIN_PARAMS]
+        });
+      } else {
+        throw switchErr;
+      }
+    }
+  }
+
+  async function loadBalance(address, provider){
+    const contract = new ethers.Contract(HOODFACE_ADDRESS, ERC20_ABI, provider);
+    const [rawBalance, decimals] = await Promise.all([
+      contract.balanceOf(address),
+      contract.decimals()
+    ]);
+    const formatted = ethers.formatUnits(rawBalance, decimals);
+    const balanceNum = parseFloat(formatted);
+    addrEl.textContent = shortAddr(address);
+    balanceEl.textContent = balanceNum.toLocaleString(undefined, {maximumFractionDigits: 0});
+    tierEl.textContent = tierFor(balanceNum);
+    errorBox.classList.remove('show');
+    resultBox.classList.add('show');
+  }
+
+  async function connectWallet(){
+    if (typeof window.ethereum === 'undefined') {
+      showError('Không tìm thấy ví. Cài MetaMask hoặc ví tương thích EVM để tiếp tục.');
+      return;
+    }
+    connectBtn.textContent = 'Connecting…';
+    connectBtn.disabled = true;
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      await provider.send('eth_requestAccounts', []);
+      await ensureRobinhoodChain(provider);
+      const signer = await provider.getSigner();
+      const address = await signer.getAddress();
+      await loadBalance(address, provider);
+      connectBtn.textContent = 'Connected ✓';
+    } catch (err) {
+      console.error(err);
+      showError('Kết nối thất bại hoặc bị từ chối. Thử lại nhé.');
+      connectBtn.textContent = 'Connect Wallet';
+      connectBtn.disabled = false;
+    }
+  }
+
+  connectBtn.addEventListener('click', connectWallet);
+
+  if (typeof window.ethereum !== 'undefined') {
+    window.ethereum.on('accountsChanged', () => { connectBtn.textContent = 'Connect Wallet'; connectBtn.disabled = false; connectWallet(); });
+    window.ethereum.on('chainChanged', () => { window.location.reload(); });
+  }
+
+</script>
+
+</body>
+</html>
