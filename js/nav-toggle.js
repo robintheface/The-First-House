@@ -41,4 +41,17 @@
   window.addEventListener("resize", function () {
     if (window.innerWidth >= MOBILE_BREAKPOINT) closeMenu();
   });
+
+  // Tapping/clicking anywhere outside the open dropdown (or its toggle)
+  // closes it, same as most nav drawers.
+  document.addEventListener("click", function (e) {
+    if (!nav.classList.contains("open")) return;
+    if (nav.contains(e.target) || toggle.contains(e.target)) return;
+    closeMenu();
+  });
+
+  // Escape closes it too, for keyboard users.
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && nav.classList.contains("open")) closeMenu();
+  });
 })();
