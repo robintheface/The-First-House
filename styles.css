@@ -42,10 +42,10 @@
     display:flex; align-items:center; justify-content:space-between;
     padding:12px 20px; max-width:1080px; margin:0 auto;
   }
-  .brand{display:flex; align-items:center; gap:9px; font-family:'IM Fell English',serif; font-weight:400; letter-spacing:0.02em; font-size:19px;}
+  .brand{display:flex; align-items:center; gap:9px; font-family:'IM Fell English',serif; font-weight:400; letter-spacing:0.02em; font-size:24px;}
   .brand-dot{width:26px;height:26px;border-radius:50%;background:conic-gradient(from 180deg, var(--green-bright), var(--gold), var(--green-bright)); box-shadow:0 0 0 2px rgba(232,212,77,0.5);}
   .brand-logo{width:30px;height:30px;display:block;object-fit:contain;border-radius:50%;}
-  .nav-links{display:none; gap:28px; font-size:15px; font-weight:400; color:var(--ink-dim); font-family:'IM Fell English',serif; text-transform:uppercase; letter-spacing:0.08em;}
+  .nav-links{display:none; gap:28px; font-size:17px; font-weight:400; color:var(--ink-dim); font-family:'IM Fell English',serif;}
   .nav-links a:hover{color:var(--gold);}
   @media(min-width:720px){ .nav-links{display:flex;} }
   .topbar-cta{
@@ -66,7 +66,7 @@
     text-align:center;
     overflow:hidden;
     background-image:
-      linear-gradient(180deg, rgba(12,23,16,0.35) 0%, rgba(12,23,16,0.55) 55%, var(--bg) 100%),
+      linear-gradient(180deg, rgba(12,23,16,0.15) 0%, rgba(12,23,16,0.35) 55%, var(--bg) 100%),
       url('hero-bg.webp');
     background-size:cover;
     background-position:center bottom;
