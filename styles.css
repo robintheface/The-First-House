@@ -305,18 +305,39 @@
   @media(min-width:640px){ .quicklink-grid{grid-template-columns:repeat(4,1fr);} }
   .quicklink-card{
     position:relative; display:flex; flex-direction:column; align-items:center; text-align:center;
-    border:0.5px solid var(--line); border-radius:22px; padding:26px 14px;
-    background:rgba(255,255,255,0.025); text-decoration:none; color:var(--ink);
-    transition:transform .15s ease, border-color .15s ease;
+    border:1px solid rgba(111,207,58,0.35); border-radius:22px; padding:28px 16px;
+    background:rgba(111,207,58,0.04); text-decoration:none; color:var(--ink);
+    box-shadow:0 0 22px -8px rgba(111,207,58,0.35);
+    transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease;
   }
-  .quicklink-card:hover{transform:translateY(-3px); border-color:var(--green-bright);}
-  .ql-icon{font-size:28px; margin-bottom:12px;}
-  .ql-name{font-family:'IM Fell English',serif; font-weight:400; font-size:17px; margin-bottom:4px; color:var(--cream2);}
-  .ql-desc{font-size:14px; color:var(--ink-dim); line-height:1.4;}
+  .quicklink-card:hover{
+    transform:translateY(-3px); border-color:var(--green-bright);
+    box-shadow:0 0 30px -6px rgba(111,207,58,0.55);
+  }
+  .quicklink-card.is-disabled{
+    cursor:not-allowed; opacity:0.6;
+  }
+  .quicklink-card.is-disabled:hover{
+    transform:none; box-shadow:0 0 22px -8px rgba(111,207,58,0.35);
+  }
+  .ql-icon{width:56px; height:56px; object-fit:contain; margin-bottom:14px;}
+  .ql-name{font-family:'IM Fell English',serif; font-weight:400; font-size:20px; margin-bottom:6px; color:var(--cream2);}
+  .ql-desc{font-family:'IM Fell English',serif; font-size:16px; color:var(--ink-dim); line-height:1.4;}
+  .ql-desc .accent{color:var(--green-bright);}
+  .ql-divider{
+    display:flex; align-items:center; gap:8px; width:100%; margin-top:18px;
+  }
+  .ql-divider-line{flex:1; height:1px; background:rgba(111,207,58,0.3);}
+  .ql-divider-icon{width:16px; height:16px; object-fit:contain;}
   .ql-soon{
-    position:absolute; top:12px; right:12px;
-    font-family:'IBM Plex Mono',monospace,monospace; font-size:9px; letter-spacing:0.04em;
-    color:var(--ink-dim); border:1px solid var(--line); padding:2px 7px; border-radius:999px;
+    position:relative; display:inline-flex; align-items:center; gap:6px;
+    font-family:'IM Fell English',serif; font-size:13px;
+    color:#9be89b; border:1px solid rgba(111,207,58,0.4); padding:4px 12px; border-radius:999px;
+    background:rgba(111,207,58,0.08);
+  }
+  .ql-soon::before{
+    content:""; width:6px; height:6px; border-radius:50%; background:var(--green-bright);
+    box-shadow:0 0 6px 1px rgba(111,207,58,0.7);
   }
 
   /* ---------- footer ---------- */
