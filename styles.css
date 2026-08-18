@@ -69,9 +69,13 @@
      which hides itself out of the topbar row on the same breakpoint. */
   .nav-cta-mobile{display:none;}
   .nav-links.open .nav-cta-mobile{
-    display:inline-flex; align-items:center; justify-content:center;
-    margin-top:10px; padding:12px 18px; border-radius:999px; border-bottom:0 !important;
-    background:#f5e77a; color:#12220f; font-weight:600; text-decoration:none;
+    /* .nav-links.open already carries 20px of side padding, so a 4px side
+       margin here lands the button 24px from the drawer edge — flush with
+       the nav links' own text (20px padding + 4px <a> padding = 24px). */
+    display:flex; align-items:center; justify-content:center;
+    height:60px; margin:24px 4px 0;
+    border-radius:30px; border-bottom:0 !important;
+    background:#f5e77a; color:#12220f; font-weight:600; font-size:22px; text-decoration:none;
   }
   @media(min-width:720px){
     .nav-links{display:flex; position:static; flex-direction:row; background:none; backdrop-filter:none; border:0; padding:0;}
