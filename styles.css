@@ -20,7 +20,8 @@
       radial-gradient(1100px 600px at 50% -10%, rgba(90,200,40,0.22), transparent 60%),
       var(--bg);
     color:var(--ink);
-    font-family:'Inter',sans-serif;
+    font-family:'IM Fell English',serif;
+    font-size:17px;
     -webkit-font-smoothing:antialiased;
     overflow-x:hidden;
   }
@@ -44,7 +45,7 @@
   .brand{display:flex; align-items:center; gap:9px; font-family:'IM Fell English',serif; font-weight:400; letter-spacing:0.02em; font-size:19px;}
   .brand-dot{width:26px;height:26px;border-radius:50%;background:conic-gradient(from 180deg, var(--green-bright), var(--gold), var(--green-bright)); box-shadow:0 0 0 2px rgba(232,212,77,0.5);}
   .brand-logo{width:30px;height:30px;display:block;object-fit:contain;border-radius:50%;}
-  .nav-links{display:none; gap:26px; font-size:14px; font-weight:500; color:var(--ink-dim);}
+  .nav-links{display:none; gap:26px; font-size:14px; font-weight:500; color:var(--ink-dim); font-family:'Inter',sans-serif;}
   .nav-links a:hover{color:var(--gold);}
   @media(min-width:720px){ .nav-links{display:flex;} }
   .topbar-cta{
@@ -104,7 +105,7 @@
   h1.headline .accent{color:var(--green-bright);}
   .sub{
     max-width:480px; margin:0 auto 30px; color:var(--ink-dim);
-    font-size:16px; line-height:1.55;
+    font-size:18px; line-height:1.55;
   }
   .cta-row{display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-bottom:34px;}
   .btn{
@@ -155,7 +156,7 @@
     font-family:'IM Fell English',serif; font-weight:400; font-size:clamp(26px,5.5vw,38px);
     margin:0 0 12px; color:var(--cream2);
   }
-  .section-desc{color:var(--ink-dim); font-size:15px; line-height:1.6; margin:0;}
+  .section-desc{color:var(--ink-dim); font-size:17px; line-height:1.6; margin:0;}
 
   /* ---------- lore ---------- */
   .lore-card{
@@ -169,7 +170,7 @@
     background:var(--bg-2); border:1px solid var(--line); width:40px; height:40px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
   }
-  .lore-card p{color:var(--ink-dim); line-height:1.75; font-size:15px; margin:0 0 14px;}
+  .lore-card p{color:var(--ink-dim); line-height:1.75; font-size:17px; margin:0 0 14px;}
   .lore-card p:last-child{margin-bottom:0;}
   .lore-card strong{color:var(--cream2);}
   details.lore-toggle summary{
