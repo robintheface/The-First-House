@@ -39,7 +39,7 @@
       <div class="rank-card">
         <div class="rank-card-top">
           <div class="rank-card-label">Your rank</div>
-          <button id="connectBtn" class="btn-connect">Connect Wallet</button>
+          <button id="connectBtn" type="button" class="btn-connect">Connect Wallet</button>
         </div>
         <div id="holderResult" class="holder-result">
           <div class="rank-hero">
@@ -62,7 +62,7 @@
     </div>
 
     <div class="rank-hero-art">
-      <img src="logo-main.png" alt="Robin The Face">
+      <img src="../logo-main.webp" alt="Robin The Face">
     </div>
   </div>
 
@@ -92,7 +92,9 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
-<script>
+<script type="module">
+  import { tierFor, shortAddr } from "../js/wallet-utils.js";
+
   // ---------- wallet connect + holder check ----------
   const HOODFACE_ADDRESS = "0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274";
   const ROBINHOOD_CHAIN_ID_HEX = "0x1237"; // 4663 in hex
@@ -120,15 +122,6 @@
     errorBox.textContent = msg;
     errorBox.classList.add('show');
     resultBox.classList.remove('show');
-  }
-  function shortAddr(a){ return a.slice(0,6) + "…" + a.slice(-4); }
-
-  function tierFor(balanceNum){
-    if (balanceNum >= 10000000) return "🐋 Whale";
-    if (balanceNum >= 1000000) return "💎 Diamond Hood";
-    if (balanceNum >= 100000) return "🧢 Hood Member";
-    if (balanceNum > 0) return "🌱 Fresh Face";
-    return "👀 Not holding yet";
   }
 
   async function ensureRobinhoodChain(provider){

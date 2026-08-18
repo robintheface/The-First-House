@@ -1,0 +1,17 @@
+{
+  "name": "robintheface",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Static marketing site for ROBIN THE FACE / $HOODFACE",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check:links": "node scripts/check-local-links.js",
+    "check:html": "html-validate \"*.html\" \"functions/*.html\"",
+    "verify": "npm run check:links && npm run check:html && npm run test"
+  },
+  "devDependencies": {
+    "html-validate": "^8.18.1",
+    "vitest": "^2.1.4"
+  }
+}
