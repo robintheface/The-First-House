@@ -39,12 +39,6 @@
   </div>
 </header>
 
-<div class="ticker-outer">
-  <div class="ticker-track" id="tickerTrack">
-    <!-- filled by JS -->
-  </div>
-</div>
-
 <section id="lore">
   <div class="section-head">
     <div class="kicker">The legend</div>
@@ -53,10 +47,7 @@
   </div>
   <div class="lore-card">
     <p>A green-hooded archer who steals the pump from whales and hands it back to the hood — but never fakes how he feels about it.</p>
-    <details class="lore-toggle">
-      <summary>Read the full legend</summary>
-      <p style="margin-top:14px;">Legend says he lives in the market's forest. <strong>Euphoric on a green day. Wrecked on a red one. Dead asleep watching a 3am candle.</strong> The community started calling him <strong>ROBIN THE FACE</strong> — not for the hood, but for the face underneath it, which has apparently never once looked chill. We're not selling "always up." We're selling a face that's been through it, same as you.</p>
-    </details>
+    <p>Legend says he lives in the market's forest. <strong>Euphoric on a green day. Wrecked on a red one. Dead asleep watching a 3am candle.</strong> The community started calling him <strong>ROBIN THE FACE</strong> — not for the hood, but for the face underneath it, which has apparently never once looked chill. We're not selling "always up." We're selling a face that's been through it, same as you.</p>
   </div>
 </section>
 
@@ -284,17 +275,6 @@
   <p class="disclaimer">This is a community meme project built for entertainment and culture. Not financial advice. Nothing on this page is a promise of profit — always DYOR before interacting with any token or contract.</p>
   <div class="foot-brand">🏹 ROBIN THE FACE — Every Candle Has a Face.</div>
 </footer>
-
-<script>
-  const moods = [
-    ["Green day", "😄"], ["Rekt", "😭"], ["3am watch", "😴"], ["Ape in", "😍"],
-    ["Copium", "🥲"], ["Diamond hands", "😊"], ["Paper hands", "😰"], ["DYOR", "🤔"],
-    ["Rugged", "😠"], ["Bullish", "🥰"], ["Ngoring", "😎"], ["Moon soon", "🚀"]
-  ];
-  const track = document.getElementById('tickerTrack');
-  const set = moods.map(([label]) => `<div class="ticker-item"><b>${label}</b></div>`).join('');
-  track.innerHTML = set + set;
-</script>
 
 </body>
 </html>
