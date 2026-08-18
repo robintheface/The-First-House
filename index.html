@@ -2,15 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<script>
-  if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
-  // Safari's own pull-to-refresh / reload-button scroll restoration doesn't
-  // reliably respect scrollRestoration, so force it back to top on reload
-  // too — unless the URL has a #section hash, which should still jump there.
-  window.addEventListener('pageshow', function () {
-    if (!location.hash) window.scrollTo(0, 0);
-  });
-</script>
+<script src="js/scroll-fix.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>ROBIN THE FACE — Every Candle Has a Face.</title>
 <link rel="icon" type="image/png" href="favicon.png">
