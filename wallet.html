@@ -6,7 +6,7 @@
 <title>Wallet &amp; Rank — ROBIN THE FACE</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=IM+Fell+English&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -46,34 +46,64 @@
   </div>
 </div>
 
-<section id="holders" style="padding-top:60px;">
-  <div class="section-head">
-    <div class="kicker">Prove it</div>
-    <h2 class="section-title">Check your face rank</h2>
-    <p class="section-desc">Connect your wallet to see your $HOODFACE balance and hood status.</p>
+<section id="holders" class="rank-hero-section">
+  <div class="rank-chain-badge">🍃 Built on Robinhood Chain</div>
+
+  <div class="rank-hero-grid">
+    <div class="rank-hero-text">
+      <div class="section-head" style="text-align:left; margin:0 0 24px;">
+        <div class="kicker">Prove it</div>
+        <h2 class="section-title" style="text-align:left;">Check your <span style="color:var(--green-bright);">face rank</span></h2>
+        <p class="section-desc" style="text-align:left; margin:10px 0 0;">Connect your wallet to see your $HOODFACE balance and hood status.</p>
+      </div>
+
+      <div class="rank-card">
+        <div class="rank-card-top">
+          <div class="rank-card-label">Your rank</div>
+          <button id="connectBtn" class="btn-connect">Connect Wallet</button>
+        </div>
+        <div id="holderResult" class="holder-result">
+          <div class="rank-hero">
+            <span id="holderTier" class="rank-hero-title">—</span>
+          </div>
+          <div id="holderAddr" class="holder-addr"></div>
+          <div class="rank-stats">
+            <div class="rank-stat">
+              <div class="rank-stat-label">Balance</div>
+              <div class="rank-stat-value" id="holderBalance">0</div>
+            </div>
+            <div class="rank-stat">
+              <div class="rank-stat-label">Symbol</div>
+              <div class="rank-stat-value">$HOODFACE</div>
+            </div>
+          </div>
+        </div>
+        <div id="holderError" class="holder-error"></div>
+      </div>
+    </div>
+
+    <div class="rank-hero-art">
+      <img src="logo-main.png" alt="Robin The Face">
+    </div>
   </div>
-  <div class="rank-card">
-    <div class="rank-card-top">
-      <div class="rank-card-label">Your rank</div>
-      <button id="connectBtn" class="btn-connect">Connect Wallet</button>
+
+  <div class="rank-badges">
+    <div class="rank-badge-item">
+      <span class="rank-badge-icon">🤝</span>
+      <div><strong>Community First</strong><span>Built by the hood, for the hood.</span></div>
     </div>
-    <div id="holderResult" class="holder-result">
-      <div class="rank-hero">
-        <span id="holderTier" class="rank-hero-title">—</span>
-      </div>
-      <div id="holderAddr" class="holder-addr"></div>
-      <div class="rank-stats">
-        <div class="rank-stat">
-          <div class="rank-stat-label">Balance</div>
-          <div class="rank-stat-value" id="holderBalance">0</div>
-        </div>
-        <div class="rank-stat">
-          <div class="rank-stat-label">Symbol</div>
-          <div class="rank-stat-value">$HOODFACE</div>
-        </div>
-      </div>
+    <div class="rank-badge-item">
+      <span class="rank-badge-icon">🛡️</span>
+      <div><strong>No Team</strong><span>No insiders. Just the hood.</span></div>
     </div>
-    <div id="holderError" class="holder-error"></div>
+    <div class="rank-badge-item">
+      <span class="rank-badge-icon">🎭</span>
+      <div><strong>No KYC</strong><span>No identity, just anonymity.</span></div>
+    </div>
+    <div class="rank-badge-item">
+      <span class="rank-badge-icon">👑</span>
+      <div><strong>Just The Hood</strong><span>Culture over everything.</span></div>
+    </div>
   </div>
 </section>
 
