@@ -49,8 +49,8 @@
   .nav-links a:hover{color:var(--gold);}
   @media(min-width:720px){ .nav-links{display:flex;} }
   .topbar-cta{
-    font-family:'IBM Plex Mono',monospace,monospace; font-size:12px; font-weight:600;
-    padding:9px 14px; border-radius:999px;
+    font-family:'IM Fell English',serif; font-size:16px; font-weight:400;
+    padding:8px 16px; border-radius:999px;
     background:var(--gold); color:#12220f; text-decoration:none;
     white-space:nowrap;
   }
@@ -109,8 +109,8 @@
   }
   .cta-row{display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-bottom:34px;}
   .btn{
-    font-family:'Inter',sans-serif; font-weight:600; font-size:14.5px;
-    padding:14px 24px; border-radius:12px; text-decoration:none;
+    font-family:'IM Fell English',serif; font-weight:400; font-size:18px;
+    padding:14px 26px; border-radius:12px; text-decoration:none;
     display:inline-flex; align-items:center; gap:8px;
     border:1px solid transparent; transition:transform .15s ease, box-shadow .15s ease;
   }
@@ -204,7 +204,7 @@
     width:100%; aspect-ratio:1/1; background-size:contain; background-repeat:no-repeat; background-position:center;
     margin-bottom:10px;
   }
-  .face-label{font-family:'IBM Plex Mono',monospace,monospace; font-size:11.5px; color:var(--ink-dim); letter-spacing:0.02em;}
+  .face-label{font-family:'IM Fell English',serif; font-size:16px; color:var(--ink-dim); letter-spacing:0.01em;}
   .gallery-note{text-align:center; margin-top:18px; font-size:13px; color:var(--ink-dim); font-family:'IBM Plex Mono',monospace,monospace;}
 
   /* ---------- ledger / tokenomics ---------- */
@@ -214,14 +214,14 @@
   }
   .ledger-row{
     display:flex; justify-content:space-between; align-items:center;
-    padding:16px 20px; border-bottom:1px dashed var(--line);
-    font-family:'IBM Plex Mono',monospace,monospace; font-size:13.5px;
+    padding:18px 20px; border-bottom:1px dashed var(--line);
+    font-family:'IBM Plex Mono',monospace,monospace; font-size:16px;
   }
   .ledger-row:last-child{border-bottom:none;}
   .ledger-row .k{color:var(--ink-dim);}
   .ledger-row .v{color:var(--cream2); font-weight:600;}
   .ledger-row.wrap{flex-wrap:wrap;}
-  .ledger-row.wrap .v{width:100%; word-break:break-all; margin-top:6px; font-size:12px; text-align:left;}
+  .ledger-row.wrap .v{width:100%; word-break:break-all; margin-top:6px; font-size:14px; text-align:left;}
   .ledger-row .v.pending{color:var(--gold);}
 
   /* ---------- roadmap trail ---------- */
