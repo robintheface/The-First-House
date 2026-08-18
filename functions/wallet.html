@@ -14,14 +14,17 @@
 <div class="topbar" id="top">
   <div class="topbar-inner">
     <a href="/" class="brand" style="text-decoration:none;"><img class="brand-logo" src="../logo.png" alt="Robin The Face logo"> ROBIN THE FACE</a>
-    <nav class="nav-links">
+    <nav class="nav-links" id="top-nav">
       <a href="/#lore">Lore</a>
       <a href="/#faces">Faces</a>
       <a href="/#tokenomics">Tokenomics</a>
       <a href="/#roadmap">Trail</a>
       <a href="/#community">Community</a>
     </nav>
-    <a class="topbar-cta" href="https://app.uniswap.org/swap?outputCurrency=0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274" target="_blank" rel="noopener noreferrer">Buy $HOODFACE</a>
+    <div class="topbar-right">
+      <a class="topbar-cta" href="https://app.uniswap.org/swap?outputCurrency=0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274" target="_blank" rel="noopener noreferrer">Buy $HOODFACE</a>
+      <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="top-nav">☰</button>
+    </div>
   </div>
 </div>
 
@@ -91,6 +94,7 @@
   <div class="foot-brand">🏹 ROBIN THE FACE — Every Candle Has a Face.</div>
 </footer>
 
+<script src="../js/nav-toggle.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
 <script type="module">
   import { tierFor, shortAddr } from "../js/wallet-utils.js";
