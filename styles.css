@@ -66,10 +66,11 @@
     text-align:center;
     overflow:hidden;
     background-image:
+      radial-gradient(700px 380px at 50% 82%, rgba(139,232,90,0.28), transparent 65%),
       linear-gradient(180deg, rgba(12,23,16,0.15) 0%, rgba(12,23,16,0.35) 55%, var(--bg) 100%),
       url('hero-bg.webp');
-    background-size:cover;
-    background-position:center bottom;
+    background-size:auto, auto, cover;
+    background-position:0 0, 0 0, center bottom;
     background-repeat:no-repeat;
   }
   .hero::before{
