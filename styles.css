@@ -199,12 +199,18 @@
   .btn:active{transform:scale(0.97);}
   .btn-primary{
     color:#0d1a0f;
-    /* .btn (shared) sets a 1px transparent border. With an animated
-       background repainting every frame, the border-box's rounded corner
-       and the background's own rounded clip can rasterize a hair out of
-       sync, showing a thin dark gap at the curve. Clipping the background
-       to the padding box (inside the border) instead of relying on the
-       border's own antialiased radius sidesteps that entirely; overflow
+    /* .btn (shared) sets a 1px transparent border. background-clip:padding-box
+       (below) paints the gradient only inside that border, so a *transparent*
+       border here would leave a visible ring of bare dark page background
+       all the way around the button -- a real gold border instead both
+       fixes that gap and gives the glossy rim gold trim that was asked for. */
+    border-width:1px;
+    border-color:#f6d685;
+    /* With an animated background repainting every frame, the border-box's
+       rounded corner and the background's own rounded clip can rasterize a
+       hair out of sync, showing a thin gap at the curve. Clipping the
+       background to the padding box (inside the border) instead of relying
+       on the border's own antialiased radius sidesteps that; overflow
        hidden is a second belt-and-suspenders clip. */
     background-clip:padding-box;
     overflow:hidden;
@@ -238,8 +244,11 @@
     50%{ box-shadow:0 4px 20px -4px rgba(245,231,122,0.75), 0 0 24px 4px rgba(245,231,122,0.6); }
   }
   @keyframes btn-glow-pulse-green{
-    0%, 100%{ box-shadow:0 10px 24px -10px rgba(111,207,58,0.45), 0 0 8px 0 rgba(111,207,58,0.2); }
-    50%{ box-shadow:0 10px 30px -8px rgba(111,207,58,0.85), 0 0 26px 5px rgba(111,207,58,0.55); }
+    /* third layer is a static inner rim-light along the top edge -- same in
+       both keyframes so it doesn't pulse, just adds a glossy highlight
+       catching the gold border. */
+    0%, 100%{ box-shadow:0 10px 24px -10px rgba(111,207,58,0.45), 0 0 8px 0 rgba(111,207,58,0.2), inset 0 1px 0 rgba(255,246,217,0.5); }
+    50%{ box-shadow:0 10px 30px -8px rgba(111,207,58,0.85), 0 0 26px 5px rgba(111,207,58,0.55), inset 0 1px 0 rgba(255,246,217,0.5); }
   }
   .btn-ghost{
     background:transparent; border-color:var(--line); color:var(--ink);
