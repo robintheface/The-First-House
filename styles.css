@@ -204,7 +204,7 @@
        border here would leave a visible ring of bare dark page background
        all the way around the button -- a real gold border instead both
        fixes that gap and gives the glossy rim gold trim that was asked for. */
-    border-width:2px;
+    border-width:1px;
     border-color:#f6d685;
     /* With an animated background repainting every frame, the border-box's
        rounded corner and the background's own rounded clip can rasterize a
