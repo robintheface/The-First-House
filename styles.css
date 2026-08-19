@@ -93,8 +93,9 @@
     padding:9px 16px; min-height:40px; border-radius:999px;
     display:inline-flex; align-items:center; gap:6px;
     background:transparent; border:1px solid var(--line); color:var(--ink);
-    text-decoration:none;
+    text-decoration:none; transition:box-shadow .2s ease, transform .15s ease, border-color .2s ease;
   }
+  .explore-btn:active{transform:scale(0.97);}
   /* Below 720px it hides for the same reason topbar-cta does (no room next
      to the brand name) — reachable instead as a link inside the hamburger
      dropdown, see .explore-link-mobile above. */
@@ -490,7 +491,11 @@
       box-shadow:0 0 20px 2px rgba(232,212,77,0.55), 0 0 40px 4px rgba(232,212,77,0.25);
       transform:translateY(-1px);
     }
-    .explore-btn:hover{border-color:var(--green-bright);}
+    .explore-btn:hover{
+      border-color:var(--green-bright);
+      box-shadow:0 0 20px 2px rgba(111,207,58,0.4), 0 0 40px 4px rgba(111,207,58,0.2);
+      transform:translateY(-1px);
+    }
     .btn:hover{transform:translateY(-2px);}
     .btn-primary:hover{
       box-shadow:0 10px 24px -10px rgba(111,207,58,0.55), 0 0 24px 4px rgba(111,207,58,0.5), 0 0 46px 8px rgba(111,207,58,0.25);
