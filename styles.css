@@ -13,6 +13,13 @@
     --ink: #eef4ea;
     --ink-dim: rgba(238,244,234,0.62);
   }
+  @font-face{
+    font-family:'Robin The Face';
+    src:url('/fonts/RobinTheFace.ttf') format('truetype');
+    font-weight:400;
+    font-style:normal;
+    font-display:swap;
+  }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   body{
@@ -45,7 +52,7 @@
   }
   .brand{display:flex; align-items:center; gap:9px;}
   .brand-name{
-    font-family:'Cinzel Decorative',serif; font-weight:700; letter-spacing:0.01em; font-size:17px;
+    font-family:'Robin The Face','Cinzel Decorative',serif; font-weight:400; letter-spacing:0.01em; font-size:21px;
     color:var(--bronze); /* fallback for browsers without background-clip:text */
     background-image:linear-gradient(100deg,
       #8a5a1a 0%, #f0d074 18%, #fff6dd 32%, #f0d074 46%, #a5691f 62%, #f0d074 80%, #8a5a1a 100%);
