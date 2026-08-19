@@ -5,6 +5,7 @@
     { "source": "/wallet", "destination": "/functions/wallet.html" },
     { "source": "/luckydraw", "destination": "/functions/luckydraw.html" },
     { "source": "/tickets", "destination": "/functions/tickets.html" },
-    { "source": "/burn", "destination": "/functions/burn.html" }
+    { "source": "/burn", "destination": "/functions/burn.html" },
+    { "source": "/explore", "destination": "/functions/explore.html" }
   ]
 }
