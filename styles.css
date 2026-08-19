@@ -43,9 +43,15 @@
     display:flex; align-items:center; justify-content:space-between;
     padding:12px 20px; max-width:1080px; margin:0 auto;
   }
-  .brand{display:flex; align-items:center; gap:9px; font-family:'IM Fell English',serif; font-weight:400; letter-spacing:0.02em; font-size:19px; color:var(--bronze);}
+  .brand{
+    display:flex; align-items:center; gap:9px; font-family:'IM Fell English',serif; font-weight:400; letter-spacing:0.02em; font-size:19px;
+    color:var(--bronze); text-shadow:0 0 8px rgba(196,138,74,0.65), 0 0 18px rgba(196,138,74,0.35);
+  }
   .brand-dot{width:26px;height:26px;border-radius:50%;background:conic-gradient(from 180deg, var(--green-bright), var(--gold), var(--green-bright)); box-shadow:0 0 0 2px rgba(232,212,77,0.5);}
-  .brand-logo{width:36px;height:36px;display:block;object-fit:contain;border-radius:50%;}
+  .brand-logo{
+    width:36px;height:36px;display:block;object-fit:contain;border-radius:50%;
+    filter:drop-shadow(0 0 6px rgba(196,138,74,0.6)) drop-shadow(0 0 14px rgba(196,138,74,0.35));
+  }
 
   .topbar-right{display:flex; align-items:center; gap:10px;}
   .nav-toggle{
