@@ -1,12 +1,6 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
-  "rewrites": [
-    { "source": "/wallet", "destination": "/functions/wallet.html" },
-    { "source": "/luckydraw", "destination": "/functions/luckydraw.html" },
-    { "source": "/tickets", "destination": "/functions/tickets.html" },
-    { "source": "/burn", "destination": "/functions/burn.html" }
-  ],
   "headers": [
     {
       "source": "/(.*)",

@@ -7,7 +7,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check:links": "node scripts/check-local-links.js",
-    "check:html": "html-validate \"*.html\" \"functions/*.html\"",
+    "check:html": "html-validate \"*.html\" \"explore/**/*.html\"",
     "verify": "npm run check:links && npm run check:html && npm run test"
   },
   "devDependencies": {
