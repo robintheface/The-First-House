@@ -75,11 +75,17 @@
       drop-shadow(0 2px 2px rgba(30,16,4,0.5))
       drop-shadow(0 4px 9px rgba(0,0,0,0.35))
       drop-shadow(0 0 9px rgba(246,214,133,0.5));
-    animation:brand-shine 4.5s ease-in-out infinite;
+    animation:brand-shine 3.2s linear infinite;
   }
+  /* One continuous sweep per loop, no hold in the middle -- the previous
+     version paused on a fully-swept (but still visible, mid-gradient)
+     frame for ~40% of the cycle, which read as the animation stalling
+     rather than a deliberate pause. Wrapping straight from -130% back to
+     130% is invisible (the shine band is off past the text on both
+     ends), so the loop reads as one uninterrupted glide. */
   @keyframes brand-shine{
-    0%, 15%{ background-position:130% 0, 0 0; }
-    60%, 100%{ background-position:-130% 0, 0 0; }
+    0%{ background-position:130% 0, 0 0; }
+    100%{ background-position:-130% 0, 0 0; }
   }
   .brand-logo{
     width:46px;height:46px;display:block;object-fit:contain;border-radius:50%;
@@ -118,8 +124,18 @@
     font-family:'IM Fell English',serif; font-size:16px; font-weight:400;
     padding:10px 18px; border-radius:999px; min-height:40px;
     display:inline-flex; align-items:center;
-    background:#f5e77a; color:#12220f; text-decoration:none;
+    color:#12220f; text-decoration:none;
     white-space:nowrap; transition:box-shadow .2s ease, transform .15s ease;
+    /* Layer 1: a bright diagonal streak that sweeps left-to-right on a loop.
+       Layer 2: the button's flat base color, written as a gradient so both
+       layers share one background-position/size shape (see .btn-shine-sweep). */
+    background-image:
+      linear-gradient(100deg, transparent 35%, rgba(255,255,255,0.85) 50%, transparent 65%),
+      linear-gradient(#f5e77a, #f5e77a);
+    background-size:220% 100%, 100% 100%;
+    background-position:130% 0, 0 0;
+    background-repeat:no-repeat;
+    animation:btn-shine-sweep 3s linear infinite;
     /* mirror reflection, like the button is sitting on glass — brightest
        right below the pill, fading to nothing a few px down. WebKit-only
        (Chrome/Safari/Edge); Firefox just shows no reflection, no breakage. */
@@ -181,9 +197,22 @@
   }
   .btn:active{transform:scale(0.97);}
   .btn-primary{
-    background:linear-gradient(180deg, #8be85a, var(--green-bright));
     color:#0d1a0f; box-shadow:0 10px 24px -10px rgba(111,207,58,0.55);
+    background-image:
+      linear-gradient(100deg, transparent 35%, rgba(255,255,255,0.8) 50%, transparent 65%),
+      linear-gradient(180deg, #8be85a, var(--green-bright));
+    background-size:220% 100%, 100% 100%;
+    background-position:130% 0, 0 0;
+    background-repeat:no-repeat;
+    animation:btn-shine-sweep 3s linear infinite;
     -webkit-box-reflect: below 3px linear-gradient(to bottom, rgba(111,207,58,0.4), rgba(111,207,58,0) 70%);
+  }
+  /* Shared by both "Buy $HOODFACE" buttons — continuous left-to-right glint,
+     no hold in the middle (same lesson as brand-shine: a dwell on a visible
+     mid-sweep frame reads as the animation stalling, not resting). */
+  @keyframes btn-shine-sweep{
+    0%{ background-position:130% 0, 0 0; }
+    100%{ background-position:-130% 0, 0 0; }
   }
   .btn-ghost{
     background:transparent; border-color:var(--line); color:var(--ink);
