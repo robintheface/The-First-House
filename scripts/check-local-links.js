@@ -11,6 +11,12 @@ const ROOT = path.resolve(__dirname, "..");
 const IGNORE_DIRS = new Set(["node_modules", ".git"]);
 const ATTR_RE = /\b(?:src|href)\s*=\s*"([^"]+)"/g;
 
+// Root-relative hrefs like "/explore" aren't real files — they're routed by
+// vercel.json's rewrites. Load those so the checker resolves them the same
+// way Vercel would instead of flagging every clean URL as broken.
+const VERCEL_CONFIG = JSON.parse(fs.readFileSync(path.join(ROOT, "vercel.json"), "utf8"));
+const REWRITES = new Map((VERCEL_CONFIG.rewrites || []).map(r => [r.source, r.destination]));
+
 function findHtmlFiles(dir, out = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (IGNORE_DIRS.has(entry.name)) continue;
@@ -37,8 +43,10 @@ function resolveLocalPath(htmlFile, ref) {
   const clean = ref.split("#")[0].split("?")[0];
   if (clean === "") return null; // pure anchor/query, nothing to check
   if (clean.startsWith("/")) {
-    // Site-root-relative, e.g. Vercel rewrite targets or "/" for index.
+    // Site-root-relative. Could be a real file path, or a clean URL that
+    // only resolves via a vercel.json rewrite (e.g. "/explore").
     if (clean === "/") return path.join(ROOT, "index.html");
+    if (REWRITES.has(clean)) return path.join(ROOT, REWRITES.get(clean));
     return path.join(ROOT, clean);
   }
   return path.resolve(path.dirname(htmlFile), clean);
