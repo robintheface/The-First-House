@@ -53,6 +53,11 @@
     background-position:0% center;
     -webkit-background-clip:text; background-clip:text;
     -webkit-text-fill-color:transparent;
+    -webkit-text-stroke:0.4px rgba(50,28,8,0.55);
+    filter:
+      drop-shadow(0 -1px 0 rgba(255,250,220,0.4))
+      drop-shadow(0 2px 1px rgba(40,20,0,0.65))
+      drop-shadow(0 3px 7px rgba(0,0,0,0.4));
     animation:brand-shimmer 5s linear infinite;
   }
   @keyframes brand-shimmer{ to{ background-position:-220% center; } }
