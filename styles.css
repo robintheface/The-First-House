@@ -120,6 +120,10 @@
     display:inline-flex; align-items:center;
     background:#f5e77a; color:#12220f; text-decoration:none;
     white-space:nowrap; transition:box-shadow .2s ease, transform .15s ease;
+    /* mirror reflection, like the button is sitting on glass — brightest
+       right below the pill, fading to nothing a few px down. WebKit-only
+       (Chrome/Safari/Edge); Firefox just shows no reflection, no breakage. */
+    -webkit-box-reflect: below 2px linear-gradient(to bottom, rgba(255,255,255,0.35), rgba(255,255,255,0) 70%);
   }
   /* Below 720px the topbar CTA hides so the brand name has room to stay on
      one line — the hero's own "Buy $HOODFACE" button covers mobile instead. */
@@ -179,6 +183,7 @@
   .btn-primary{
     background:linear-gradient(180deg, #8be85a, var(--green-bright));
     color:#0d1a0f; box-shadow:0 10px 24px -10px rgba(111,207,58,0.55);
+    -webkit-box-reflect: below 3px linear-gradient(to bottom, rgba(111,207,58,0.4), rgba(111,207,58,0) 70%);
   }
   .btn-ghost{
     background:transparent; border-color:var(--line); color:var(--ink);
