@@ -45,12 +45,34 @@
   .brand{display:flex; align-items:center; gap:9px; font-family:'IM Fell English',serif; font-weight:400; letter-spacing:0.02em; font-size:19px;}
   .brand-dot{width:26px;height:26px;border-radius:50%;background:conic-gradient(from 180deg, var(--green-bright), var(--gold), var(--green-bright)); box-shadow:0 0 0 2px rgba(232,212,77,0.5);}
   .brand-logo{width:30px;height:30px;display:block;object-fit:contain;border-radius:50%;}
+
+  .topbar-right{display:flex; align-items:center; gap:10px;}
+  .nav-toggle{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:40px; height:40px; padding:0;
+    background:transparent; border:1px solid var(--line); border-radius:10px;
+    color:var(--ink); font-size:18px; line-height:1; cursor:pointer;
+  }
+  @media(min-width:720px){ .nav-toggle{display:none;} }
+
   .nav-links{display:none; gap:28px; font-size:17px; font-weight:400; color:var(--ink-dim); font-family:'IM Fell English',serif;}
-  .nav-links a:hover{color:var(--gold);}
-  @media(min-width:720px){ .nav-links{display:flex;} }
+  .nav-links.open{
+    display:flex; flex-direction:column; gap:2px;
+    position:absolute; top:100%; left:0; right:0;
+    background:rgba(12,23,16,0.97); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+    padding:6px 20px 18px;
+  }
+  .nav-links.open a{padding:12px 4px; border-bottom:1px solid rgba(241,234,220,0.08);}
+  .nav-links.open a:last-child{border-bottom:none;}
+  @media(min-width:720px){
+    .nav-links{display:flex; position:static; flex-direction:row; background:none; backdrop-filter:none; border:0; padding:0;}
+    .nav-links a{padding:0; border-bottom:0;}
+  }
   .topbar-cta{
     font-family:'IM Fell English',serif; font-size:16px; font-weight:400;
-    padding:8px 16px; border-radius:999px;
+    padding:10px 18px; border-radius:999px; min-height:40px;
+    display:inline-flex; align-items:center;
     background:#f5e77a; color:#12220f; text-decoration:none;
     white-space:nowrap; transition:box-shadow .2s ease, transform .15s ease;
   }
@@ -68,6 +90,10 @@
     box-shadow:0 0 20px 2px rgba(139,232,90,0.55), 0 0 40px 4px rgba(139,232,90,0.25);
     transform:translateY(-1px);
   }
+
+  /* Below 720px the topbar CTA hides so the brand name has room to stay on
+     one line — the hero's own "Buy $HOODFACE" button covers mobile instead. */
+  @media(max-width:719px){ .topbar-cta{display:none;} }
 
   /* ---------- hero ---------- */
   .hero{
@@ -135,20 +161,12 @@
     border:1px solid transparent; transition:transform .15s ease, box-shadow .15s ease;
   }
   .btn:active{transform:scale(0.97);}
-  .btn:hover{transform:translateY(-2px);}
   .btn-primary{
     background:linear-gradient(180deg, #8be85a, var(--green-bright));
     color:#0d1a0f; box-shadow:0 10px 24px -10px rgba(111,207,58,0.55);
   }
-  .btn-primary:hover{
-    box-shadow:0 10px 24px -10px rgba(111,207,58,0.55), 0 0 24px 4px rgba(111,207,58,0.5), 0 0 46px 8px rgba(111,207,58,0.25);
-  }
   .btn-ghost{
     background:transparent; border-color:var(--line); color:var(--ink);
-  }
-  .btn-ghost:hover{
-    border-color:var(--green-bright);
-    box-shadow:0 0 20px 2px rgba(111,207,58,0.4), 0 0 40px 4px rgba(111,207,58,0.2);
   }
   .btn-disabled{
     background:rgba(241,234,220,0.06); color:var(--ink-dim); border-color:var(--line);
@@ -196,11 +214,6 @@
     position:relative;
     transition:box-shadow .2s ease, border-color .2s ease;
   }
-  .lore-card:hover{
-    border-color:#f5e77a;
-    box-shadow:inset 0 0 0 4px rgba(12,23,16,0.9), inset 0 0 0 5px rgba(139,232,90,0.65),
-      0 0 40px -2px rgba(139,232,90,0.7);
-  }
   .lore-card::before{
     content:"🏹"; position:absolute; top:-16px; left:24px; font-size:22px;
     background:var(--bg-2); border:1px solid var(--gold); width:40px; height:40px; border-radius:50%;
@@ -231,12 +244,6 @@
     padding:18px 14px 16px; text-align:center; position:relative; z-index:1;
     transition:border-color .25s ease, box-shadow .25s ease, transform .3s cubic-bezier(.34,1.56,.64,1);
   }
-  .face-card:hover{
-    transform:scale(1.06) translateY(-8px);
-    border-color:#f5e77a; z-index:30;
-    box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(139,232,90,0.6),
-      0 18px 36px -6px rgba(139,232,90,0.7);
-  }
   .face-img{
     width:100%; aspect-ratio:1/1; background-size:contain; background-repeat:no-repeat; background-position:center;
     margin-bottom:10px;
@@ -245,7 +252,6 @@
     font-family:'IM Fell English',serif; font-size:16px; color:var(--ink-dim); letter-spacing:0.01em;
     transition:color .25s ease;
   }
-  .face-card:hover .face-label{color:var(--cream2);}
   .gallery-note{text-align:center; margin-top:18px; font-size:13px; color:var(--ink-dim); font-family:'IBM Plex Mono',monospace,monospace;}
 
   /* ---------- ledger / tokenomics ---------- */
@@ -255,11 +261,6 @@
     box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(111,207,58,0.3),
       0 0 26px -6px rgba(111,207,58,0.45);
     transition:border-color .2s ease, box-shadow .2s ease;
-  }
-  .ledger:hover{
-    border-color:#f5e77a;
-    box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(139,232,90,0.6),
-      0 0 40px -2px rgba(139,232,90,0.7);
   }
   .ledger-row{
     display:flex; justify-content:space-between; align-items:center;
@@ -293,6 +294,41 @@
   .trail-title{font-family:'IM Fell English',serif; font-weight:400; font-size:20px; color:var(--cream2); margin-bottom:6px;}
   .trail-desc{color:var(--ink-dim); font-size:17px; line-height:1.6;}
 
+  /* ---------- wallet page hero (functions/wallet.html) ---------- */
+  .rank-hero-section{max-width:1000px; margin:0 auto;}
+  .rank-chain-badge{
+    display:inline-flex; align-items:center; gap:6px; max-width:max-content;
+    font-family:'IBM Plex Mono',monospace,monospace; font-size:11px; letter-spacing:0.06em;
+    text-transform:uppercase; color:var(--green-bright);
+    background:rgba(111,207,58,0.08); border:1px solid rgba(111,207,58,0.3);
+    border-radius:999px; padding:6px 14px; margin:0 auto 32px;
+  }
+  .rank-hero-grid{
+    display:grid; grid-template-columns:1fr; gap:36px; align-items:center;
+  }
+  @media(min-width:860px){
+    .rank-hero-grid{grid-template-columns:1.05fr 0.95fr; gap:48px;}
+  }
+  .rank-hero-art{display:flex; align-items:center; justify-content:center;}
+  .rank-hero-art img{
+    width:100%; max-width:220px; height:auto; object-fit:contain;
+    filter:drop-shadow(0 14px 30px rgba(0,0,0,0.35));
+  }
+  @media(min-width:860px){ .rank-hero-art img{max-width:320px;} }
+  .rank-badges{
+    display:grid; grid-template-columns:1fr; gap:14px; margin-top:56px;
+  }
+  @media(min-width:520px){ .rank-badges{grid-template-columns:1fr 1fr;} }
+  @media(min-width:860px){ .rank-badges{grid-template-columns:repeat(4,1fr);} }
+  .rank-badge-item{
+    display:flex; align-items:flex-start; gap:12px;
+    background:rgba(111,207,58,0.04); border:1px solid var(--line); border-radius:16px;
+    padding:16px;
+  }
+  .rank-badge-item .rank-badge-icon{font-size:22px; line-height:1; flex:0 0 auto;}
+  .rank-badge-item strong{font-family:'IM Fell English',serif; font-weight:400; font-size:16px; color:var(--cream2); display:block; margin-bottom:2px;}
+  .rank-badge-item > div > span{display:block; font-size:13px; color:var(--ink-dim); line-height:1.4;}
+
   /* ---------- holder check (modern rank card) ---------- */
   .rank-card{
     max-width:420px; margin:0 auto; background:rgba(111,207,58,0.05);
@@ -305,14 +341,10 @@
   }
   .btn-connect{
     font-family:'Inter',sans-serif; font-weight:600; font-size:13px;
-    padding:9px 18px; border-radius:999px; text-decoration:none;
+    padding:11px 20px; min-height:40px; border-radius:999px; text-decoration:none;
     display:inline-flex; align-items:center; gap:6px;
     background:transparent; border:1px solid #8be85a; color:#8be85a;
     cursor:pointer; transition:transform .15s ease, background .15s ease, box-shadow .2s ease;
-  }
-  .btn-connect:hover{
-    background:rgba(111,207,58,0.1);
-    box-shadow:0 0 20px 2px rgba(111,207,58,0.45), 0 0 38px 4px rgba(111,207,58,0.22);
   }
   .btn-connect:active{transform:scale(0.97);}
 
@@ -345,10 +377,6 @@
     background:rgba(255,255,255,0.025); text-decoration:none; color:var(--ink);
     transition:transform .15s ease, border-color .15s ease, box-shadow .2s ease;
   }
-  .comm-card:hover{
-    transform:translateY(-3px); border-color:var(--green-bright);
-    box-shadow:0 0 20px 2px rgba(111,207,58,0.35), 0 0 40px 4px rgba(111,207,58,0.18);
-  }
   .comm-icon{font-size:26px; margin-bottom:10px; display:block;}
   .comm-name{font-family:'IM Fell English',serif; font-weight:400; font-size:18px; margin-bottom:3px;}
   .comm-sub{font-family:'IBM Plex Mono',monospace,monospace; font-size:11px; color:var(--ink-dim);}
@@ -367,11 +395,6 @@
     box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(111,207,58,0.3),
       0 0 26px -6px rgba(111,207,58,0.45);
     transition:transform .2s cubic-bezier(.34,1.56,.64,1), border-color .2s ease, box-shadow .2s ease;
-  }
-  .quicklink-card:hover{
-    transform:translateY(-10px) scale(1.03); border-color:#f5e77a; z-index:10;
-    box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(139,232,90,0.7),
-      0 22px 44px -6px rgba(139,232,90,0.75);
   }
   .quicklink-card.is-disabled{
     cursor:not-allowed; opacity:0.85;
@@ -444,4 +467,60 @@
   .medallion-ring,
   .medallion-inner{
     display:none !important;
+  }
+
+  /* ---------- press feedback for touch (no :hover, so give taps their own cue) ---------- */
+  .lore-card:active, .face-card:active, .comm-card:active, .quicklink-card:active{
+    transform:scale(0.98);
+  }
+
+  /* ---------- hover-only effects ----------
+     Guarded behind (hover:hover) and (pointer:fine) so touch devices never
+     get stuck in a "hovered" glow after a tap — touch has no real hover,
+     it just simulates one on first tap and doesn't clear it until the user
+     taps something else. Mouse/trackpad users get the same effects as before. */
+  @media (hover: hover) and (pointer: fine){
+    .nav-links a:hover{color:var(--gold);}
+    .topbar-cta:hover{
+      box-shadow:0 0 20px 2px rgba(232,212,77,0.55), 0 0 40px 4px rgba(232,212,77,0.25);
+      transform:translateY(-1px);
+    }
+    .btn:hover{transform:translateY(-2px);}
+    .btn-primary:hover{
+      box-shadow:0 10px 24px -10px rgba(111,207,58,0.55), 0 0 24px 4px rgba(111,207,58,0.5), 0 0 46px 8px rgba(111,207,58,0.25);
+    }
+    .btn-ghost:hover{
+      border-color:var(--green-bright);
+      box-shadow:0 0 20px 2px rgba(111,207,58,0.4), 0 0 40px 4px rgba(111,207,58,0.2);
+    }
+    .lore-card:hover{
+      border-color:#f5e77a;
+      box-shadow:inset 0 0 0 4px rgba(12,23,16,0.9), inset 0 0 0 5px rgba(139,232,90,0.65),
+        0 0 40px -2px rgba(139,232,90,0.7);
+    }
+    .face-card:hover{
+      transform:scale(1.06) translateY(-8px);
+      border-color:#f5e77a; z-index:30;
+      box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(139,232,90,0.6),
+        0 18px 36px -6px rgba(139,232,90,0.7);
+    }
+    .face-card:hover .face-label{color:var(--cream2);}
+    .ledger:hover{
+      border-color:#f5e77a;
+      box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(139,232,90,0.6),
+        0 0 40px -2px rgba(139,232,90,0.7);
+    }
+    .comm-card:hover{
+      transform:translateY(-3px); border-color:var(--green-bright);
+      box-shadow:0 0 20px 2px rgba(111,207,58,0.35), 0 0 40px 4px rgba(111,207,58,0.18);
+    }
+    .quicklink-card:hover{
+      transform:translateY(-10px) scale(1.03); border-color:#f5e77a; z-index:10;
+      box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(139,232,90,0.7),
+        0 22px 44px -6px rgba(139,232,90,0.75);
+    }
+    .btn-connect:hover{
+      background:rgba(111,207,58,0.1);
+      box-shadow:0 0 20px 2px rgba(111,207,58,0.45), 0 0 38px 4px rgba(111,207,58,0.22);
+    }
   }
