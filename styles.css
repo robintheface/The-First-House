@@ -68,7 +68,6 @@
     animation:brand-shimmer 5s linear infinite;
   }
   @keyframes brand-shimmer{ to{ background-position:-220% center; } }
-  .brand-dot{width:26px;height:26px;border-radius:50%;background:conic-gradient(from 180deg, var(--green-bright), var(--gold), var(--green-bright)); box-shadow:0 0 0 2px rgba(232,212,77,0.5);}
   .brand-logo{
     width:36px;height:36px;display:block;object-fit:contain;border-radius:50%;
     filter:
@@ -136,7 +135,7 @@
     pointer-events:none;
   }
   .eyebrow{
-    font-family:'IBM Plex Mono',monospace,monospace; font-size:12px; letter-spacing:0.14em; text-transform:uppercase;
+    font-family:'IM Fell English',serif; font-size:12px; letter-spacing:0.14em; text-transform:uppercase;
     color:var(--green-bright); margin-bottom:22px; display:inline-flex; align-items:center; gap:8px;
   }
   .eyebrow::before,.eyebrow::after{content:"";width:22px;height:1px;background:var(--green-bright); opacity:0.6;}
@@ -144,21 +143,6 @@
   .medallion-wrap{
     position:relative; width:230px; height:230px; margin:0 auto 26px;
   }
-  .medallion-ring{
-    position:absolute; inset:0; border-radius:50%;
-    background:conic-gradient(from 0deg, var(--green-bright), var(--gold), var(--green), var(--green-bright));
-    animation:spin 14s linear infinite;
-    filter:blur(0.3px);
-  }
-  @keyframes spin{ to{ transform:rotate(360deg);} }
-  .medallion-inner{
-    position:absolute; inset:9px; border-radius:50%;
-    background:radial-gradient(circle at 35% 30%, #1c3a22, #0b1a0f 72%);
-    display:flex; align-items:center; justify-content:center;
-    box-shadow: inset 0 0 0 1px rgba(232,212,77,0.35), 0 18px 50px -12px rgba(0,0,0,0.7);
-    overflow:hidden;
-  }
-  .medallion-inner img{width:78%; height:78%; object-fit:contain; filter:drop-shadow(0 6px 14px rgba(0,0,0,0.4));}
 
   h1.headline{
     font-family:'IM Fell English',serif; font-weight:400;
@@ -186,34 +170,11 @@
   .btn-ghost{
     background:transparent; border-color:var(--line); color:var(--ink);
   }
-  .btn-disabled{
-    background:rgba(241,234,220,0.06); color:var(--ink-dim); border-color:var(--line);
-    cursor:not-allowed;
-  }
-  .tag-pill{
-    font-family:'IBM Plex Mono',monospace,monospace; font-size:10.5px; padding:2px 8px; border-radius:999px;
-    background:rgba(232,212,77,0.16); color:var(--gold); margin-left:2px;
-  }
-
-  /* mood ticker */
-  .ticker-outer{
-    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
-    padding:14px 0; overflow:hidden; background:rgba(255,255,255,0.02);
-  }
-  .ticker-track{
-    display:flex; gap:26px; width:max-content;
-    animation:ticker 28s linear infinite;
-  }
-  .ticker-outer:hover .ticker-track{animation-play-state:paused;}
-  @keyframes ticker{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
-  .ticker-item{display:flex; align-items:center; gap:8px; font-family:'IBM Plex Mono',monospace,monospace; font-size:12.5px; color:var(--ink-dim); white-space:nowrap;}
-  .ticker-item b{color:var(--green-bright); font-weight:600;}
-
   /* ---------- section shells ---------- */
   section{padding:96px 20px;}
   .section-head{max-width:640px; margin:0 auto 48px; text-align:center;}
   .kicker{
-    font-family:'IBM Plex Mono',monospace,monospace; font-size:11.5px; letter-spacing:0.14em; text-transform:uppercase;
+    font-family:'IM Fell English',serif; font-size:11.5px; letter-spacing:0.14em; text-transform:uppercase;
     color:var(--gold); margin-bottom:10px;
   }
   h2.section-title{
@@ -270,7 +231,7 @@
     font-family:'IM Fell English',serif; font-size:16px; color:var(--ink-dim); letter-spacing:0.01em;
     transition:color .25s ease;
   }
-  .gallery-note{text-align:center; margin-top:18px; font-size:13px; color:var(--ink-dim); font-family:'IBM Plex Mono',monospace,monospace;}
+  .gallery-note{text-align:center; margin-top:18px; font-size:13px; color:var(--ink-dim); font-family:'IM Fell English',serif;}
 
   /* ---------- ledger / tokenomics ---------- */
   .ledger{
@@ -289,7 +250,19 @@
   .ledger-row .k{color:var(--ink-dim);}
   .ledger-row .v{color:var(--cream2); font-weight:600;}
   .ledger-row.wrap{flex-wrap:wrap;}
-  .ledger-row.wrap .v{width:100%; word-break:break-all; margin-top:6px; font-size:14px; text-align:left;}
+  .ledger-row.wrap .v{
+    width:100%; margin-top:6px; font-size:14px; text-align:left;
+    display:flex; align-items:center; gap:8px;
+  }
+  .contract-address{word-break:break-all;}
+  .copy-btn{
+    flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+    width:26px; height:26px; padding:0; border-radius:8px;
+    background:transparent; border:1px solid var(--line); color:var(--ink-dim);
+    font-size:12px; line-height:1; cursor:pointer;
+    transition:border-color .15s ease, color .15s ease, transform .1s ease;
+  }
+  .copy-btn.copied{color:var(--green-bright); border-color:var(--green-bright);}
   .ledger-row .v.pending{color:var(--gold);}
 
   /* ---------- roadmap trail ---------- */
@@ -308,7 +281,7 @@
   }
   .trail-step.active .trail-dot{background:var(--green-bright); box-shadow:0 0 0 4px rgba(111,207,58,0.18);}
   .trail-step.done .trail-dot{background:var(--green-bright); border-color:var(--green-bright); color:var(--bg); font-weight:700;}
-  .trail-phase{font-family:'IBM Plex Mono',monospace,monospace; font-size:11px; color:var(--gold); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:4px;}
+  .trail-phase{font-family:'IM Fell English',serif; font-size:11px; color:var(--gold); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:4px;}
   .trail-title{font-family:'IM Fell English',serif; font-weight:400; font-size:20px; color:var(--cream2); margin-bottom:6px;}
   .trail-desc{color:var(--ink-dim); font-size:17px; line-height:1.6;}
 
@@ -316,7 +289,7 @@
   .rank-hero-section{max-width:1000px; margin:0 auto;}
   .rank-chain-badge{
     display:inline-flex; align-items:center; gap:6px; max-width:max-content;
-    font-family:'IBM Plex Mono',monospace,monospace; font-size:11px; letter-spacing:0.06em;
+    font-family:'IM Fell English',serif; font-size:11px; letter-spacing:0.06em;
     text-transform:uppercase; color:var(--green-bright);
     background:rgba(111,207,58,0.08); border:1px solid rgba(111,207,58,0.3);
     border-radius:999px; padding:6px 14px; margin:0 auto 32px;
@@ -354,11 +327,11 @@
   }
   .rank-card-top{display:flex; align-items:center; justify-content:space-between; gap:10px;}
   .rank-card-label{
-    font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.08em;
+    font-family:'IM Fell English',serif; font-size:10px; letter-spacing:0.08em;
     text-transform:uppercase; color:#9be89b;
   }
   .btn-connect{
-    font-family:'Inter',sans-serif; font-weight:600; font-size:13px;
+    font-family:'IM Fell English',serif; font-weight:600; font-size:13px;
     padding:11px 20px; min-height:40px; border-radius:999px; text-decoration:none;
     display:inline-flex; align-items:center; gap:6px;
     background:transparent; border:1px solid #8be85a; color:#8be85a;
@@ -374,7 +347,7 @@
   }
   .rank-hero-title{font-family:'IM Fell English',serif; font-size:25px; font-weight:400; color:var(--cream2);}
   .holder-addr{
-    font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-dim);
+    font-family:'IM Fell English',serif; font-size:11px; color:var(--ink-dim);
     word-break:break-all; margin-bottom:12px;
   }
   .rank-stats{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
@@ -397,7 +370,7 @@
   }
   .comm-icon{font-size:26px; margin-bottom:10px; display:block;}
   .comm-name{font-family:'IM Fell English',serif; font-weight:400; font-size:18px; margin-bottom:3px;}
-  .comm-sub{font-family:'IBM Plex Mono',monospace,monospace; font-size:11px; color:var(--ink-dim);}
+  .comm-sub{font-family:'IM Fell English',serif; font-size:11px; color:var(--ink-dim);}
 
   /* ---------- quick links ---------- */
   .quicklink-grid{
@@ -442,28 +415,7 @@
   }
   .foot-brand{font-family:'IM Fell English',serif; font-weight:400; font-size:18px; color:var(--ink-dim);}
 
-.hero{
-    padding:64px 20px 40px;
-  }
-  .eyebrow{
-    margin-bottom:22px;
-  }
-  .medallion-wrap{
-    width:230px;
-    height:230px;
-    margin:0 auto 26px;
-  }
-  .medallion-inner{
-    inset:9px;
-  }
-  .medallion-inner img{
-    width:72% !important;
-    height:72% !important;
-    object-fit:contain;
-    filter:drop-shadow(0 6px 14px rgba(0,0,0,.4));
-  }
-
-.medallion-wrap.main-logo-wrap{
+  .medallion-wrap.main-logo-wrap{
     position:relative;
     width:270px;
     height:270px;
@@ -482,15 +434,12 @@
     object-fit:contain;
     filter:drop-shadow(0 10px 18px rgba(0,0,0,.28));
   }
-  .medallion-ring,
-  .medallion-inner{
-    display:none !important;
-  }
 
   /* ---------- press feedback for touch (no :hover, so give taps their own cue) ---------- */
   .lore-card:active, .face-card:active, .comm-card:active, .quicklink-card:active{
     transform:scale(0.98);
   }
+  .copy-btn:active{transform:scale(0.9);}
 
   /* ---------- hover-only effects ----------
      Guarded behind (hover:hover) and (pointer:fine) so touch devices never
@@ -499,6 +448,7 @@
      taps something else. Mouse/trackpad users get the same effects as before. */
   @media (hover: hover) and (pointer: fine){
     .nav-links a:hover{color:var(--gold);}
+    .copy-btn:hover{border-color:var(--green-bright); color:var(--green-bright);}
     .topbar-cta:hover{
       box-shadow:0 0 20px 2px rgba(232,212,77,0.55), 0 0 40px 4px rgba(232,212,77,0.25);
       transform:translateY(-1px);
