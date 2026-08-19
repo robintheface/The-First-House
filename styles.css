@@ -267,7 +267,16 @@
     width:100%; margin-top:6px; font-size:14px; text-align:left;
     display:flex; align-items:center; gap:8px;
   }
-  .contract-address{word-break:break-all;}
+  .contract-address{
+    /* it's a <button> for native keyboard/click semantics, but should read
+       as plain inline address text, not a UI control */
+    background:none; border:none; padding:0; margin:0;
+    font:inherit; text-align:left; color:inherit;
+    word-break:break-all; cursor:pointer;
+    border-bottom:1px dashed transparent;
+    transition:color .15s ease, border-color .15s ease;
+  }
+  .contract-address.copied{color:var(--green-bright); border-color:var(--green-bright);}
   .copy-btn{
     flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
     width:26px; height:26px; padding:0; border-radius:8px;
@@ -453,6 +462,7 @@
     transform:scale(0.98);
   }
   .copy-btn:active{transform:scale(0.9);}
+  .contract-address:active{opacity:0.7;}
 
   /* ---------- hover-only effects ----------
      Guarded behind (hover:hover) and (pointer:fine) so touch devices never
@@ -462,6 +472,7 @@
   @media (hover: hover) and (pointer: fine){
     .nav-links a:hover{color:var(--gold);}
     .copy-btn:hover{border-color:var(--green-bright); color:var(--green-bright);}
+    .contract-address:hover{color:var(--green-bright); border-color:var(--green-bright);}
     .topbar-cta:hover{
       box-shadow:0 0 20px 2px rgba(232,212,77,0.55), 0 0 40px 4px rgba(232,212,77,0.25);
       transform:translateY(-1px);
