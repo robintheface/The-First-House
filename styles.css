@@ -126,6 +126,10 @@
     display:inline-flex; align-items:center;
     color:#12220f; text-decoration:none;
     white-space:nowrap; transition:transform .15s ease;
+    /* Same belt-and-suspenders clip as .btn-primary below, in case of any
+       corner rasterization seam from the animated background. */
+    background-clip:padding-box;
+    overflow:hidden;
     /* Layer 1: a bright diagonal streak that sweeps left-to-right on a loop.
        Layer 2: the button's base color, given a real light-to-rich gradient
        (not a flat fill) so it still reads as a glossy domed pill even at
@@ -195,6 +199,15 @@
   .btn:active{transform:scale(0.97);}
   .btn-primary{
     color:#0d1a0f;
+    /* .btn (shared) sets a 1px transparent border. With an animated
+       background repainting every frame, the border-box's rounded corner
+       and the background's own rounded clip can rasterize a hair out of
+       sync, showing a thin dark gap at the curve. Clipping the background
+       to the padding box (inside the border) instead of relying on the
+       border's own antialiased radius sidesteps that entirely; overflow
+       hidden is a second belt-and-suspenders clip. */
+    background-clip:padding-box;
+    overflow:hidden;
     /* richer top-to-bottom spread than the old 2-stop gradient (#8be85a and
        --green-bright are close in value, so it read almost flat whenever
        the shine streak below wasn't in frame) so the button always looks
