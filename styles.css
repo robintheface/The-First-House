@@ -125,17 +125,22 @@
     padding:10px 18px; border-radius:999px; min-height:40px;
     display:inline-flex; align-items:center;
     color:#12220f; text-decoration:none;
-    white-space:nowrap; transition:box-shadow .2s ease, transform .15s ease;
+    white-space:nowrap; transition:transform .15s ease;
+    /* Same belt-and-suspenders clip as .btn-primary below, in case of any
+       corner rasterization seam from the animated background. */
+    background-clip:padding-box;
+    overflow:hidden;
     /* Layer 1: a bright diagonal streak that sweeps left-to-right on a loop.
-       Layer 2: the button's flat base color, written as a gradient so both
-       layers share one background-position/size shape (see .btn-shine-sweep). */
+       Layer 2: the button's base color, given a real light-to-rich gradient
+       (not a flat fill) so it still reads as a glossy domed pill even at
+       the instant the streak itself is out of frame. */
     background-image:
       linear-gradient(100deg, transparent 35%, rgba(255,255,255,0.85) 50%, transparent 65%),
-      linear-gradient(#f5e77a, #f5e77a);
+      linear-gradient(165deg, #fbf3ad 0%, #f5e77a 45%, #e8ce4f 100%);
     background-size:220% 100%, 100% 100%;
     background-position:130% 0, 0 0;
     background-repeat:no-repeat;
-    animation:btn-shine-sweep 3s linear infinite;
+    animation:btn-shine-sweep 3s linear infinite, btn-glow-pulse-gold 2.4s ease-in-out infinite;
   }
   /* Below 720px the topbar CTA hides so the brand name has room to stay on
      one line — the hero's own "Buy $HOODFACE" button covers mobile instead. */
@@ -193,14 +198,27 @@
   }
   .btn:active{transform:scale(0.97);}
   .btn-primary{
-    color:#0d1a0f; box-shadow:0 10px 24px -10px rgba(111,207,58,0.55);
+    color:#0d1a0f;
+    /* .btn (shared) sets a 1px transparent border. With an animated
+       background repainting every frame, the border-box's rounded corner
+       and the background's own rounded clip can rasterize a hair out of
+       sync, showing a thin dark gap at the curve. Clipping the background
+       to the padding box (inside the border) instead of relying on the
+       border's own antialiased radius sidesteps that entirely; overflow
+       hidden is a second belt-and-suspenders clip. */
+    background-clip:padding-box;
+    overflow:hidden;
+    /* richer top-to-bottom spread than the old 2-stop gradient (#8be85a and
+       --green-bright are close in value, so it read almost flat whenever
+       the shine streak below wasn't in frame) so the button always looks
+       domed/glossy, animation aside. */
     background-image:
       linear-gradient(100deg, transparent 35%, rgba(255,255,255,0.8) 50%, transparent 65%),
-      linear-gradient(180deg, #8be85a, var(--green-bright));
+      linear-gradient(165deg, #b6f57e 0%, #8be85a 40%, var(--green-bright) 100%);
     background-size:220% 100%, 100% 100%;
     background-position:130% 0, 0 0;
     background-repeat:no-repeat;
-    animation:btn-shine-sweep 3s linear infinite;
+    animation:btn-shine-sweep 3s linear infinite, btn-glow-pulse-green 2.4s ease-in-out infinite;
   }
   /* Shared by both "Buy $HOODFACE" buttons — continuous left-to-right glint,
      no hold in the middle (same lesson as brand-shine: a dwell on a visible
@@ -208,6 +226,20 @@
   @keyframes btn-shine-sweep{
     0%{ background-position:130% 0, 0 0; }
     100%{ background-position:-130% 0, 0 0; }
+  }
+  /* Breathing glow — box-shadow intensity rises and falls on its own loop,
+     independent of the shine sweep above (different property, so both
+     animations run concurrently with no conflict). Symmetric 0%/50%/100%
+     keyframes mean prefers-reduced-motion (which collapses every animation
+     to one near-instant pass) still settles on a normal, calm-glow frame
+     rather than freezing mid-pulse. */
+  @keyframes btn-glow-pulse-gold{
+    0%, 100%{ box-shadow:0 2px 10px -4px rgba(245,231,122,0.35), 0 0 8px 0 rgba(245,231,122,0.25); }
+    50%{ box-shadow:0 4px 20px -4px rgba(245,231,122,0.75), 0 0 24px 4px rgba(245,231,122,0.6); }
+  }
+  @keyframes btn-glow-pulse-green{
+    0%, 100%{ box-shadow:0 10px 24px -10px rgba(111,207,58,0.45), 0 0 8px 0 rgba(111,207,58,0.2); }
+    50%{ box-shadow:0 10px 30px -8px rgba(111,207,58,0.85), 0 0 26px 5px rgba(111,207,58,0.55); }
   }
   .btn-ghost{
     background:transparent; border-color:var(--line); color:var(--ink);
