@@ -52,16 +52,18 @@
   }
   .brand{display:flex; align-items:center; gap:9px;}
   .brand-name{
-    font-family:'IM Fell English',serif; font-weight:400; letter-spacing:0.03em; font-size:24px;
+    font-family:'IM Fell English',serif; font-weight:400; letter-spacing:0.03em; font-size:21px;
     color:var(--bronze); /* fallback for browsers without background-clip:text */
     /* Layer 1: cast bronze bar (fixed) — top rim light, mid trough, bottom shadow.
        Layer 2: a bright diagonal streak that sweeps across on top, giving the
-       polished/glossy reflection. Both layers are clipped to the glyph shapes. */
+       polished/glossy reflection. Both layers are clipped to the glyph shapes.
+       Brightened every stop vs. the original pass (lighter trough, lighter
+       base) so the letters read as lit metal rather than dim bronze. */
     background-image:
-      linear-gradient(115deg, transparent 40%, rgba(255,252,232,0.95) 50%, transparent 60%),
+      linear-gradient(115deg, transparent 40%, rgba(255,253,240,1) 50%, transparent 60%),
       linear-gradient(180deg,
-        #fff2c9 0%, #f0c364 14%, #b97f2c 32%, #6e4413 52%,
-        #b97f2c 70%, #f6d685 86%, #8a5a1a 100%);
+        #fff8e2 0%, #f8d989 14%, #d29a3e 32%, #8a5c22 52%,
+        #d29a3e 70%, #fadf9e 86%, #a5691f 100%);
     background-blend-mode:screen, normal;
     background-size:260% 100%, 100% 100%;
     background-position:130% 0, 0 0;
@@ -69,9 +71,10 @@
     -webkit-text-fill-color:transparent;
     -webkit-text-stroke:0.5px rgba(52,28,6,0.6);
     filter:
-      drop-shadow(0 1px 0 rgba(255,248,220,0.4))
-      drop-shadow(0 2px 2px rgba(30,16,4,0.55))
-      drop-shadow(0 4px 9px rgba(0,0,0,0.4));
+      drop-shadow(0 1px 0 rgba(255,250,225,0.5))
+      drop-shadow(0 2px 2px rgba(30,16,4,0.5))
+      drop-shadow(0 4px 9px rgba(0,0,0,0.35))
+      drop-shadow(0 0 9px rgba(246,214,133,0.5));
     animation:brand-shine 4.5s ease-in-out infinite;
   }
   @keyframes brand-shine{
@@ -264,7 +267,16 @@
     width:100%; margin-top:6px; font-size:14px; text-align:left;
     display:flex; align-items:center; gap:8px;
   }
-  .contract-address{word-break:break-all;}
+  .contract-address{
+    /* it's a <button> for native keyboard/click semantics, but should read
+       as plain inline address text, not a UI control */
+    background:none; border:none; padding:0; margin:0;
+    font:inherit; text-align:left; color:inherit;
+    word-break:break-all; cursor:pointer;
+    border-bottom:1px dashed transparent;
+    transition:color .15s ease, border-color .15s ease;
+  }
+  .contract-address.copied{color:var(--green-bright); border-color:var(--green-bright);}
   .copy-btn{
     flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
     width:26px; height:26px; padding:0; border-radius:8px;
@@ -450,6 +462,7 @@
     transform:scale(0.98);
   }
   .copy-btn:active{transform:scale(0.9);}
+  .contract-address:active{opacity:0.7;}
 
   /* ---------- hover-only effects ----------
      Guarded behind (hover:hover) and (pointer:fine) so touch devices never
@@ -459,6 +472,7 @@
   @media (hover: hover) and (pointer: fine){
     .nav-links a:hover{color:var(--gold);}
     .copy-btn:hover{border-color:var(--green-bright); color:var(--green-bright);}
+    .contract-address:hover{color:var(--green-bright); border-color:var(--green-bright);}
     .topbar-cta:hover{
       box-shadow:0 0 20px 2px rgba(232,212,77,0.55), 0 0 40px 4px rgba(232,212,77,0.25);
       transform:translateY(-1px);
