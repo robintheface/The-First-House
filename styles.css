@@ -79,7 +79,7 @@
     60%, 100%{ background-position:-130% 0, 0 0; }
   }
   .brand-logo{
-    width:36px;height:36px;display:block;object-fit:contain;border-radius:50%;
+    width:46px;height:46px;display:block;object-fit:contain;border-radius:50%;
     filter:
       drop-shadow(0 0 2px rgba(255,236,205,0.7))
       drop-shadow(0 0 8px rgba(227,168,102,0.65))
