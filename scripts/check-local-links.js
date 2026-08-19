@@ -62,8 +62,15 @@ function main() {
     while ((match = ATTR_RE.exec(content))) {
       const ref = match[1];
       if (!isLocalReference(ref)) continue;
-      const resolved = resolveLocalPath(file, ref);
+      let resolved = resolveLocalPath(file, ref);
       if (resolved === null) continue;
+      // A clean-URL directory route (e.g. "/explore" -> the "explore/"
+      // directory) only actually serves something if it has an index.html —
+      // an empty/missing directory would 404 in production even though
+      // fs.existsSync("explore/") is true.
+      if (fs.existsSync(resolved) && fs.statSync(resolved).isDirectory()) {
+        resolved = path.join(resolved, "index.html");
+      }
       if (!fs.existsSync(resolved)) {
         failures.push({ file: path.relative(ROOT, file), ref, resolved: path.relative(ROOT, resolved) });
       }
