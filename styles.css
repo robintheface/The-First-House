@@ -136,10 +136,6 @@
     background-position:130% 0, 0 0;
     background-repeat:no-repeat;
     animation:btn-shine-sweep 3s linear infinite;
-    /* mirror reflection, like the button is sitting on glass — brightest
-       right below the pill, fading to nothing a few px down. WebKit-only
-       (Chrome/Safari/Edge); Firefox just shows no reflection, no breakage. */
-    -webkit-box-reflect: below 2px linear-gradient(to bottom, rgba(255,255,255,0.35), rgba(255,255,255,0) 70%);
   }
   /* Below 720px the topbar CTA hides so the brand name has room to stay on
      one line — the hero's own "Buy $HOODFACE" button covers mobile instead. */
@@ -205,7 +201,6 @@
     background-position:130% 0, 0 0;
     background-repeat:no-repeat;
     animation:btn-shine-sweep 3s linear infinite;
-    -webkit-box-reflect: below 3px linear-gradient(to bottom, rgba(111,207,58,0.4), rgba(111,207,58,0) 70%);
   }
   /* Shared by both "Buy $HOODFACE" buttons — continuous left-to-right glint,
      no hold in the middle (same lesson as brand-shine: a dwell on a visible
