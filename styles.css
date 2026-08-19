@@ -43,10 +43,19 @@
     display:flex; align-items:center; justify-content:space-between;
     padding:12px 20px; max-width:1080px; margin:0 auto;
   }
-  .brand{
-    display:flex; align-items:center; gap:9px; font-family:'Cinzel Decorative',serif; font-weight:700; letter-spacing:0.01em; font-size:17px;
-    color:var(--bronze);
+  .brand{display:flex; align-items:center; gap:9px;}
+  .brand-name{
+    font-family:'Cinzel Decorative',serif; font-weight:700; letter-spacing:0.01em; font-size:17px;
+    color:var(--bronze); /* fallback for browsers without background-clip:text */
+    background-image:linear-gradient(100deg,
+      #8a5a1a 0%, #f0d074 18%, #fff6dd 32%, #f0d074 46%, #a5691f 62%, #f0d074 80%, #8a5a1a 100%);
+    background-size:220% auto;
+    background-position:0% center;
+    -webkit-background-clip:text; background-clip:text;
+    -webkit-text-fill-color:transparent;
+    animation:brand-shimmer 5s linear infinite;
   }
+  @keyframes brand-shimmer{ to{ background-position:-220% center; } }
   .brand-dot{width:26px;height:26px;border-radius:50%;background:conic-gradient(from 180deg, var(--green-bright), var(--gold), var(--green-bright)); box-shadow:0 0 0 2px rgba(232,212,77,0.5);}
   .brand-logo{
     width:36px;height:36px;display:block;object-fit:contain;border-radius:50%;
