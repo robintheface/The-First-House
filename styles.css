@@ -52,22 +52,32 @@
   }
   .brand{display:flex; align-items:center; gap:9px;}
   .brand-name{
-    font-family:'IM Fell English',serif; font-weight:400; letter-spacing:0.02em; font-size:23px;
+    font-family:'IM Fell English',serif; font-weight:400; letter-spacing:0.03em; font-size:24px;
     color:var(--bronze); /* fallback for browsers without background-clip:text */
-    background-image:linear-gradient(100deg,
-      #8a5a1a 0%, #f0d074 18%, #fff6dd 32%, #f0d074 46%, #a5691f 62%, #f0d074 80%, #8a5a1a 100%);
-    background-size:220% auto;
-    background-position:0% center;
+    /* Layer 1: cast bronze bar (fixed) — top rim light, mid trough, bottom shadow.
+       Layer 2: a bright diagonal streak that sweeps across on top, giving the
+       polished/glossy reflection. Both layers are clipped to the glyph shapes. */
+    background-image:
+      linear-gradient(115deg, transparent 40%, rgba(255,252,232,0.95) 50%, transparent 60%),
+      linear-gradient(180deg,
+        #fff2c9 0%, #f0c364 14%, #b97f2c 32%, #6e4413 52%,
+        #b97f2c 70%, #f6d685 86%, #8a5a1a 100%);
+    background-blend-mode:screen, normal;
+    background-size:260% 100%, 100% 100%;
+    background-position:130% 0, 0 0;
     -webkit-background-clip:text; background-clip:text;
     -webkit-text-fill-color:transparent;
-    -webkit-text-stroke:0.4px rgba(50,28,8,0.55);
+    -webkit-text-stroke:0.5px rgba(52,28,6,0.6);
     filter:
-      drop-shadow(0 -1px 0 rgba(255,250,220,0.4))
-      drop-shadow(0 2px 1px rgba(40,20,0,0.65))
-      drop-shadow(0 3px 7px rgba(0,0,0,0.4));
-    animation:brand-shimmer 5s linear infinite;
+      drop-shadow(0 1px 0 rgba(255,248,220,0.4))
+      drop-shadow(0 2px 2px rgba(30,16,4,0.55))
+      drop-shadow(0 4px 9px rgba(0,0,0,0.4));
+    animation:brand-shine 4.5s ease-in-out infinite;
   }
-  @keyframes brand-shimmer{ to{ background-position:-220% center; } }
+  @keyframes brand-shine{
+    0%, 15%{ background-position:130% 0, 0 0; }
+    60%, 100%{ background-position:-130% 0, 0 0; }
+  }
   .brand-logo{
     width:36px;height:36px;display:block;object-fit:contain;border-radius:50%;
     filter:
