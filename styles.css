@@ -52,7 +52,7 @@
   }
   .brand{display:flex; align-items:center; gap:9px;}
   .brand-name{
-    font-family:'IM Fell English',serif; font-weight:400; letter-spacing:0.02em; font-size:19px;
+    font-family:'IM Fell English',serif; font-weight:400; letter-spacing:0.02em; font-size:23px;
     color:var(--bronze); /* fallback for browsers without background-clip:text */
     background-image:linear-gradient(100deg,
       #8a5a1a 0%, #f0d074 18%, #fff6dd 32%, #f0d074 46%, #a5691f 62%, #f0d074 80%, #8a5a1a 100%);
@@ -81,8 +81,9 @@
   .nav-toggle{
     display:inline-flex; align-items:center; justify-content:center;
     width:40px; height:40px; padding:0;
-    background:transparent; border:1px solid var(--line); border-radius:10px;
-    color:var(--ink); font-size:18px; line-height:1; cursor:pointer;
+    background:transparent; border:1.5px solid var(--bronze); border-radius:10px;
+    box-shadow:0 0 6px rgba(227,168,102,0.5), inset 0 0 6px rgba(227,168,102,0.18);
+    color:var(--bronze); font-size:18px; line-height:1; cursor:pointer;
   }
   @media(min-width:720px){ .nav-toggle{display:none;} }
 
