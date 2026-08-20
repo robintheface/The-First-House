@@ -36,6 +36,7 @@ function isLocalReference(ref) {
   if (ref.startsWith("mailto:") || ref.startsWith("tel:")) return false;
   if (ref.startsWith("#")) return false; // in-page anchor
   if (ref.startsWith("data:")) return false;
+  if (ref.startsWith("/_vercel/")) return false; // Vercel system routes
   return true;
 }
 
