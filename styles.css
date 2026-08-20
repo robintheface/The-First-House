@@ -1,24 +1,13 @@
 :root{
     --bg: #0c1710;
     --bg-2: #0f2015;
-    --green-deep: #12331d;
-    --green: #2e7d32;
     --green-bright: #6fcf3a;
     --gold: #e8d44d;
     --bronze: #e3a866;
-    --cream: #f1eadc;
     --cream2: #f1eadc;
-    --blush: #f2a0a0;
     --line: rgba(241,234,220,0.14);
     --ink: #eef4ea;
     --ink-dim: rgba(238,244,234,0.62);
-  }
-  @font-face{
-    font-family:'Robin The Face';
-    src:url('/fonts/RobinTheFace.ttf') format('truetype');
-    font-weight:400;
-    font-style:normal;
-    font-display:swap;
   }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
@@ -76,6 +65,7 @@
       drop-shadow(0 4px 9px rgba(0,0,0,0.35))
       drop-shadow(0 0 9px rgba(246,214,133,0.5));
     animation:brand-shine 3.2s linear infinite;
+    will-change:background-position;
   }
   /* One continuous sweep per loop, no hold in the middle -- the previous
      version paused on a fully-swept (but still visible, mid-gradient)
@@ -141,6 +131,7 @@
     background-position:130% 0, 0 0;
     background-repeat:no-repeat;
     animation:btn-shine-sweep 3s linear infinite, btn-glow-pulse-gold 2.4s ease-in-out infinite;
+    will-change:background-position, box-shadow;
   }
   /* Below 720px the topbar CTA hides so the brand name has room to stay on
      one line — the hero's own "Buy $HOODFACE" button covers mobile instead. */
@@ -221,6 +212,7 @@
     background-position:130% 0, 0 0;
     background-repeat:no-repeat;
     animation:btn-shine-sweep 3s linear infinite, btn-glow-pulse-green 2.4s ease-in-out infinite;
+    will-change:background-position, box-shadow;
   }
   /* Shared by both "Buy $HOODFACE" buttons — continuous left-to-right glint,
      no hold in the middle (same lesson as brand-shine: a dwell on a visible
@@ -303,7 +295,7 @@
     transition:border-color .25s ease, box-shadow .25s ease, transform .3s cubic-bezier(.34,1.56,.64,1);
   }
   .face-img{
-    width:100%; aspect-ratio:1/1; background-size:contain; background-repeat:no-repeat; background-position:center;
+    display:block; width:100%; aspect-ratio:1/1; object-fit:contain;
     margin-bottom:10px;
   }
   .face-label{
