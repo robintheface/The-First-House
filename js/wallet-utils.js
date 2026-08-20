@@ -13,7 +13,7 @@ export function tierFor(balanceNum) {
   if (balanceNum >= 1000000) return "💎 Diamond Hood";
   if (balanceNum >= 100000) return "🧢 Hood Member";
   if (balanceNum > 0) return "🌱 Fresh Face";
-  return "👀 Not holding yet";
+  return "👀 Not in the hood — yet";
 }
 
 /**

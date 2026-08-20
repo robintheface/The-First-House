@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { tierFor, shortAddr } from "../js/wallet-utils.js";
 
 describe("tierFor", () => {
-  it("returns 'Not holding yet' for a zero balance", () => {
-    expect(tierFor(0)).toBe("👀 Not holding yet");
+  it("returns 'Not in the hood — yet' for a zero balance", () => {
+    expect(tierFor(0)).toBe("👀 Not in the hood — yet");
   });
 
   it("treats any positive balance below 100,000 as Fresh Face", () => {
@@ -27,7 +27,7 @@ describe("tierFor", () => {
   });
 
   it("treats a negative balance the same as zero", () => {
-    expect(tierFor(-5)).toBe("👀 Not holding yet");
+    expect(tierFor(-5)).toBe("👀 Not in the hood — yet");
   });
 });
 
