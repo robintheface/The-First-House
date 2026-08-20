@@ -1,26 +1,42 @@
-# Handoff — move mockup into its own repo
+# Handoff — DO NOT copy this to repo root, read before doing anything
 
 _Written by Claude Code, 2026-08-20. Read this if you're picking this up in a new session._
 
-## Goal
-Copy this `mockup-preview/` content into its own dedicated repo so it can be
-iterated on without touching `robintheface/robintheface` at all.
+## ⚠️ Correction (important, read first)
 
-**Target repo:** https://github.com/robintheface/The-First-House
-(private, created by the user specifically for this — was briefly named
-`Brand-New-Home` before being renamed)
+An earlier version of this file said `robintheface/The-First-House` was a
+fresh **empty** repo the user created to dump this mockup into, and told
+the next session to copy `mockup-preview/`'s content to its **root**.
 
-## What to do
-1. Attach `robintheface/The-First-House` with push access.
-2. Clone it.
-3. Copy everything under this folder (`mockup-preview/`) to the **root** of
-   that repo — but **strip the `/mockup-preview` prefix** from every
-   `href="/mockup-preview/..."`, `src="/mockup-preview/..."`, and the two
-   JS references (`js/faces-data.js`'s `img:` path, `js/wallet-rank.js`'s
-   `tierImg:` path). It's a dedicated repo now, so paths go back to plain
-   root-absolute (`/css/styles.css`, `/images/face-01.webp`, etc.), same as
-   the original standalone build.
-4. Commit, push to `main`.
+**That was wrong and would have overwritten the production site.**
+Pushing this branch just now, git reported:
+
+> This repository moved. Please use the new location:
+> https://github.com/robintheface/The-First-House.git
+
+`robintheface/The-First-House` is **not a new repo** — it's
+`robintheface/robintheface` (the real, live production site — real
+wallet-connect, real Uniswap buy link, tests, CSP, everything) **renamed**.
+The user asked to create a separate empty repo for the mockup (originally
+named `Brand-New-Home`), then said "I renamed it to The First House for
+the first repo" — but the git evidence shows the *original* repo got
+renamed, not the new empty one. Whether `Brand-New-Home` still exists
+separately (still empty, still under its own name) is unconfirmed.
+
+**Do not copy anything to the root of `robintheface/The-First-House`.**
+If you're continuing this work, ask the user to confirm:
+1. Does `robintheface/Brand-New-Home` still exist as a separate empty repo?
+2. If yes, use that one (its name may have changed since it was checked
+   here). If the production repo really is now the only place, this
+   mockup should stay isolated under `mockup-preview/` (as it already is
+   in this branch) rather than moving to repo root anywhere.
+
+## What this file is (unchanged)
+9 screens from the Claude Design handoff `Robin The Face UI.dc.html`,
+built as a static HTML/CSS/JS site — see this folder's own `index.html`,
+`faces/`, `explore/*`. Wallet & Rank and Lucky Draw are mocked
+client-side only, not wired to the real `js/wallet-connect.js` / ethers.js
+integration. Buy/Telegram/X links are still `#` placeholders.
 
 ## Why this file exists
 The session that built this hit a stretch where the MCP tool needed to
