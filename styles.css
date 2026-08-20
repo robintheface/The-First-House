@@ -375,7 +375,7 @@
     border-radius:999px; padding:6px 14px; margin:0 auto 32px;
   }
   .rank-hero-grid{
-    display:grid; grid-template-columns:1fr; gap:36px; align-items:center;
+    display:grid; grid-template-columns:1fr; gap:36px; align-items:start;
   }
   @media(min-width:860px){
     .rank-hero-grid{grid-template-columns:1.05fr 0.95fr; gap:48px;}
@@ -393,8 +393,12 @@
   @media(min-width:860px){ .rank-badges{grid-template-columns:repeat(4,1fr);} }
   .rank-badge-item{
     display:flex; align-items:flex-start; gap:12px;
-    background:rgba(111,207,58,0.04); border:1px solid var(--line); border-radius:16px;
+    background:rgba(111,207,58,0.04); border-radius:16px;
     padding:16px;
+    /* antique bronze trim, matching the coin-edge treatment on .quicklink-card */
+    border:1px solid rgba(227,168,102,0.4);
+    box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.22);
+    transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
   }
   .rank-badge-item .rank-badge-icon{font-size:22px; line-height:1; flex:0 0 auto;}
   .rank-badge-item strong{font-family:'IM Fell English',serif; font-weight:400; font-size:16px; color:var(--cream2); display:block; margin-bottom:2px;}
@@ -403,7 +407,11 @@
   /* ---------- holder check (modern rank card) ---------- */
   .rank-card{
     max-width:420px; margin:0 auto; background:rgba(111,207,58,0.05);
-    border:0.5px solid rgba(111,207,58,0.18); border-radius:24px; padding:22px 24px;
+    border-radius:24px; padding:22px 24px;
+    /* antique bronze trim, matching the coin-edge treatment on .quicklink-card */
+    border:1px solid rgba(227,168,102,0.4);
+    box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.22);
+    transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
   }
   .rank-card-top{display:flex; align-items:center; justify-content:space-between; gap:10px;}
   .rank-card-label{
@@ -516,7 +524,8 @@
   }
 
   /* ---------- press feedback for touch (no :hover, so give taps their own cue) ---------- */
-  .lore-card:active, .face-card:active, .comm-card:active, .quicklink-card:active{
+  .lore-card:active, .face-card:active, .comm-card:active, .quicklink-card:active,
+  .rank-badge-item:active{
     transform:scale(0.98);
   }
   .copy-btn:active{transform:scale(0.9);}
@@ -568,6 +577,16 @@
       transform:translateY(-10px) scale(1.03); border-color:#f5e77a; z-index:10;
       box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(139,232,90,0.7),
         0 22px 44px -6px rgba(139,232,90,0.75);
+    }
+    .rank-card:hover{
+      border-color:var(--bronze);
+      box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.55),
+        0 0 32px -4px rgba(227,168,102,0.55);
+    }
+    .rank-badge-item:hover{
+      transform:translateY(-3px); border-color:var(--bronze);
+      box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.55),
+        0 0 26px -4px rgba(227,168,102,0.5);
     }
     .btn-connect:hover{
       background:rgba(111,207,58,0.1);
