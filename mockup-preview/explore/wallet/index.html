@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wallet &amp; Rank — Robin The Face</title>
+<meta name="description" content="Balance decides the face. The face decides the flex.">
+<link rel="icon" href="/mockup-preview/favicon.png">
+<link rel="stylesheet" href="/mockup-preview/css/styles.css">
+</head>
+<body>
+<div class="rt-page">
+
+<header class="rt-header">
+  <a class="rt-brand" href="/mockup-preview/">
+    <img src="/mockup-preview/logo.webp" alt="">
+    <span>THE VAULT</span>
+  </a>
+  <nav class="rt-nav" aria-label="Primary">
+    <a href="/mockup-preview/explore/">Vault hub</a>
+    <a href="/mockup-preview/explore/luckydraw/">Lucky Draw</a>
+    <a href="/mockup-preview/explore/tickets/">Tickets</a>
+    <a href="/mockup-preview/explore/burn/">Burn Tracker</a>
+  </nav>
+  <div class="rt-header-actions">
+    <button class="rt-menu-btn" type="button" aria-label="Open menu" aria-expanded="false">☰</button>
+  </div>
+</header>
+
+<nav class="rt-mobile-nav" aria-label="Mobile">
+  <a href="/mockup-preview/explore/">Vault hub</a>
+  <a href="/mockup-preview/explore/wallet/" aria-current="page">Wallet &amp; Rank</a>
+  <a href="/mockup-preview/explore/luckydraw/">Lucky Draw</a>
+  <a href="/mockup-preview/explore/tickets/">Tickets</a>
+  <a href="/mockup-preview/explore/burn/">Burn Tracker</a>
+</nav>
+
+<main class="rt-main">
+  <div class="rt-narrow-panel" data-wallet-rank>
+    <div class="eyebrow">Prove it</div>
+    <h2>Check your <span style="color:var(--forest-300)">face rank</span></h2>
+    <p style="margin:0 0 22px;font-size:14.5px;color:var(--forest-300)">Balance decides the face. The face decides the flex.</p>
+
+    <div class="panel-card rank-panel">
+      <div class="rank-panel-head">
+        <div class="label">Your rank</div>
+        <button type="button" class="btn btn-outline-gold btn-sm" data-connect-toggle>Connect wallet</button>
+      </div>
+
+      <div class="rank-connected" data-connected-view hidden>
+        <div class="rank-summary">
+          <img src="/mockup-preview/icons/badge_gem.webp" alt="">
+          <div><div class="rank-tier">Hood Archer</div><div class="rank-addr">0x8f2a…41Ee</div></div>
+        </div>
+        <div class="rank-metrics">
+          <div class="rank-metric"><div class="label">Balance</div><div class="value">2,940,118</div></div>
+          <div class="rank-metric"><div class="label">Share of supply</div><div class="value">0.29%</div></div>
+        </div>
+        <div class="rank-progress">
+          <div class="rank-progress-head"><span>Next rank · Hood Baron</span><span>2.94M / 5M</span></div>
+          <div class="rank-progress-track"><div class="rank-progress-fill" style="width:59%"></div></div>
+        </div>
+      </div>
+
+      <div class="rank-empty" data-empty-view>
+        <img src="/mockup-preview/icons/badge_gem.webp" alt="">
+        <div class="rank-empty-title">No wallet, no face</div>
+        <div class="rank-empty-sub">Connect to read your balance. Read-only, no signature.</div>
+      </div>
+    </div>
+
+    <div class="rank-tiers">
+      <div class="rank-tier-card"><img src="/mockup-preview/images/face-01.webp" alt=""><div><div class="name">Sapling</div><div class="min">10K+</div></div></div>
+      <div class="rank-tier-card"><img src="/mockup-preview/images/face-04.webp" alt=""><div><div class="name">Hood Archer</div><div class="min">1M+</div></div></div>
+      <div class="rank-tier-card"><img src="/mockup-preview/images/face-06.webp" alt=""><div><div class="name">Hood Baron</div><div class="min">5M+</div></div></div>
+      <div class="rank-tier-card"><img src="/mockup-preview/images/face-12.webp" alt=""><div><div class="name">Forest Legend</div><div class="min">20M+</div></div></div>
+    </div>
+  </div>
+</main>
+
+<footer class="rt-footer">© 2026 Robin The Face. $HOODFACE is a community meme token. Not financial advice.</footer>
+
+</div>
+<script src="/mockup-preview/js/nav.js"></script>
+<script src="/mockup-preview/js/wallet-rank.js"></script>
+</body>
+</html>
