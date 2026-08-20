@@ -386,6 +386,28 @@
     filter:drop-shadow(0 14px 30px rgba(0,0,0,0.35));
   }
   @media(min-width:860px){ .rank-hero-art img{max-width:320px;} }
+
+  /* ---------- rank tier showcase (static reference, no wallet needed) ---------- */
+  .rank-tiers{margin-top:44px; text-align:center;}
+  .rank-tiers-label{
+    font-family:'IM Fell English',serif; font-size:11px; letter-spacing:0.1em;
+    text-transform:uppercase; color:var(--ink-dim); margin-bottom:16px;
+  }
+  .rank-tiers-grid{
+    display:grid; grid-template-columns:repeat(2,1fr); gap:12px; max-width:760px; margin:0 auto;
+  }
+  @media(min-width:640px){ .rank-tiers-grid{grid-template-columns:repeat(5,1fr);} }
+  .rank-tier-chip{
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    background:rgba(111,207,58,0.04); border-radius:14px; padding:16px 10px;
+    border:1px solid rgba(227,168,102,0.4);
+    box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.22);
+    transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+  }
+  .rank-tier-icon{font-size:24px; line-height:1;}
+  .rank-tier-name{font-family:'IM Fell English',serif; font-size:14px; color:var(--cream2);}
+  .rank-tier-threshold{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-dim);}
+
   .rank-badges{
     display:grid; grid-template-columns:1fr; gap:14px; margin-top:56px;
   }
@@ -525,7 +547,7 @@
 
   /* ---------- press feedback for touch (no :hover, so give taps their own cue) ---------- */
   .lore-card:active, .face-card:active, .comm-card:active, .quicklink-card:active,
-  .rank-badge-item:active{
+  .rank-badge-item:active, .rank-tier-chip:active{
     transform:scale(0.98);
   }
   .copy-btn:active{transform:scale(0.9);}
@@ -587,6 +609,11 @@
       transform:translateY(-3px); border-color:var(--bronze);
       box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.55),
         0 0 26px -4px rgba(227,168,102,0.5);
+    }
+    .rank-tier-chip:hover{
+      transform:translateY(-3px); border-color:var(--bronze);
+      box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.55),
+        0 0 22px -4px rgba(227,168,102,0.5);
     }
     .btn-connect:hover{
       background:rgba(111,207,58,0.1);
