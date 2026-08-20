@@ -24,12 +24,25 @@ renamed, not the new empty one. Whether `Brand-New-Home` still exists
 separately (still empty, still under its own name) is unconfirmed.
 
 **Do not copy anything to the root of `robintheface/The-First-House`.**
-If you're continuing this work, ask the user to confirm:
-1. Does `robintheface/Brand-New-Home` still exist as a separate empty repo?
-2. If yes, use that one (its name may have changed since it was checked
-   here). If the production repo really is now the only place, this
-   mockup should stay isolated under `mockup-preview/` (as it already is
-   in this branch) rather than moving to repo root anywhere.
+
+**Confirmed with the user (2026-08-20):** the correct, still-empty target
+is **https://github.com/robintheface/Brand-New-Home** — a genuinely
+separate, brand new repo with nothing in it. `The-First-House` above is
+the renamed production repo and is not involved in this move at all.
+
+## What to do
+1. Attach `robintheface/Brand-New-Home` with push access.
+2. Clone it (it's empty — no need to worry about existing content).
+3. Copy everything under this folder (`mockup-preview/`) to the **root**
+   of that repo — **strip the `/mockup-preview` prefix** from every
+   `href="/mockup-preview/..."`, `src="/mockup-preview/..."`, and the two
+   JS references (`js/faces-data.js`'s `img:` path, `js/wallet-rank.js`'s
+   `tierImg:` path). Root-absolute paths (`/css/styles.css`,
+   `/images/face-01.webp`, etc.), same as the original standalone build
+   in `/home/claude/repo/site` if that's still around, or just this
+   folder with the prefix stripped.
+4. Commit, push to `main`. Delete this `HANDOFF.md` from the new repo
+   once done (it's only useful as an in-flight note).
 
 ## What this file is (unchanged)
 9 screens from the Claude Design handoff `Robin The Face UI.dc.html`,
