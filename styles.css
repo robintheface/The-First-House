@@ -199,20 +199,16 @@
   .btn:active{transform:scale(0.97);}
   .btn-primary{
     color:#0d1a0f;
-    /* .btn (shared) sets a 1px transparent border. background-clip:padding-box
-       (below) paints the gradient only inside that border, so a *transparent*
-       border here would leave a visible ring of bare dark page background
-       all the way around the button -- a real gold border instead both
-       fixes that gap and gives the glossy rim gold trim that was asked for. */
-    border-width:1px;
-    border-color:#f6d685;
-    /* With an animated background repainting every frame, the border-box's
-       rounded corner and the background's own rounded clip can rasterize a
-       hair out of sync, showing a thin gap at the curve. Clipping the
-       background to the padding box (inside the border) instead of relying
-       on the border's own antialiased radius sidesteps that; overflow
-       hidden is a second belt-and-suspenders clip. */
-    background-clip:padding-box;
+    /* No border -- tried a gold one at 2px then 1px, dropped per feedback.
+       With no border there's no ring for a transparent border to expose,
+       so the earlier black-gap bug (from background-clip:padding-box
+       showing bare page background through a *transparent* border) can't
+       come back either. overflow:hidden stays: with an animated background
+       repainting every frame, the border-box's rounded corner and the
+       background's own rounded clip can rasterize a hair out of sync,
+       showing a thin gap at the curve -- this is still the belt-and-
+       suspenders clip for that. */
+    border:none;
     overflow:hidden;
     /* richer top-to-bottom spread than the old 2-stop gradient (#8be85a and
        --green-bright are close in value, so it read almost flat whenever
