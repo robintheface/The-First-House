@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/styles.css?v=24">
+<link rel="stylesheet" href="/styles.css?v=25">
 </head>
 <body>
 
@@ -31,233 +31,216 @@
 </div>
 
 <section id="holders" class="rank-hero-section">
-  <div class="rank-chain-badge">🍃 Built on Robinhood Chain</div>
-
-  <div class="hood-tabs" role="tablist">
-    <button type="button" class="hood-tab active" data-target="home" role="tab" aria-selected="true">Home</button>
-    <button type="button" class="hood-tab" data-target="ranks" role="tab" aria-selected="false">Ranks</button>
-    <button type="button" class="hood-tab" data-target="dashboard" role="tab" aria-selected="false">Dashboard</button>
-    <button type="button" class="hood-tab" data-target="faq" role="tab" aria-selected="false">FAQ</button>
-  </div>
-
-  <!-- ============ HOME ============ -->
-  <div class="hood-view active" data-view="home">
-    <div class="rank-hero-grid">
-      <div class="rank-hero-text">
-        <div class="section-head" style="text-align:left; margin:0 0 24px;">
-          <div class="kicker">Proof, not promises</div>
-          <h2 class="section-title" style="text-align:left;">Every face earns its <span style="color:var(--green-bright);">rank</span>.</h2>
-          <p class="section-desc" style="text-align:left; margin:10px 0 0;">Green days. Red days. Wide awake at 3am watching the candle. You've been through it — connect your wallet and let the chain show exactly where that's landed you in the hood. No vibes, no self-reported flex. Just what you actually hold, on the record.</p>
-        </div>
-        <div class="cta-row" style="justify-content:flex-start;">
-          <button type="button" id="heroConnectBtn" class="btn btn-primary btn-connect-trigger" data-goto="dashboard">Connect Wallet</button>
-          <button type="button" class="btn btn-ghost" data-goto="ranks">See the ladder</button>
-        </div>
+  <div class="rank-hero-grid">
+    <div class="rank-hero-text">
+      <div class="section-head" style="text-align:left; margin:0 0 24px;">
+        <div class="kicker">Proof, not promises</div>
+        <h2 class="section-title" style="text-align:left;">Every face earns its <span style="color:var(--green-bright);">rank</span>.</h2>
+        <p class="section-desc" style="text-align:left; margin:10px 0 0;">Green days. Red days. Wide awake at 3am watching the candle. You've been through it — connect your wallet and let the chain show exactly where that's landed you in the hood. No vibes, no self-reported flex. Just what you actually hold, on the record.</p>
       </div>
 
-      <div class="rank-hero-art">
-        <img src="/logo-main-rank.webp" alt="Robin The Face">
-      </div>
-    </div>
+      <div class="rank-card">
+        <div class="rank-card-top">
+          <div class="rank-card-label">Your rank</div>
+          <button id="connectBtn" type="button" class="btn-connect btn-connect-trigger">Connect Wallet</button>
+        </div>
 
-    <div class="hood-stats-grid">
-      <div class="rank-stat">
-        <div class="rank-stat-label">SUPPLY</div>
-        <div class="rank-stat-value">1,000,000,000</div>
-        <span class="hood-stat-note">Fixed. Never minted more.</span>
-      </div>
-      <div class="rank-stat">
-        <div class="rank-stat-label">TAX</div>
-        <div class="rank-stat-value">0% / 0%</div>
-        <span class="hood-stat-note">Buy and sell, no cut taken.</span>
-      </div>
-      <div class="rank-stat">
-        <div class="rank-stat-label">TEAM ALLOCATION</div>
-        <div class="rank-stat-value">0%</div>
-        <span class="hood-stat-note">Nothing set aside. Everyone starts even.</span>
-      </div>
-      <div class="rank-stat">
-        <div class="rank-stat-label">CHAIN</div>
-        <div class="rank-stat-value">Robinhood</div>
-        <span class="hood-stat-note">Built on its own turf.</span>
-      </div>
-    </div>
+        <div id="dashPrompt" class="dash-empty">
+          <div class="dash-empty-icon">👀</div>
+          <p>Connect your wallet and we'll pull your face straight off the chain. No forms, no whitelist, no self-reported flex.</p>
+        </div>
 
-    <div class="rank-badges">
-      <div class="rank-badge-item">
-        <span class="rank-badge-icon"><img src="/icons/handshake.webp" alt=""></span>
-        <div><strong>Community First</strong><span>Built by the hood, for the hood.</span></div>
-      </div>
-      <div class="rank-badge-item">
-        <span class="rank-badge-icon"><img src="/icons/shield.webp" alt=""></span>
-        <div><strong>No Team</strong><span>No insiders. Just the hood.</span></div>
-      </div>
-      <div class="rank-badge-item">
-        <span class="rank-badge-icon"><img src="/icons/mask.webp" alt=""></span>
-        <div><strong>No KYC</strong><span>No identity, just anonymity.</span></div>
-      </div>
-      <div class="rank-badge-item">
-        <span class="rank-badge-icon"><img src="/icons/crown.webp" alt=""></span>
-        <div><strong>Just The Hood</strong><span>Culture over everything.</span></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============ RANKS / THE LADDER ============ -->
-  <div class="hood-view" data-view="ranks">
-    <div class="section-head" style="text-align:left; margin:0 0 28px;">
-      <div class="kicker">The ladder</div>
-      <h2 class="section-title" style="text-align:left;">Five faces. One <span style="color:var(--green-bright);">bag</span> decides.</h2>
-      <p class="section-desc" style="text-align:left; margin:10px 0 0;">Rank is read straight off your wallet, live from the chain. Buy more, rank up. Paperhand it, rank down. Nobody's editing the spreadsheet.</p>
-    </div>
-
-    <div class="hood-ladder">
-      <div class="hood-ladder-item" style="--tier-color:var(--gold);">
-        <span class="hood-ladder-num">01</span>
-        <span class="hood-ladder-glyph">🐋</span>
-        <div class="hood-ladder-body">
-          <div class="hood-ladder-name">Whale</div>
-          <div class="hood-ladder-blurb">The tide doesn't move without you. Green days, you did that.</div>
-        </div>
-        <div class="hood-ladder-threshold">
-          <div class="hood-ladder-threshold-label">Threshold</div>
-          <div class="hood-ladder-threshold-value">≥ 10,000,000</div>
-        </div>
-      </div>
-      <div class="hood-ladder-item" style="--tier-color:var(--green-bright);">
-        <span class="hood-ladder-num">02</span>
-        <span class="hood-ladder-glyph">💎</span>
-        <div class="hood-ladder-body">
-          <div class="hood-ladder-name">Diamond Hood</div>
-          <div class="hood-ladder-blurb">Been through every dip and never once looked away.</div>
-        </div>
-        <div class="hood-ladder-threshold">
-          <div class="hood-ladder-threshold-label">Threshold</div>
-          <div class="hood-ladder-threshold-value">≥ 1,000,000</div>
-        </div>
-      </div>
-      <div class="hood-ladder-item" style="--tier-color:var(--bronze);">
-        <span class="hood-ladder-num">03</span>
-        <span class="hood-ladder-glyph">🧢</span>
-        <div class="hood-ladder-body">
-          <div class="hood-ladder-name">Hood Member</div>
-          <div class="hood-ladder-blurb">Not new, not soft. You know how this goes by now.</div>
-        </div>
-        <div class="hood-ladder-threshold">
-          <div class="hood-ladder-threshold-label">Threshold</div>
-          <div class="hood-ladder-threshold-value">≥ 100,000</div>
-        </div>
-      </div>
-      <div class="hood-ladder-item" style="--tier-color:var(--cream2);">
-        <span class="hood-ladder-num">04</span>
-        <span class="hood-ladder-glyph">🌱</span>
-        <div class="hood-ladder-body">
-          <div class="hood-ladder-name">Fresh Face</div>
-          <div class="hood-ladder-blurb">First candle's always the hardest. Welcome to the hood.</div>
-        </div>
-        <div class="hood-ladder-threshold">
-          <div class="hood-ladder-threshold-label">Threshold</div>
-          <div class="hood-ladder-threshold-value">&gt; 0</div>
-        </div>
-      </div>
-      <div class="hood-ladder-item" style="--tier-color:var(--ink-dim);">
-        <span class="hood-ladder-num">05</span>
-        <span class="hood-ladder-glyph">👀</span>
-        <div class="hood-ladder-body">
-          <div class="hood-ladder-name">Not in the hood — yet</div>
-          <div class="hood-ladder-blurb">Still watching from outside. There's room for one more.</div>
-        </div>
-        <div class="hood-ladder-threshold">
-          <div class="hood-ladder-threshold-label">Threshold</div>
-          <div class="hood-ladder-threshold-value">0</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============ DASHBOARD ============ -->
-  <div class="hood-view" data-view="dashboard">
-    <div class="rank-card">
-      <div class="rank-card-top">
-        <div class="rank-card-label">Your rank</div>
-        <button id="connectBtn" type="button" class="btn-connect btn-connect-trigger">Connect Wallet</button>
-      </div>
-
-      <div id="dashPrompt" class="dash-empty">
-        <div class="dash-empty-icon">👀</div>
-        <p>Connect your wallet and we'll pull your face straight off the chain. No forms, no whitelist, no self-reported flex.</p>
-      </div>
-
-      <div id="holderResult" class="holder-result">
-        <div class="rank-hero">
-          <span id="holderTier" class="rank-hero-title">—</span>
-        </div>
-        <div id="holderAddr" class="holder-addr"></div>
-        <div class="rank-stats">
-          <div class="rank-stat">
-            <div class="rank-stat-label">Balance</div>
-            <div class="rank-stat-value" id="holderBalance">0</div>
+        <div id="holderResult" class="holder-result">
+          <div class="rank-hero">
+            <span id="holderTier" class="rank-hero-title">—</span>
           </div>
-          <div class="rank-stat">
-            <div class="rank-stat-label">Symbol</div>
-            <div class="rank-stat-value">$HOODFACE</div>
+          <div id="holderAddr" class="holder-addr"></div>
+          <div class="rank-stats">
+            <div class="rank-stat">
+              <div class="rank-stat-label">Balance</div>
+              <div class="rank-stat-value" id="holderBalance">0</div>
+            </div>
+            <div class="rank-stat">
+              <div class="rank-stat-label">Symbol</div>
+              <div class="rank-stat-value">$HOODFACE</div>
+            </div>
+          </div>
+
+          <div class="hood-next-tier">
+            <div id="nextTierProgress" class="next-tier-progress">
+              <div class="next-tier-top"><span>Next up</span><span id="nextTierName">—</span></div>
+              <div class="next-tier-track"><div id="nextTierBarFill" class="next-tier-fill"></div></div>
+              <div id="nextTierRemaining" class="next-tier-remaining"></div>
+            </div>
+            <div id="nextTierMaxed" class="next-tier-maxed" style="display:none;">You're at the top of the hood. Nowhere left to climb. 🐋</div>
           </div>
         </div>
 
-        <div class="hood-next-tier">
-          <div id="nextTierProgress" class="next-tier-progress">
-            <div class="next-tier-top"><span>Next up</span><span id="nextTierName">—</span></div>
-            <div class="next-tier-track"><div id="nextTierBarFill" class="next-tier-fill"></div></div>
-            <div id="nextTierRemaining" class="next-tier-remaining"></div>
-          </div>
-          <div id="nextTierMaxed" class="next-tier-maxed" style="display:none;">You're at the top of the hood. Nowhere left to climb. 🐋</div>
-        </div>
+        <div id="holderError" class="holder-error"></div>
       </div>
 
-      <div id="holderError" class="holder-error"></div>
+      <p class="hood-soon-note" style="text-align:left; margin:16px 0 0;">🚧 Hood leaderboard &amp; rank history — coming soon.</p>
+
+      <div class="cta-row" style="justify-content:flex-start; margin-top:20px;">
+        <a href="#ladder" class="btn btn-ghost">See the ladder</a>
+      </div>
     </div>
 
-    <p class="hood-soon-note">🚧 Hood leaderboard &amp; rank history — coming soon.</p>
+    <div class="rank-hero-art">
+      <img src="/logo-main-rank.webp" alt="Robin The Face">
+    </div>
   </div>
 
-  <!-- ============ FAQ ============ -->
-  <div class="hood-view" data-view="faq">
-    <div class="section-head" style="text-align:left; margin:0 0 28px;">
-      <div class="kicker">FAQ</div>
-      <h2 class="section-title" style="text-align:left;">Ask the hood</h2>
+  <div class="hood-stats-grid">
+    <div class="rank-stat">
+      <div class="rank-stat-label">SUPPLY</div>
+      <div class="rank-stat-value">1,000,000,000</div>
+      <span class="hood-stat-note">Fixed. Never minted more.</span>
     </div>
+    <div class="rank-stat">
+      <div class="rank-stat-label">TAX</div>
+      <div class="rank-stat-value">0% / 0%</div>
+      <span class="hood-stat-note">Buy and sell, no cut taken.</span>
+    </div>
+    <div class="rank-stat">
+      <div class="rank-stat-label">TEAM ALLOCATION</div>
+      <div class="rank-stat-value">0%</div>
+      <span class="hood-stat-note">Nothing set aside. Everyone starts even.</span>
+    </div>
+    <div class="rank-stat">
+      <div class="rank-stat-label">CHAIN</div>
+      <div class="rank-stat-value">Robinhood</div>
+      <span class="hood-stat-note">Built on its own turf.</span>
+    </div>
+  </div>
 
-    <div class="hood-faq-list">
-      <div class="hood-faq-item">
-        <button type="button" class="hood-faq-q" aria-expanded="false">
-          <span>Is it safe to connect my wallet?</span><span class="hood-faq-sign">+</span>
-        </button>
-        <div class="hood-faq-a"><p>We only read your public $HOODFACE balance — no signature, no approval, and no access to your funds. Disconnect any time from your wallet itself.</p></div>
+  <div class="rank-badges">
+    <div class="rank-badge-item">
+      <span class="rank-badge-icon"><img src="/icons/handshake.webp" alt=""></span>
+      <div><strong>Community First</strong><span>Built by the hood, for the hood.</span></div>
+    </div>
+    <div class="rank-badge-item">
+      <span class="rank-badge-icon"><img src="/icons/shield.webp" alt=""></span>
+      <div><strong>No Team</strong><span>No insiders. Just the hood.</span></div>
+    </div>
+    <div class="rank-badge-item">
+      <span class="rank-badge-icon"><img src="/icons/mask.webp" alt=""></span>
+      <div><strong>No KYC</strong><span>No identity, just anonymity.</span></div>
+    </div>
+    <div class="rank-badge-item">
+      <span class="rank-badge-icon"><img src="/icons/crown.webp" alt=""></span>
+      <div><strong>Just The Hood</strong><span>Culture over everything.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="ladder">
+  <div class="section-head">
+    <div class="kicker">The ladder</div>
+    <h2 class="section-title">Five faces. One <span style="color:var(--green-bright);">bag</span> decides.</h2>
+    <p class="section-desc">Rank is read straight off your wallet, live from the chain. Buy more, rank up. Paperhand it, rank down. Nobody's editing the spreadsheet.</p>
+  </div>
+
+  <div class="hood-ladder">
+    <div class="hood-ladder-item" style="--tier-color:var(--gold);">
+      <span class="hood-ladder-num">01</span>
+      <span class="hood-ladder-glyph">🐋</span>
+      <div class="hood-ladder-body">
+        <div class="hood-ladder-name">Whale</div>
+        <div class="hood-ladder-blurb">The tide doesn't move without you. Green days, you did that.</div>
       </div>
-      <div class="hood-faq-item">
-        <button type="button" class="hood-faq-q" aria-expanded="false">
-          <span>What do I need to do to rank up?</span><span class="hood-faq-sign">+</span>
-        </button>
-        <div class="hood-faq-a"><p>Hold more $HOODFACE. That's it. Rank is read live off your wallet balance on Robinhood Chain — no forms, no whitelist, no snapshot to game.</p></div>
+      <div class="hood-ladder-threshold">
+        <div class="hood-ladder-threshold-label">Threshold</div>
+        <div class="hood-ladder-threshold-value">≥ 10,000,000</div>
       </div>
-      <div class="hood-faq-item">
-        <button type="button" class="hood-faq-q" aria-expanded="false">
-          <span>What's Robinhood Chain?</span><span class="hood-faq-sign">+</span>
-        </button>
-        <div class="hood-faq-a"><p>The chain $HOODFACE lives on. If your wallet isn't already on it, we'll prompt you to add or switch to it the moment you connect.</p></div>
+    </div>
+    <div class="hood-ladder-item" style="--tier-color:var(--green-bright);">
+      <span class="hood-ladder-num">02</span>
+      <span class="hood-ladder-glyph">💎</span>
+      <div class="hood-ladder-body">
+        <div class="hood-ladder-name">Diamond Hood</div>
+        <div class="hood-ladder-blurb">Been through every dip and never once looked away.</div>
       </div>
-      <div class="hood-faq-item">
-        <button type="button" class="hood-faq-q" aria-expanded="false">
-          <span>Does my rank update in real time?</span><span class="hood-faq-sign">+</span>
-        </button>
-        <div class="hood-faq-a"><p>Every time you connect, we pull your balance fresh from the chain. Buy or sell, then reconnect to see it move.</p></div>
+      <div class="hood-ladder-threshold">
+        <div class="hood-ladder-threshold-label">Threshold</div>
+        <div class="hood-ladder-threshold-value">≥ 1,000,000</div>
       </div>
-      <div class="hood-faq-item">
-        <button type="button" class="hood-faq-q" aria-expanded="false">
-          <span>Is any of this financial advice?</span><span class="hood-faq-sign">+</span>
-        </button>
-        <div class="hood-faq-a"><p>No. This is a status display for a meme project, not investment guidance. Always DYOR.</p></div>
+    </div>
+    <div class="hood-ladder-item" style="--tier-color:var(--bronze);">
+      <span class="hood-ladder-num">03</span>
+      <span class="hood-ladder-glyph">🧢</span>
+      <div class="hood-ladder-body">
+        <div class="hood-ladder-name">Hood Member</div>
+        <div class="hood-ladder-blurb">Not new, not soft. You know how this goes by now.</div>
       </div>
+      <div class="hood-ladder-threshold">
+        <div class="hood-ladder-threshold-label">Threshold</div>
+        <div class="hood-ladder-threshold-value">≥ 100,000</div>
+      </div>
+    </div>
+    <div class="hood-ladder-item" style="--tier-color:var(--cream2);">
+      <span class="hood-ladder-num">04</span>
+      <span class="hood-ladder-glyph">🌱</span>
+      <div class="hood-ladder-body">
+        <div class="hood-ladder-name">Fresh Face</div>
+        <div class="hood-ladder-blurb">First candle's always the hardest. Welcome to the hood.</div>
+      </div>
+      <div class="hood-ladder-threshold">
+        <div class="hood-ladder-threshold-label">Threshold</div>
+        <div class="hood-ladder-threshold-value">&gt; 0</div>
+      </div>
+    </div>
+    <div class="hood-ladder-item" style="--tier-color:var(--ink-dim);">
+      <span class="hood-ladder-num">05</span>
+      <span class="hood-ladder-glyph">👀</span>
+      <div class="hood-ladder-body">
+        <div class="hood-ladder-name">Not in the hood — yet</div>
+        <div class="hood-ladder-blurb">Still watching from outside. There's room for one more.</div>
+      </div>
+      <div class="hood-ladder-threshold">
+        <div class="hood-ladder-threshold-label">Threshold</div>
+        <div class="hood-ladder-threshold-value">0</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="section-head">
+    <div class="kicker">FAQ</div>
+    <h2 class="section-title">Ask the hood</h2>
+  </div>
+
+  <div class="hood-faq-list">
+    <div class="hood-faq-item">
+      <button type="button" class="hood-faq-q" aria-expanded="false">
+        <span>Is it safe to connect my wallet?</span><span class="hood-faq-sign">+</span>
+      </button>
+      <div class="hood-faq-a"><p>We only read your public $HOODFACE balance — no signature, no approval, and no access to your funds. Disconnect any time from your wallet itself.</p></div>
+    </div>
+    <div class="hood-faq-item">
+      <button type="button" class="hood-faq-q" aria-expanded="false">
+        <span>What do I need to do to rank up?</span><span class="hood-faq-sign">+</span>
+      </button>
+      <div class="hood-faq-a"><p>Hold more $HOODFACE. That's it. Rank is read live off your wallet balance on Robinhood Chain — no forms, no whitelist, no snapshot to game.</p></div>
+    </div>
+    <div class="hood-faq-item">
+      <button type="button" class="hood-faq-q" aria-expanded="false">
+        <span>What's Robinhood Chain?</span><span class="hood-faq-sign">+</span>
+      </button>
+      <div class="hood-faq-a"><p>The chain $HOODFACE lives on. If your wallet isn't already on it, we'll prompt you to add or switch to it the moment you connect.</p></div>
+    </div>
+    <div class="hood-faq-item">
+      <button type="button" class="hood-faq-q" aria-expanded="false">
+        <span>Does my rank update in real time?</span><span class="hood-faq-sign">+</span>
+      </button>
+      <div class="hood-faq-a"><p>Every time you connect, we pull your balance fresh from the chain. Buy or sell, then reconnect to see it move.</p></div>
+    </div>
+    <div class="hood-faq-item">
+      <button type="button" class="hood-faq-q" aria-expanded="false">
+        <span>Is any of this financial advice?</span><span class="hood-faq-sign">+</span>
+      </button>
+      <div class="hood-faq-a"><p>No. This is a status display for a meme project, not investment guidance. Always DYOR.</p></div>
     </div>
   </div>
 </section>
@@ -268,7 +251,7 @@
 </footer>
 
 <script type="module" src="/js/topbar-menus.js"></script>
-<script type="module" src="/js/hood-status-views.js"></script>
+<script type="module" src="/js/hood-faq.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js" integrity="sha384-6Zl0Pc8zjSz8KvmNeXRvUQgY4ryFb+BwDvKCmLYcBME0joAaru491tQgi9B7zsMM" crossorigin="anonymous"></script>
 <script type="module" src="/js/wallet-connect.js"></script>
 

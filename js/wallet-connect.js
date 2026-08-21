@@ -21,9 +21,11 @@ const ERC20_ABI = [
   "function totalSupply() view returns (uint256)"
 ];
 
-// Every "Connect Wallet" trigger on the page (hero CTA + dashboard prompt)
-// stays in sync as one group -- same label, same disabled state -- rather
-// than each page section wiring up its own copy of the connect flow.
+// Every "Connect Wallet" trigger on the page stays in sync as one group --
+// same label, same disabled state -- rather than each one wiring up its
+// own copy of the connect flow. Currently just the one button in the rank
+// card, but the class-based query means adding another trigger elsewhere
+// needs no JS changes.
 const connectBtns = document.querySelectorAll('.btn-connect-trigger');
 const dashPrompt = document.getElementById('dashPrompt');
 const resultBox = document.getElementById('holderResult');
@@ -97,10 +99,6 @@ async function loadBalance(address, provider){
   errorBox.classList.remove('show');
   resultBox.classList.add('show');
   if (dashPrompt) dashPrompt.style.display = 'none';
-  // Views live in js/hood-status-views.js -- a plain global hook keeps the
-  // two modules decoupled (no import cycle) while still letting a connect
-  // triggered from the Home hero jump the visitor straight to their result.
-  if (typeof window.hoodShowView === 'function') window.hoodShowView('dashboard');
 }
 
 async function connectWallet(){

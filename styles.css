@@ -367,13 +367,6 @@
 
   /* ---------- wallet page hero (functions/wallet.html) ---------- */
   .rank-hero-section{max-width:1000px; margin:0 auto;}
-  .rank-chain-badge{
-    display:inline-flex; align-items:center; gap:6px; max-width:max-content;
-    font-family:'IM Fell English',serif; font-size:11px; letter-spacing:0.06em;
-    text-transform:uppercase; color:var(--green-bright);
-    background:rgba(111,207,58,0.08); border:1px solid rgba(111,207,58,0.3);
-    border-radius:999px; padding:6px 14px; margin:0 auto 32px;
-  }
   .rank-hero-grid{
     display:grid; grid-template-columns:1fr; gap:36px; align-items:start;
   }
@@ -385,9 +378,11 @@
      now has the spotlight + coin-platform baked in, so a CSS drop-shadow on
      top would just muddy it. */
   .rank-hero-art img{
-    width:100%; max-width:220px; height:auto; object-fit:contain;
+    width:100%; max-width:300px; height:auto; object-fit:contain;
   }
-  @media(min-width:860px){ .rank-hero-art img{max-width:320px;} }
+  /* Fills its grid column at the desktop two-up layout (~430px wide)
+     rather than floating small inside it. */
+  @media(min-width:860px){ .rank-hero-art img{max-width:420px;} }
 
   /* ---------- rank tier showcase (static reference, no wallet needed) ---------- */
 
@@ -464,35 +459,14 @@
   .holder-error{color:#e08a8a; font-size:13px; margin-top:14px; display:none;}
   .holder-error.show{display:block;}
 
-  /* ---------- Hood Status app (tabs / views / ladder / dashboard / faq) ---------- */
-  .hood-tabs{
-    display:flex; gap:4px; padding:4px; margin:0 auto 40px; width:max-content; max-width:100%;
-    border:1px solid rgba(227,168,102,0.35); border-radius:999px; background:rgba(255,255,255,0.02);
-  }
-  .hood-tab{
-    font-family:'IM Fell English',serif; font-size:15px; font-weight:400;
-    padding:9px 18px; border-radius:999px; border:none; background:transparent;
-    color:var(--ink-dim); cursor:pointer; white-space:nowrap;
-    transition:background .2s ease, color .2s ease;
-  }
-  .hood-tab.active{
-    color:#0d1a0f;
-    background-image:linear-gradient(165deg, #b6f57e 0%, #8be85a 40%, var(--green-bright) 100%);
-  }
-
-  /* One view visible at a time -- plain show/hide, no router. A soft
-     fade+rise on entry so switching tabs doesn't feel like a hard cut. */
-  .hood-view{display:none;}
-  .hood-view.active{display:block; animation:hoodViewIn .35s ease both;}
-  @keyframes hoodViewIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
-
+  /* ---------- Hood Status app (ladder / dashboard / faq) ---------- */
   .hood-stats-grid{
     display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px;
     margin-top:48px;
   }
   .hood-stat-note{display:block; margin-top:8px; font-family:'IM Fell English',serif; font-size:13px; color:var(--green-bright);}
 
-  .hood-ladder{display:flex; flex-direction:column; gap:12px;}
+  .hood-ladder{max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:12px;}
   .hood-ladder-item{
     display:flex; flex-wrap:wrap; align-items:center; gap:16px;
     padding:20px 22px; border-radius:16px;
@@ -541,7 +515,7 @@
     font-family:'IM Fell English',serif; font-size:14px; color:var(--ink-dim);
   }
 
-  .hood-faq-list{display:flex; flex-direction:column; gap:10px;}
+  .hood-faq-list{max-width:680px; margin:0 auto; display:flex; flex-direction:column; gap:10px;}
   .hood-faq-item{
     border:1px solid rgba(227,168,102,0.3); border-radius:14px; overflow:hidden;
     background:rgba(111,207,58,0.04);
@@ -640,7 +614,7 @@
 
   /* ---------- press feedback for touch (no :hover, so give taps their own cue) ---------- */
   .lore-card:active, .face-card:active, .comm-card:active, .quicklink-card:active,
-  .rank-badge-item:active, .hood-ladder-item:active, .hood-tab:active, .hood-faq-q:active{
+  .rank-badge-item:active, .hood-ladder-item:active, .hood-faq-q:active{
     transform:scale(0.98);
   }
   .copy-btn:active{transform:scale(0.9);}
@@ -707,7 +681,6 @@
       background:rgba(111,207,58,0.1);
       box-shadow:0 0 20px 2px rgba(111,207,58,0.45), 0 0 38px 4px rgba(111,207,58,0.22);
     }
-    .hood-tab:not(.active):hover{color:var(--cream2);}
     .hood-ladder-item:hover{
       border-color:var(--bronze);
       box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.5),
