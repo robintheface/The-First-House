@@ -444,10 +444,30 @@
     margin:-8px 0 12px;
   }
   /* Chain divider -- sits under the stats grid as a closing line for the
-     section rather than a bordered pill; the frame is gone, just the
-     plain label centered on its own line. */
+     section rather than a bordered pill; the frame is gone, replaced by
+     two fading glow lines flanking the label -- solid/bright where they
+     meet the text, fading to nothing at the outer tip (drop-shadow blur
+     follows the gradient's alpha, so the glow itself thins out along with
+     the line rather than staying a uniform halo). Same overall length as
+     the earlier vine version: capped at 50% width once there's room
+     (>=640px), full-width with a min-width per side below that so they
+     don't get crushed next to the label on mobile. */
   .rank-chain-divider{
-    display:flex; align-items:center; justify-content:center; margin:56px auto 0;
+    display:flex; align-items:center; gap:14px; margin:56px auto 0;
+    max-width:100%;
+  }
+  @media(min-width:640px){
+    .rank-chain-divider{ max-width:50%; }
+  }
+  .rank-chain-line{
+    flex:1 1 20px; min-width:20px; height:2px; border-radius:999px;
+    filter:drop-shadow(0 0 5px rgba(111,207,58,0.8)) drop-shadow(0 0 2px rgba(214,255,170,0.9));
+  }
+  .rank-chain-line-left{
+    background:linear-gradient(to left, rgba(111,207,58,0.95) 0%, rgba(111,207,58,0) 100%);
+  }
+  .rank-chain-line-right{
+    background:linear-gradient(to right, rgba(111,207,58,0.95) 0%, rgba(111,207,58,0) 100%);
   }
   .rank-chain-badge{
     display:inline-flex; align-items:center; gap:6px; max-width:max-content;
