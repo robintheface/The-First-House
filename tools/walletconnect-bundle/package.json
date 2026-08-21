@@ -1,0 +1,14 @@
+{
+  "name": "walletconnect-bundle",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "One-time local build that bundles @walletconnect/ethereum-provider (and its full dependency tree) into a single self-contained ESM file. Not part of the site's runtime or its npm install -- the site itself still ships with zero build step. Only run this manually when bumping the WalletConnect SDK version; see README.md.",
+  "scripts": {
+    "build": "esbuild entry.js --bundle --format=esm --minify --target=es2020 --outfile=../../js/vendor/walletconnect-ethereum-provider.js && node prepend-header.js"
+  },
+  "devDependencies": {
+    "@walletconnect/ethereum-provider": "2.23.10",
+    "esbuild": "0.28.2"
+  }
+}

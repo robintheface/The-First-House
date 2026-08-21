@@ -21,6 +21,10 @@ const ERC20_ABI = [
   "function totalSupply() view returns (uint256)"
 ];
 const RESTING_LABEL = 'See your rank';
+// WalletConnect Project IDs are public client identifiers (they scope relay
+// usage/quota, not a secret) -- WalletConnect's own docs have it living in
+// front-end code same as this. Get one at https://dashboard.reown.com.
+const WALLETCONNECT_PROJECT_ID = '788bd500d3787a7879aa1e9bb5901533';
 
 // ---------- multi-wallet discovery (EIP-6963) ----------
 // A page with only "window.ethereum" can't reliably tell MetaMask and OKX
@@ -76,6 +80,37 @@ const walletOptionBtns = modal ? modal.querySelectorAll('.wallet-option[data-wal
 let activeProvider = null; // the specific EIP-1193 provider actually connected
 let activeAddress = null;
 
+// ---------- WalletConnect (lazy-loaded) ----------
+// @walletconnect/ethereum-provider has no self-contained CDN build (its UMD
+// bundle externalizes viem/lit/valtio/qrcode/etc, none of which have matching
+// CDN builds), so it's bundled locally ahead of time into a same-origin
+// static file (see tools/walletconnect-bundle/) instead of loaded from a CDN.
+// Loaded via dynamic import only when the user actually picks WalletConnect,
+// since the bundle is ~2MB and most visitors will connect via MetaMask/OKX.
+let wcProviderPromise = null;
+async function getWalletConnectProvider(){
+  if (!wcProviderPromise) {
+    wcProviderPromise = import('./vendor/walletconnect-ethereum-provider.js').then(({ EthereumProvider }) =>
+      EthereumProvider.init({
+        projectId: WALLETCONNECT_PROJECT_ID,
+        chains: [4663],
+        rpcMap: { 4663: 'https://rpc.mainnet.chain.robinhood.com' },
+        showQrModal: true,
+        metadata: {
+          name: 'Robin The Face',
+          description: 'Hood Status — check your $HOODFACE rank',
+          url: window.location.origin,
+          icons: [window.location.origin + '/favicon.png']
+        }
+      })
+    ).catch((err) => {
+      wcProviderPromise = null; // allow retry on next click instead of caching a failed load
+      throw err;
+    });
+  }
+  return wcProviderPromise;
+}
+
 function setConnectLabel(text, disabled){
   connectBtns.forEach((btn) => { btn.textContent = text; btn.disabled = disabled; });
 }
@@ -127,6 +162,14 @@ function refreshWalletOptionMeta(){
   walletOptionBtns.forEach((btn) => {
     const key = btn.dataset.wallet;
     const meta = btn.querySelector('.wallet-option-meta');
+    // WalletConnect isn't an installed-extension check -- it's always
+    // available, pairs via its own QR modal instead.
+    if (key === 'walletconnect') {
+      btn.disabled = false;
+      btn.classList.remove('is-unavailable');
+      if (meta) meta.textContent = 'Scan with wallet';
+      return;
+    }
     const available = !!providerFor(key);
     btn.disabled = !available;
     btn.classList.toggle('is-unavailable', !available);
@@ -191,15 +234,35 @@ function renderNextTier(balanceNum){
 }
 
 async function connectWith(walletKey){
-  const provider = providerFor(walletKey);
-  if (!provider) {
-    showError('Không tìm thấy ví này. Cài đặt extension rồi thử lại nhé.');
-    return;
+  let provider;
+  if (walletKey === 'walletconnect') {
+    clearError();
+    showStep(stepLoading);
+    if (loadingLine) loadingLine.textContent = 'Opening WalletConnect…';
+    setConnectLabel('Connecting…', true);
+    try {
+      provider = await getWalletConnectProvider();
+    } catch (err) {
+      console.error(err);
+      showError('Không mở được WalletConnect. Thử lại nhé.');
+      showStep(stepPick);
+      setConnectLabel(RESTING_LABEL, false);
+      return;
+    }
+    // From here the SDK's own QR modal takes over the screen; it closes
+    // itself once a wallet pairs (or the user cancels it).
+    if (loadingLine) loadingLine.textContent = 'Scan the QR with your wallet…';
+  } else {
+    provider = providerFor(walletKey);
+    if (!provider) {
+      showError('Không tìm thấy ví này. Cài đặt extension rồi thử lại nhé.');
+      return;
+    }
+    clearError();
+    showStep(stepLoading);
+    if (loadingLine) loadingLine.textContent = 'Pinging Robinhood Chain…';
+    setConnectLabel('Connecting…', true);
   }
-  clearError();
-  showStep(stepLoading);
-  if (loadingLine) loadingLine.textContent = 'Pinging Robinhood Chain…';
-  setConnectLabel('Connecting…', true);
   try {
     const [address] = await provider.request({ method: 'eth_requestAccounts' });
     activeProvider = provider;
@@ -235,6 +298,16 @@ function attachProviderListeners(provider){
     loadBalance(activeAddress, provider).catch((err) => console.error(err));
   });
   provider.on('chainChanged', () => { window.location.reload(); });
+  // Injected wallets signal a disconnect via an empty accountsChanged, but
+  // WalletConnect sessions (ended from the wallet app, or expired) fire
+  // their own 'disconnect' event instead.
+  provider.on('disconnect', () => {
+    activeProvider = null;
+    activeAddress = null;
+    listenersAttachedTo = null;
+    setConnectLabel(RESTING_LABEL, false);
+    closeModal();
+  });
 }
 
 connectBtns.forEach((btn) => btn.addEventListener('click', openModal));
