@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="/js/scroll-fix.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>ROBIN THE FACE — Ladder</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css?v=44">
+</head>
+<body>
+
+<div class="topbar" id="top">
+  <div class="topbar-inner">
+    <a href="/" class="brand" style="text-decoration:none;"><img class="brand-logo" src="/logo.webp" alt="Robin The Face logo"><span class="brand-name">ROBIN THE FACE</span></a>
+    <nav class="nav-links" id="top-nav">
+      <a href="/#lore">Lore</a>
+      <a href="/#faces">Faces</a>
+      <a href="/#tokenomics">Tokenomics</a>
+      <a href="/#roadmap">Trail</a>
+      <a href="/#community">Community</a>
+      <div class="nav-more">
+        <button type="button" class="nav-more-trigger" aria-haspopup="true" aria-expanded="false" aria-controls="nav-more-panel">More <span class="nav-more-caret">▾</span></button>
+        <div class="nav-more-panel" id="nav-more-panel">
+          <a class="nav-more-item" href="/explore/wallet" target="_blank" rel="noopener noreferrer">Your Rank</a>
+          <a class="nav-more-item" href="/explore/wallet/faq" target="_blank" rel="noopener noreferrer">FAQ</a>
+          <span class="nav-more-item is-locked">Lucky Draw<span class="lock-tag">Soon</span></span>
+          <span class="nav-more-item is-locked">Tickets<span class="lock-tag">Soon</span></span>
+          <span class="nav-more-item is-locked">Burn Tracker<span class="lock-tag">Soon</span></span>
+        </div>
+      </div>
+    </nav>
+    <div class="topbar-right">
+      <a class="topbar-cta" href="https://app.uniswap.org/swap?outputCurrency=0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274" target="_blank" rel="noopener noreferrer">Buy $HOODFACE</a>
+      <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="top-nav">☰</button>
+    </div>
+  </div>
+</div>
+
+<!-- Not linked from anywhere yet -- split out of explore/wallet/faq/index.html
+     per request, kept live at this URL for whenever the Leaderboard CTA on
+     the wallet page is ready to point back at it. -->
+<section id="ladder" style="padding-top:60px;">
+  <div class="section-head">
+    <div class="kicker">The ladder</div>
+    <h2 class="section-title">Five faces. One <span style="color:var(--green-bright);">bag</span> decides.</h2>
+    <p class="section-desc">Rank is read straight off your wallet, live from the chain. Buy more, rank up. Paperhand it, rank down. Nobody's editing the spreadsheet.</p>
+  </div>
+
+  <div class="hood-ladder">
+    <div class="hood-ladder-item" style="--tier-color:var(--gold);">
+      <span class="hood-ladder-num">01</span>
+      <span class="hood-ladder-glyph">🐋</span>
+      <div class="hood-ladder-body">
+        <div class="hood-ladder-name">Whale</div>
+        <div class="hood-ladder-blurb">The tide doesn't move without you. Green days, you did that.</div>
+      </div>
+      <div class="hood-ladder-threshold">
+        <div class="hood-ladder-threshold-label">Threshold</div>
+        <div class="hood-ladder-threshold-value">≥ 10,000,000</div>
+      </div>
+    </div>
+    <div class="hood-ladder-item" style="--tier-color:var(--green-bright);">
+      <span class="hood-ladder-num">02</span>
+      <span class="hood-ladder-glyph">💎</span>
+      <div class="hood-ladder-body">
+        <div class="hood-ladder-name">Diamond Hood</div>
+        <div class="hood-ladder-blurb">Been through every dip and never once looked away.</div>
+      </div>
+      <div class="hood-ladder-threshold">
+        <div class="hood-ladder-threshold-label">Threshold</div>
+        <div class="hood-ladder-threshold-value">≥ 1,000,000</div>
+      </div>
+    </div>
+    <div class="hood-ladder-item" style="--tier-color:var(--bronze);">
+      <span class="hood-ladder-num">03</span>
+      <span class="hood-ladder-glyph">🧢</span>
+      <div class="hood-ladder-body">
+        <div class="hood-ladder-name">Hood Member</div>
+        <div class="hood-ladder-blurb">Not new, not soft. You know how this goes by now.</div>
+      </div>
+      <div class="hood-ladder-threshold">
+        <div class="hood-ladder-threshold-label">Threshold</div>
+        <div class="hood-ladder-threshold-value">≥ 100,000</div>
+      </div>
+    </div>
+    <div class="hood-ladder-item" style="--tier-color:var(--cream2);">
+      <span class="hood-ladder-num">04</span>
+      <span class="hood-ladder-glyph">🌱</span>
+      <div class="hood-ladder-body">
+        <div class="hood-ladder-name">Fresh Face</div>
+        <div class="hood-ladder-blurb">First candle's always the hardest. Welcome to the hood.</div>
+      </div>
+      <div class="hood-ladder-threshold">
+        <div class="hood-ladder-threshold-label">Threshold</div>
+        <div class="hood-ladder-threshold-value">&gt; 0</div>
+      </div>
+    </div>
+    <div class="hood-ladder-item" style="--tier-color:var(--ink-dim);">
+      <span class="hood-ladder-num">05</span>
+      <span class="hood-ladder-glyph">👀</span>
+      <div class="hood-ladder-body">
+        <div class="hood-ladder-name">Not in the hood — yet</div>
+        <div class="hood-ladder-blurb">Still watching from outside. There's room for one more.</div>
+      </div>
+      <div class="hood-ladder-threshold">
+        <div class="hood-ladder-threshold-label">Threshold</div>
+        <div class="hood-ladder-threshold-value">0</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p class="disclaimer">This is a community meme project built for entertainment and culture. Not financial advice. Nothing on this page is a promise of profit — always DYOR before interacting with any token or contract.</p>
+  <div class="foot-brand">🏹 ROBIN THE FACE — Every Candle Has a Face.</div>
+</footer>
+
+<script type="module" src="/js/topbar-menus.js"></script>
+
+</body>
+</html>
