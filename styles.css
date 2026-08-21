@@ -422,48 +422,29 @@
   @media(min-width:860px){
     .rank-hero-grid{grid-template-columns:1.05fr 0.95fr; gap:48px;}
   }
-  .rank-hero-art{display:flex; align-items:center; justify-content:center;}
-  /* No separate glow/pedestal layers here anymore -- logo-main.webp itself
-     now has the spotlight + coin-platform baked in, so a CSS drop-shadow on
-     top would just muddy it. */
+  .rank-hero-art{
+    display:flex; align-items:center; justify-content:center;
+    /* Gentle, slow drift -- reads as the medallion hovering rather than
+       actively bouncing. Transform lives on the wrapper so the glow
+       filter animation below (on the img itself) runs independently and
+       both can be trimmed to a single frame under reduced-motion. */
+    animation:hf-float 7s ease-in-out infinite;
+  }
   .rank-hero-art img{
     width:100%; max-width:300px; height:auto; object-fit:contain;
-    /* Soft gold ambient glow instead of a hard shadow -- the medallion
-       already reads as lit, this just keeps it from sitting flat against
-       the page. */
-    filter:drop-shadow(0 0 26px rgba(232,212,77,0.35));
+    animation:hf-glow-pulse 4s ease-in-out infinite;
   }
   /* Fills its grid column at the desktop two-up layout (~430px wide)
      rather than floating small inside it. */
   @media(min-width:860px){ .rank-hero-art img{max-width:420px;} }
-
-  /* ---------- rank tier showcase (static reference, no wallet needed) ---------- */
-
-  .rank-badges{
-    display:grid; grid-template-columns:1fr; gap:14px; margin-top:56px;
+  @keyframes hf-float{
+    0%, 100%{ transform:translateY(0); }
+    50%{ transform:translateY(-14px); }
   }
-  @media(min-width:520px){ .rank-badges{grid-template-columns:1fr 1fr;} }
-  @media(min-width:860px){ .rank-badges{grid-template-columns:repeat(4,1fr);} }
-  .rank-badge-item{
-    display:flex; align-items:center; gap:14px;
-    background:rgba(255,255,255,0.015); border-radius:16px;
-    padding:16px;
-    /* Thin glass-green edge -- the app-y cards on this page (rank card,
-       stats, ladder, FAQ) share this same quiet border instead of the
-       bronze coin-edge trim the rest of the site uses, per the reference
-       app design. */
-    border:1px solid rgba(111,207,58,0.14);
-    transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+  @keyframes hf-glow-pulse{
+    0%, 100%{ filter:drop-shadow(0 0 20px rgba(232,212,77,0.28)); }
+    50%{ filter:drop-shadow(0 0 40px rgba(232,212,77,0.55)); }
   }
-  /* No frame around the icon anymore -- just the icon itself, bigger and
-     vertically centered against the two-line text block next to it. */
-  .rank-badge-item .rank-badge-icon{
-    display:flex; align-items:center; justify-content:center;
-    flex:0 0 auto;
-  }
-  .rank-badge-item .rank-badge-icon img{width:44px; height:44px; object-fit:contain;}
-  .rank-badge-item strong{font-family:'IM Fell English',serif; font-weight:400; font-size:16px; color:var(--cream2); display:block; margin-bottom:2px;}
-  .rank-badge-item > div > span{display:block; font-size:13px; color:var(--ink-dim); line-height:1.4;}
 
   /* ---------- holder check (modern rank card) ---------- */
   .rank-card{
@@ -518,12 +499,6 @@
   .holder-error.show{display:block;}
 
   /* ---------- Hood Status app (ladder / dashboard / faq) ---------- */
-  .hood-stats-grid{
-    display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px;
-    margin-top:48px;
-  }
-  .hood-stat-note{display:block; margin-top:8px; font-family:'IM Fell English',serif; font-size:13px; color:var(--green-bright);}
-
   .hood-ladder{max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:12px;}
   .hood-ladder-item{
     display:flex; flex-wrap:wrap; align-items:center; gap:16px;
@@ -566,11 +541,6 @@
   }
   .next-tier-remaining{margin-top:8px; font-family:'IM Fell English',serif; font-size:13px; color:var(--ink-dim);}
   .next-tier-maxed{margin-top:18px; padding-top:16px; border-top:1px dashed var(--line); font-family:'IM Fell English',serif; font-size:14px; color:var(--gold); text-align:center;}
-
-  .hood-soon-note{
-    max-width:420px; margin:22px auto 0; text-align:center;
-    font-family:'IM Fell English',serif; font-size:14px; color:var(--ink-dim);
-  }
 
   .hood-faq-list{max-width:680px; margin:0 auto; display:flex; flex-direction:column; gap:10px;}
   .hood-faq-item{
@@ -671,7 +641,7 @@
 
   /* ---------- press feedback for touch (no :hover, so give taps their own cue) ---------- */
   .lore-card:active, .face-card:active, .comm-card:active, .quicklink-card:active,
-  .rank-badge-item:active, .hood-ladder-item:active, .hood-faq-q:active{
+  .hood-ladder-item:active, .hood-faq-q:active{
     transform:scale(0.98);
   }
   .copy-btn:active{transform:scale(0.9);}
@@ -729,10 +699,6 @@
     .rank-card:hover{
       border-color:rgba(111,207,58,0.4);
       box-shadow:0 0 32px -6px rgba(111,207,58,0.4);
-    }
-    .rank-badge-item:hover{
-      transform:translateY(-3px); border-color:rgba(111,207,58,0.4);
-      box-shadow:0 0 26px -6px rgba(111,207,58,0.4);
     }
     .btn-connect:hover{
       background:rgba(111,207,58,0.1);
