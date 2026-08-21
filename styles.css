@@ -459,19 +459,8 @@
     50%{ filter:drop-shadow(0 0 40px rgba(232,212,77,0.55)); }
   }
 
-  /* ---------- holder check (result panel, shown after connecting) ---------- */
-  .holder-result{
-    display:none; margin-top:20px; max-width:420px;
-    background:radial-gradient(120% 100% at 90% 0%, rgba(111,207,58,0.14), rgba(255,255,255,0.012));
-    border-radius:20px; padding:22px 24px;
-    border:1px solid rgba(111,207,58,0.16);
-    transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
-  }
-  .holder-result.show{display:block;}
+  /* ---------- holder check (result panel, shown inside the wallet modal) ---------- */
   .rank-hero{
-    /* Flush to the panel's own padding on the sides (no extra inset of
-       its own) so "Whale" starts at the exact same left edge as the
-       address below it. */
     padding:6px 0 14px;
     display:flex; align-items:center; gap:14px; margin-bottom:6px;
   }
@@ -495,6 +484,58 @@
 
   .holder-error{color:#e08a8a; font-size:13px; margin-top:14px; display:none;}
   .holder-error.show{display:block;}
+
+  /* ---------- wallet connect modal ---------- */
+  .wallet-modal{
+    position:fixed; inset:0; z-index:200;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .wallet-modal[hidden]{display:none;}
+  .wallet-modal-backdrop{position:absolute; inset:0; background:rgba(2,6,3,0.78); backdrop-filter:blur(8px);}
+  .wallet-modal-card{
+    position:relative; z-index:1; width:100%; max-width:420px; max-height:88vh; overflow-y:auto;
+    padding:30px; border-radius:22px;
+    background:radial-gradient(120% 90% at 50% 0%, rgba(111,207,58,0.13), #071009);
+    border:1px solid rgba(111,207,58,0.22);
+    box-shadow:0 40px 100px rgba(0,0,0,0.7);
+    animation:wm-rise .25s ease both;
+  }
+  @keyframes wm-rise{ from{opacity:0; transform:translateY(10px) scale(0.98);} to{opacity:1; transform:none;} }
+  .wallet-modal-close{
+    position:absolute; top:20px; right:20px; width:32px; height:32px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    background:transparent; border:1px solid rgba(111,207,58,0.25); color:var(--ink-dim);
+    font-size:15px; line-height:1; cursor:pointer;
+  }
+  .wallet-modal-title{font-family:'IM Fell English',serif; font-weight:400; font-size:26px; color:var(--cream2); margin:10px 0 8px;}
+  .wallet-modal-sub{color:var(--ink-dim); font-size:15px; line-height:1.5; margin:0 0 22px;}
+
+  .wallet-option-list{display:flex; flex-direction:column; gap:10px;}
+  .wallet-option{
+    display:flex; align-items:center; gap:14px; width:100%;
+    padding:14px 16px; border-radius:13px; text-align:left; cursor:pointer;
+    background:rgba(255,255,255,0.02); border:1px solid rgba(111,207,58,0.16); color:var(--ink);
+    font-family:'IM Fell English',serif;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .wallet-option-glyph{font-size:22px; line-height:1; flex:0 0 auto;}
+  .wallet-option-name{flex:1; font-size:18px;}
+  .wallet-option-meta{
+    flex:0 0 auto; font-family:'IM Fell English',serif; font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--green-bright);
+  }
+  .wallet-option:disabled{cursor:not-allowed; opacity:0.55;}
+  .wallet-option.is-unavailable .wallet-option-meta{color:rgba(238,244,234,0.35);}
+  .wallet-option.is-locked .wallet-option-meta{color:rgba(238,244,234,0.32);}
+
+  .wallet-modal-spinner{
+    width:70px; height:70px; margin:0 auto 22px; border-radius:50%;
+    border:2px solid rgba(111,207,58,0.18); border-top-color:var(--green-bright);
+    animation:wm-spin 1s linear infinite;
+  }
+  @keyframes wm-spin{ to{transform:rotate(360deg);} }
+  #modalStepLoading{text-align:center;}
+  #modalStepLoading .wallet-modal-title{margin-top:0;}
 
   .hood-stats-grid{
     display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px;
@@ -704,9 +745,8 @@
       box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(139,232,90,0.7),
         0 22px 44px -6px rgba(139,232,90,0.75);
     }
-    .holder-result:hover{
-      border-color:rgba(111,207,58,0.4);
-      box-shadow:0 0 32px -6px rgba(111,207,58,0.4);
+    .wallet-option:not(:disabled):hover{
+      border-color:rgba(111,207,58,0.4); background:rgba(111,207,58,0.07);
     }
     .hood-ladder-item:hover{
       border-color:rgba(111,207,58,0.35);

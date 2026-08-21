@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/styles.css?v=35">
+<link rel="stylesheet" href="/styles.css?v=36">
 </head>
 <body>
 
@@ -53,35 +53,6 @@
         <button id="connectBtn" type="button" class="btn btn-primary btn-connect-trigger">See your rank</button>
         <a href="/explore/wallet/faq" class="btn btn-ghost">See the ladder</a>
       </div>
-
-      <div id="holderResult" class="holder-result">
-        <div class="rank-hero">
-          <span class="rank-hero-icon"><span id="holderTierIcon" class="rank-hero-icon-inner">—</span></span>
-          <span id="holderTier" class="rank-hero-title">—</span>
-        </div>
-        <div id="holderAddr" class="holder-addr"></div>
-        <div class="rank-stats">
-          <div class="rank-stat">
-            <div class="rank-stat-label">Balance</div>
-            <div class="rank-stat-value" id="holderBalance">0</div>
-          </div>
-          <div class="rank-stat">
-            <div class="rank-stat-label">Symbol</div>
-            <div class="rank-stat-value">$HOODFACE</div>
-          </div>
-        </div>
-
-        <div class="hood-next-tier">
-          <div id="nextTierProgress" class="next-tier-progress">
-            <div class="next-tier-top"><span>Next up</span><span id="nextTierName">—</span></div>
-            <div class="next-tier-track"><div id="nextTierBarFill" class="next-tier-fill"></div></div>
-            <div id="nextTierRemaining" class="next-tier-remaining"></div>
-          </div>
-          <div id="nextTierMaxed" class="next-tier-maxed" style="display:none;">You're at the top of the hood. Nowhere left to climb. 🐋</div>
-        </div>
-      </div>
-
-      <div id="holderError" class="holder-error"></div>
     </div>
 
     <div class="rank-hero-art">
@@ -117,6 +88,74 @@
   <p class="disclaimer">This is a community meme project built for entertainment and culture. Not financial advice. Nothing on this page is a promise of profit — always DYOR before interacting with any token or contract.</p>
   <div class="foot-brand">🏹 ROBIN THE FACE — Every Candle Has a Face.</div>
 </footer>
+
+<!-- WALLET MODAL -->
+<div id="walletModal" class="wallet-modal" hidden>
+  <div class="wallet-modal-backdrop" data-modal-close></div>
+  <div class="wallet-modal-card" role="dialog" aria-modal="true" aria-labelledby="walletModalTitle">
+    <button type="button" class="wallet-modal-close" data-modal-close aria-label="Close">✕</button>
+
+    <div id="modalStepPick" class="wallet-modal-step">
+      <div class="kicker">Connect</div>
+      <h3 id="walletModalTitle" class="wallet-modal-title">Pick your wallet</h3>
+      <p class="wallet-modal-sub">We only read your public $HOODFACE balance. No signatures, no approvals, no KYC.</p>
+      <div class="wallet-option-list">
+        <button type="button" class="wallet-option" data-wallet="metamask">
+          <span class="wallet-option-glyph">🦊</span>
+          <span class="wallet-option-name">MetaMask</span>
+          <span class="wallet-option-meta">Checking…</span>
+        </button>
+        <button type="button" class="wallet-option" data-wallet="okx">
+          <span class="wallet-option-glyph">⬡</span>
+          <span class="wallet-option-name">OKX Wallet</span>
+          <span class="wallet-option-meta">Checking…</span>
+        </button>
+        <button type="button" class="wallet-option is-locked" disabled>
+          <span class="wallet-option-glyph">🔗</span>
+          <span class="wallet-option-name">WalletConnect</span>
+          <span class="wallet-option-meta lock-tag">Soon</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="modalStepLoading" class="wallet-modal-step" hidden>
+      <div class="wallet-modal-spinner"></div>
+      <h3 class="wallet-modal-title">Reading the chain…</h3>
+      <p class="wallet-modal-sub" id="modalLoadingLine">Pinging Robinhood Chain…</p>
+    </div>
+
+    <div id="holderResult" class="wallet-modal-step" hidden>
+      <div class="rank-hero">
+        <span class="rank-hero-icon"><span id="holderTierIcon" class="rank-hero-icon-inner">—</span></span>
+        <span id="holderTier" class="rank-hero-title">—</span>
+      </div>
+      <div id="holderAddr" class="holder-addr"></div>
+      <div class="rank-stats">
+        <div class="rank-stat">
+          <div class="rank-stat-label">Balance</div>
+          <div class="rank-stat-value" id="holderBalance">0</div>
+        </div>
+        <div class="rank-stat">
+          <div class="rank-stat-label">Symbol</div>
+          <div class="rank-stat-value">$HOODFACE</div>
+        </div>
+      </div>
+
+      <div class="hood-next-tier">
+        <div id="nextTierProgress" class="next-tier-progress">
+          <div class="next-tier-top"><span>Next up</span><span id="nextTierName">—</span></div>
+          <div class="next-tier-track"><div id="nextTierBarFill" class="next-tier-fill"></div></div>
+          <div id="nextTierRemaining" class="next-tier-remaining"></div>
+        </div>
+        <div id="nextTierMaxed" class="next-tier-maxed" style="display:none;">You're at the top of the hood. Nowhere left to climb. 🐋</div>
+      </div>
+
+      <p class="hood-soon-note" style="text-align:left; margin:16px 0 0;">🚧 Hood leaderboard rank — coming soon.</p>
+    </div>
+
+    <div id="holderError" class="holder-error"></div>
+  </div>
+</div>
 
 <script type="module" src="/js/topbar-menus.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js" integrity="sha384-6Zl0Pc8zjSz8KvmNeXRvUQgY4ryFb+BwDvKCmLYcBME0joAaru491tQgi9B7zsMM" crossorigin="anonymous"></script>

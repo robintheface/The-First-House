@@ -20,14 +20,46 @@ const ERC20_ABI = [
   "function decimals() view returns (uint8)",
   "function totalSupply() view returns (uint256)"
 ];
-
-// Every "See your rank" trigger on the page stays in sync as one group --
-// same label, same disabled state -- rather than each one wiring up its
-// own copy of the connect flow. Currently just the one hero button, but
-// the class-based query means adding another trigger elsewhere needs no
-// JS changes.
 const RESTING_LABEL = 'See your rank';
+
+// ---------- multi-wallet discovery (EIP-6963) ----------
+// A page with only "window.ethereum" can't reliably tell MetaMask and OKX
+// Wallet apart when both are installed -- whichever extension injected last
+// "wins" that global, so a user picking "MetaMask" in the list could
+// silently end up connected through OKX instead. EIP-6963 has every wallet
+// announce itself with its own untouched provider object instead of fighting
+// over one global, so the picker can target the exact wallet the user
+// clicked rather than guessing. Falls back to the legacy globals only for
+// wallets that don't support 6963 yet.
+const discovered = new Map(); // key: 'metamask' | 'okx' -> EIP-1193 provider
+window.addEventListener('eip6963:announceProvider', (event) => {
+  const { info, provider } = event.detail || {};
+  if (!info || !provider) return;
+  const name = (info.name || '').toLowerCase();
+  const rdns = (info.rdns || '').toLowerCase();
+  if (name.includes('metamask') || rdns.includes('metamask')) discovered.set('metamask', provider);
+  if (name.includes('okx') || name.includes('okex') || rdns.includes('okx') || rdns.includes('okex')) discovered.set('okx', provider);
+});
+window.dispatchEvent(new Event('eip6963:requestProvider'));
+
+function providerFor(walletKey){
+  if (discovered.has(walletKey)) return discovered.get(walletKey);
+  // Legacy fallback for wallets that haven't adopted EIP-6963 yet.
+  if (walletKey === 'metamask' && typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
+    return window.ethereum;
+  }
+  if (walletKey === 'okx' && typeof window.okxwallet !== 'undefined') {
+    return window.okxwallet;
+  }
+  return null;
+}
+
+// ---------- DOM refs ----------
 const connectBtns = document.querySelectorAll('.btn-connect-trigger');
+const modal = document.getElementById('walletModal');
+const stepPick = document.getElementById('modalStepPick');
+const stepLoading = document.getElementById('modalStepLoading');
+const loadingLine = document.getElementById('modalLoadingLine');
 const resultBox = document.getElementById('holderResult');
 const errorBox = document.getElementById('holderError');
 const addrEl = document.getElementById('holderAddr');
@@ -39,15 +71,108 @@ const nextTierMaxed = document.getElementById('nextTierMaxed');
 const nextTierName = document.getElementById('nextTierName');
 const nextTierFill = document.getElementById('nextTierBarFill');
 const nextTierRemaining = document.getElementById('nextTierRemaining');
+const walletOptionBtns = modal ? modal.querySelectorAll('.wallet-option[data-wallet]') : [];
+
+let activeProvider = null; // the specific EIP-1193 provider actually connected
+let activeAddress = null;
 
 function setConnectLabel(text, disabled){
   connectBtns.forEach((btn) => { btn.textContent = text; btn.disabled = disabled; });
 }
 
+function showStep(step){
+  [stepPick, stepLoading, resultBox].forEach((el) => { if (el) el.hidden = (el !== step); });
+}
+
 function showError(msg){
   errorBox.textContent = msg;
   errorBox.classList.add('show');
-  resultBox.classList.remove('show');
+}
+
+function clearError(){
+  errorBox.classList.remove('show');
+  errorBox.textContent = '';
+}
+
+function openModal(){
+  if (!modal) return;
+  modal.hidden = false;
+  document.body.style.overflow = 'hidden';
+  // Ask again for announcements in case an extension finished loading
+  // after the page's initial request -- it's cheap and keeps the
+  // Detected/Not installed labels accurate right when it matters.
+  window.dispatchEvent(new Event('eip6963:requestProvider'));
+  refreshWalletOptionMeta();
+  // Already connected once this session -- skip straight back to the
+  // result instead of making the user pick a wallet again.
+  if (activeProvider && activeAddress) {
+    clearError();
+    loadBalance(activeAddress, activeProvider).catch((err) => {
+      console.error(err);
+      showError('Không tải được số dư mới. Thử lại nhé.');
+    });
+  } else {
+    clearError();
+    showStep(stepPick);
+  }
+}
+
+function closeModal(){
+  if (!modal) return;
+  modal.hidden = true;
+  document.body.style.overflow = '';
+}
+
+function refreshWalletOptionMeta(){
+  walletOptionBtns.forEach((btn) => {
+    const key = btn.dataset.wallet;
+    const meta = btn.querySelector('.wallet-option-meta');
+    const available = !!providerFor(key);
+    btn.disabled = !available;
+    btn.classList.toggle('is-unavailable', !available);
+    if (meta) meta.textContent = available ? 'Detected' : 'Not installed';
+  });
+}
+
+async function ensureRobinhoodChain(provider, ethersProvider){
+  const network = await ethersProvider.getNetwork();
+  if (network.chainId === 4663n) return;
+  try {
+    await provider.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: ROBINHOOD_CHAIN_ID_HEX }]
+    });
+  } catch (switchErr) {
+    if (switchErr.code === 4902) {
+      await provider.request({
+        method: 'wallet_addEthereumChain',
+        params: [ROBINHOOD_CHAIN_PARAMS]
+      });
+    } else {
+      throw switchErr;
+    }
+  }
+}
+
+async function loadBalance(address, provider){
+  const ethersProvider = new ethers.BrowserProvider(provider);
+  await ensureRobinhoodChain(provider, ethersProvider);
+  const contract = new ethers.Contract(HOODFACE_ADDRESS, ERC20_ABI, ethersProvider);
+  const [rawBalance, decimals] = await Promise.all([
+    contract.balanceOf(address),
+    contract.decimals()
+  ]);
+  const formatted = ethers.formatUnits(rawBalance, decimals);
+  const balanceNum = parseFloat(formatted);
+  addrEl.textContent = shortAddr(address);
+  balanceEl.textContent = balanceNum.toLocaleString(undefined, {maximumFractionDigits: 0});
+  const { icon, name } = splitTierLabel(tierFor(balanceNum));
+  tierEl.textContent = name;
+  if (tierIconEl) tierIconEl.textContent = icon;
+  renderNextTier(balanceNum);
+  clearError();
+  showStep(resultBox);
+  setConnectLabel('Connected ✓', true);
 }
 
 function renderNextTier(balanceNum){
@@ -65,68 +190,63 @@ function renderNextTier(balanceNum){
   nextTierRemaining.textContent = next.remaining.toLocaleString(undefined, {maximumFractionDigits: 0}) + ' more $HOODFACE to go';
 }
 
-async function ensureRobinhoodChain(provider){
-  const network = await provider.getNetwork();
-  if (network.chainId === 4663n) return;
-  try {
-    await window.ethereum.request({
-      method: 'wallet_switchEthereumChain',
-      params: [{ chainId: ROBINHOOD_CHAIN_ID_HEX }]
-    });
-  } catch (switchErr) {
-    if (switchErr.code === 4902) {
-      await window.ethereum.request({
-        method: 'wallet_addEthereumChain',
-        params: [ROBINHOOD_CHAIN_PARAMS]
-      });
-    } else {
-      throw switchErr;
-    }
-  }
-}
-
-async function loadBalance(address, provider){
-  const contract = new ethers.Contract(HOODFACE_ADDRESS, ERC20_ABI, provider);
-  const [rawBalance, decimals] = await Promise.all([
-    contract.balanceOf(address),
-    contract.decimals()
-  ]);
-  const formatted = ethers.formatUnits(rawBalance, decimals);
-  const balanceNum = parseFloat(formatted);
-  addrEl.textContent = shortAddr(address);
-  balanceEl.textContent = balanceNum.toLocaleString(undefined, {maximumFractionDigits: 0});
-  const { icon, name } = splitTierLabel(tierFor(balanceNum));
-  tierEl.textContent = name;
-  if (tierIconEl) tierIconEl.textContent = icon;
-  renderNextTier(balanceNum);
-  errorBox.classList.remove('show');
-  resultBox.classList.add('show');
-}
-
-async function connectWallet(){
-  if (typeof window.ethereum === 'undefined') {
-    showError('Không tìm thấy ví. Cài MetaMask hoặc ví tương thích EVM để tiếp tục.');
+async function connectWith(walletKey){
+  const provider = providerFor(walletKey);
+  if (!provider) {
+    showError('Không tìm thấy ví này. Cài đặt extension rồi thử lại nhé.');
     return;
   }
+  clearError();
+  showStep(stepLoading);
+  if (loadingLine) loadingLine.textContent = 'Pinging Robinhood Chain…';
   setConnectLabel('Connecting…', true);
   try {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    await provider.send('eth_requestAccounts', []);
-    await ensureRobinhoodChain(provider);
-    const signer = await provider.getSigner();
-    const address = await signer.getAddress();
+    const [address] = await provider.request({ method: 'eth_requestAccounts' });
+    activeProvider = provider;
+    activeAddress = address;
+    if (loadingLine) loadingLine.textContent = 'Counting the bag…';
     await loadBalance(address, provider);
-    setConnectLabel('Connected ✓', true);
+    attachProviderListeners(provider);
   } catch (err) {
     console.error(err);
     showError('Kết nối thất bại hoặc bị từ chối. Thử lại nhé.');
+    showStep(stepPick);
     setConnectLabel(RESTING_LABEL, false);
   }
 }
 
-connectBtns.forEach((btn) => btn.addEventListener('click', connectWallet));
+// Attached only to the provider actually in use, not blindly to
+// window.ethereum -- with multiple wallets installed those are not
+// guaranteed to be the same object.
+let listenersAttachedTo = null;
+function attachProviderListeners(provider){
+  if (listenersAttachedTo === provider || typeof provider.on !== 'function') return;
+  listenersAttachedTo = provider;
+  provider.on('accountsChanged', (accounts) => {
+    if (!accounts || accounts.length === 0) {
+      activeProvider = null;
+      activeAddress = null;
+      setConnectLabel(RESTING_LABEL, false);
+      closeModal();
+      return;
+    }
+    activeAddress = accounts[0];
+    setConnectLabel(RESTING_LABEL, false);
+    loadBalance(activeAddress, provider).catch((err) => console.error(err));
+  });
+  provider.on('chainChanged', () => { window.location.reload(); });
+}
 
-if (typeof window.ethereum !== 'undefined') {
-  window.ethereum.on('accountsChanged', () => { setConnectLabel(RESTING_LABEL, false); connectWallet(); });
-  window.ethereum.on('chainChanged', () => { window.location.reload(); });
+connectBtns.forEach((btn) => btn.addEventListener('click', openModal));
+walletOptionBtns.forEach((btn) => {
+  btn.addEventListener('click', () => connectWith(btn.dataset.wallet));
+});
+
+if (modal) {
+  modal.querySelectorAll('[data-modal-close]').forEach((el) => {
+    el.addEventListener('click', closeModal);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.hidden) closeModal();
+  });
 }
