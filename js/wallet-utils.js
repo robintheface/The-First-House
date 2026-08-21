@@ -24,3 +24,29 @@ export function tierFor(balanceNum) {
 export function shortAddr(a) {
   return a.slice(0, 6) + "…" + a.slice(-4);
 }
+
+// Same thresholds as tierFor() above, in climbing order -- kept separate
+// (rather than deriving one from the other) since tierFor's early-return
+// ladder and this ascending list read clearest each in their own shape.
+const NEXT_TIERS = [
+  { name: "Hood Member", min: 100000 },
+  { name: "Diamond Hood", min: 1000000 },
+  { name: "Whale", min: 10000000 }
+];
+
+/**
+ * How close a balance is to the next tier up.
+ * @param {number} balanceNum
+ * @returns {{name: string, threshold: number, remaining: number, progress: number} | null}
+ *   null when the balance has already cleared the top tier (nothing left to climb toward).
+ */
+export function nextTierInfo(balanceNum) {
+  const next = NEXT_TIERS.find((t) => balanceNum < t.min);
+  if (!next) return null;
+  return {
+    name: next.name,
+    threshold: next.min,
+    remaining: next.min - balanceNum,
+    progress: Math.max(0, Math.min(1, balanceNum / next.min))
+  };
+}

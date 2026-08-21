@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { tierFor, shortAddr } from "../js/wallet-utils.js";
+import { tierFor, shortAddr, nextTierInfo } from "../js/wallet-utils.js";
 
 describe("tierFor", () => {
   it("returns 'Not in the hood — yet' for a zero balance", () => {
@@ -44,5 +44,39 @@ describe("shortAddr", () => {
 
   it("does not throw on a short/malformed address, even if the output looks odd", () => {
     expect(() => shortAddr("0x1")).not.toThrow();
+  });
+});
+
+describe("nextTierInfo", () => {
+  it("targets Hood Member from a zero balance, at 0% progress", () => {
+    expect(nextTierInfo(0)).toEqual({
+      name: "Hood Member",
+      threshold: 100000,
+      remaining: 100000,
+      progress: 0
+    });
+  });
+
+  it("computes partial progress toward the next tier", () => {
+    expect(nextTierInfo(50000)).toEqual({
+      name: "Hood Member",
+      threshold: 100000,
+      remaining: 50000,
+      progress: 0.5
+    });
+  });
+
+  it("resets to a new target the moment a threshold is crossed", () => {
+    expect(nextTierInfo(100000)).toEqual({
+      name: "Diamond Hood",
+      threshold: 1000000,
+      remaining: 900000,
+      progress: 0.1
+    });
+  });
+
+  it("returns null once past the top tier -- nothing left to climb toward", () => {
+    expect(nextTierInfo(10000000)).toBeNull();
+    expect(nextTierInfo(50000000)).toBeNull();
   });
 });

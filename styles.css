@@ -464,6 +464,103 @@
   .holder-error{color:#e08a8a; font-size:13px; margin-top:14px; display:none;}
   .holder-error.show{display:block;}
 
+  /* ---------- Hood Status app (tabs / views / ladder / dashboard / faq) ---------- */
+  .hood-tabs{
+    display:flex; gap:4px; padding:4px; margin:0 auto 40px; width:max-content; max-width:100%;
+    border:1px solid rgba(227,168,102,0.35); border-radius:999px; background:rgba(255,255,255,0.02);
+  }
+  .hood-tab{
+    font-family:'IM Fell English',serif; font-size:15px; font-weight:400;
+    padding:9px 18px; border-radius:999px; border:none; background:transparent;
+    color:var(--ink-dim); cursor:pointer; white-space:nowrap;
+    transition:background .2s ease, color .2s ease;
+  }
+  .hood-tab.active{
+    color:#0d1a0f;
+    background-image:linear-gradient(165deg, #b6f57e 0%, #8be85a 40%, var(--green-bright) 100%);
+  }
+
+  /* One view visible at a time -- plain show/hide, no router. A soft
+     fade+rise on entry so switching tabs doesn't feel like a hard cut. */
+  .hood-view{display:none;}
+  .hood-view.active{display:block; animation:hoodViewIn .35s ease both;}
+  @keyframes hoodViewIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+
+  .hood-stats-grid{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px;
+    margin-top:48px;
+  }
+  .hood-stat-note{display:block; margin-top:8px; font-family:'IM Fell English',serif; font-size:13px; color:var(--green-bright);}
+
+  .hood-ladder{display:flex; flex-direction:column; gap:12px;}
+  .hood-ladder-item{
+    display:flex; flex-wrap:wrap; align-items:center; gap:16px;
+    padding:20px 22px; border-radius:16px;
+    border:1px solid rgba(227,168,102,0.3);
+    /* --tier-color is set per-row inline, from the same token each tier
+       already uses elsewhere on the site (gold for top rank, down to
+       ink-dim for "not in the hood yet") -- keeps the ladder's hierarchy
+       readable without inventing a new palette just for this list. */
+    border-left:3px solid var(--tier-color, var(--green-bright));
+    background:rgba(111,207,58,0.04);
+    box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.16);
+    transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+  }
+  .hood-ladder-num{font-family:'IM Fell English',serif; font-size:12px; letter-spacing:0.12em; color:var(--ink-dim); width:24px; flex:0 0 auto;}
+  .hood-ladder-glyph{font-size:28px; line-height:1; flex:0 0 auto;}
+  .hood-ladder-body{flex:1 1 200px; min-width:180px;}
+  .hood-ladder-name{font-family:'IM Fell English',serif; font-size:22px; color:var(--tier-color, var(--cream2));}
+  .hood-ladder-blurb{margin-top:4px; font-size:14px; color:var(--ink-dim); line-height:1.4;}
+  .hood-ladder-threshold{text-align:right; flex:0 0 auto; margin-left:auto;}
+  .hood-ladder-threshold-label{font-family:'IM Fell English',serif; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-dim);}
+  .hood-ladder-threshold-value{margin-top:5px; font-family:'IM Fell English',serif; font-size:17px; font-weight:600; color:var(--cream2);}
+
+  .dash-empty{padding:34px 10px; text-align:center;}
+  .dash-empty-icon{font-size:30px; margin-bottom:10px;}
+  .dash-empty p{margin:0 auto; max-width:320px; color:var(--ink-dim); font-size:15px; line-height:1.5;}
+
+  .hood-next-tier{margin-top:18px; padding-top:16px; border-top:1px dashed var(--line);}
+  .next-tier-top{
+    display:flex; justify-content:space-between;
+    font-family:'IM Fell English',serif; font-size:12px; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-dim);
+    margin-bottom:8px;
+  }
+  .next-tier-top span:last-child{color:var(--cream2); text-transform:none; font-size:14px;}
+  .next-tier-track{height:8px; border-radius:5px; background:rgba(255,255,255,0.08); overflow:hidden;}
+  .next-tier-fill{
+    height:100%; border-radius:5px; width:0%;
+    background:linear-gradient(90deg,#5fb63c,#c6ff8f);
+    box-shadow:0 0 12px rgba(111,207,58,0.5);
+    transition:width .5s ease;
+  }
+  .next-tier-remaining{margin-top:8px; font-family:'IM Fell English',serif; font-size:13px; color:var(--ink-dim);}
+  .next-tier-maxed{margin-top:18px; padding-top:16px; border-top:1px dashed var(--line); font-family:'IM Fell English',serif; font-size:14px; color:var(--gold); text-align:center;}
+
+  .hood-soon-note{
+    max-width:420px; margin:22px auto 0; text-align:center;
+    font-family:'IM Fell English',serif; font-size:14px; color:var(--ink-dim);
+  }
+
+  .hood-faq-list{display:flex; flex-direction:column; gap:10px;}
+  .hood-faq-item{
+    border:1px solid rgba(227,168,102,0.3); border-radius:14px; overflow:hidden;
+    background:rgba(111,207,58,0.04);
+    transition:border-color .2s ease;
+  }
+  .hood-faq-q{
+    display:flex; width:100%; align-items:center; justify-content:space-between; gap:16px;
+    padding:18px 20px; background:transparent; border:none; color:var(--cream2); text-align:left; cursor:pointer;
+    font-family:'IM Fell English',serif; font-size:18px;
+  }
+  .hood-faq-sign{flex:0 0 auto; font-size:20px; line-height:1; color:var(--green-bright); transition:transform .2s ease;}
+  .hood-faq-item.open .hood-faq-sign{transform:rotate(45deg);}
+  /* max-height transition rather than height/display -- lets the collapse
+     animate without knowing the content's real height up front. 300px is
+     comfortable headroom for a couple of wrapped lines at this font size. */
+  .hood-faq-a{max-height:0; overflow:hidden; transition:max-height .25s ease;}
+  .hood-faq-item.open .hood-faq-a{max-height:300px;}
+  .hood-faq-a p{margin:0; padding:0 20px 20px; color:var(--ink-dim); font-size:15px; line-height:1.55;}
+
   /* ---------- community ---------- */
   .community-grid{
     display:grid; grid-template-columns:1fr; gap:14px; max-width:520px; margin:0 auto;
@@ -543,7 +640,7 @@
 
   /* ---------- press feedback for touch (no :hover, so give taps their own cue) ---------- */
   .lore-card:active, .face-card:active, .comm-card:active, .quicklink-card:active,
-  .rank-badge-item:active{
+  .rank-badge-item:active, .hood-ladder-item:active, .hood-tab:active, .hood-faq-q:active{
     transform:scale(0.98);
   }
   .copy-btn:active{transform:scale(0.9);}
@@ -610,4 +707,11 @@
       background:rgba(111,207,58,0.1);
       box-shadow:0 0 20px 2px rgba(111,207,58,0.45), 0 0 38px 4px rgba(111,207,58,0.22);
     }
+    .hood-tab:not(.active):hover{color:var(--cream2);}
+    .hood-ladder-item:hover{
+      border-color:var(--bronze);
+      box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.5),
+        0 0 26px -4px rgba(227,168,102,0.5);
+    }
+    .hood-faq-item:hover{border-color:var(--bronze);}
   }
