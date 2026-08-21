@@ -428,6 +428,10 @@
      top would just muddy it. */
   .rank-hero-art img{
     width:100%; max-width:300px; height:auto; object-fit:contain;
+    /* Soft gold ambient glow instead of a hard shadow -- the medallion
+       already reads as lit, this just keeps it from sitting flat against
+       the page. */
+    filter:drop-shadow(0 0 26px rgba(232,212,77,0.35));
   }
   /* Fills its grid column at the desktop two-up layout (~430px wide)
      rather than floating small inside it. */
@@ -442,11 +446,13 @@
   @media(min-width:860px){ .rank-badges{grid-template-columns:repeat(4,1fr);} }
   .rank-badge-item{
     display:flex; align-items:center; gap:14px;
-    background:rgba(111,207,58,0.04); border-radius:16px;
+    background:rgba(255,255,255,0.015); border-radius:16px;
     padding:16px;
-    /* antique bronze trim, matching the coin-edge treatment on .quicklink-card */
-    border:1px solid rgba(227,168,102,0.4);
-    box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.22);
+    /* Thin glass-green edge -- the app-y cards on this page (rank card,
+       stats, ladder, FAQ) share this same quiet border instead of the
+       bronze coin-edge trim the rest of the site uses, per the reference
+       app design. */
+    border:1px solid rgba(111,207,58,0.14);
     transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
   }
   /* No frame around the icon anymore -- just the icon itself, bigger and
@@ -461,11 +467,10 @@
 
   /* ---------- holder check (modern rank card) ---------- */
   .rank-card{
-    max-width:420px; margin:0 auto; background:rgba(111,207,58,0.05);
-    border-radius:24px; padding:22px 24px;
-    /* antique bronze trim, matching the coin-edge treatment on .quicklink-card */
-    border:1px solid rgba(227,168,102,0.4);
-    box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.22);
+    max-width:420px; margin:0 auto;
+    background:radial-gradient(120% 100% at 90% 0%, rgba(111,207,58,0.14), rgba(255,255,255,0.012));
+    border-radius:20px; padding:22px 24px;
+    border:1px solid rgba(111,207,58,0.16);
     transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
   }
   .rank-card-top{display:flex; align-items:center; justify-content:space-between; gap:10px;}
@@ -485,23 +490,27 @@
   .holder-result{margin-top:14px; display:none;}
   .holder-result.show{display:block;}
   .rank-hero{
-    /* horizontal padding removed on purpose -- its own left/right inset
-       used to sit on top of .rank-card's, so "Whale" landed noticeably
-       more indented than the address/label text below and above it,
-       which only ever get the card's own padding. Keeping the vertical
-       padding + background for the highlighted-row look, just flush on
-       the sides now so "Whale" starts at the exact same edge as
-       "YOUR RANK" and the address. */
-    background:rgba(255,255,255,0.03); border-radius:14px; padding:14px 0;
-    display:flex; align-items:baseline; margin-bottom:10px;
+    /* Flush to the card's own padding on the sides (no extra inset of its
+       own) so "Whale" starts at the exact same left edge as "YOUR RANK"
+       and the address below it. */
+    padding:6px 0 14px;
+    display:flex; align-items:center; gap:14px; margin-bottom:6px;
   }
-  .rank-hero-title{font-family:'IM Fell English',serif; font-size:25px; font-weight:400; color:var(--cream2);}
+  .rank-hero-icon{
+    flex:0 0 auto; width:52px; height:52px; padding:3px; border-radius:50%; box-sizing:border-box;
+    background:conic-gradient(from 200deg, var(--green-bright), rgba(255,255,255,0.12), var(--green-bright));
+  }
+  .rank-hero-icon-inner{
+    width:100%; height:100%; border-radius:50%; background:#07150c;
+    display:flex; align-items:center; justify-content:center; font-size:23px;
+  }
+  .rank-hero-title{font-family:'IM Fell English',serif; font-size:28px; font-weight:400; color:var(--cream2);}
   .holder-addr{
     font-family:'IM Fell English',serif; font-size:11px; color:var(--ink-dim);
     word-break:break-all; margin-bottom:12px;
   }
   .rank-stats{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
-  .rank-stat{background:rgba(255,255,255,0.04); border-radius:12px; padding:12px; text-align:left;}
+  .rank-stat{background:rgba(255,255,255,0.03); border:1px solid rgba(111,207,58,0.1); border-radius:12px; padding:12px; text-align:left;}
   .rank-stat-label{font-size:10px; color:var(--ink-dim); margin-bottom:4px;}
   .rank-stat-value{color:var(--cream2); font-size:16px; font-weight:500; word-break:break-word;}
 
@@ -518,15 +527,14 @@
   .hood-ladder{max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:12px;}
   .hood-ladder-item{
     display:flex; flex-wrap:wrap; align-items:center; gap:16px;
-    padding:20px 22px; border-radius:16px;
-    border:1px solid rgba(227,168,102,0.3);
+    padding:20px 22px; border-radius:14px;
+    border:1px solid rgba(111,207,58,0.13);
     /* --tier-color is set per-row inline, from the same token each tier
        already uses elsewhere on the site (gold for top rank, down to
        ink-dim for "not in the hood yet") -- keeps the ladder's hierarchy
        readable without inventing a new palette just for this list. */
     border-left:3px solid var(--tier-color, var(--green-bright));
-    background:rgba(111,207,58,0.04);
-    box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.16);
+    background:linear-gradient(90deg, rgba(111,207,58,0.05), rgba(255,255,255,0.012));
     transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
   }
   .hood-ladder-num{font-family:'IM Fell English',serif; font-size:12px; letter-spacing:0.12em; color:var(--ink-dim); width:24px; flex:0 0 auto;}
@@ -566,8 +574,8 @@
 
   .hood-faq-list{max-width:680px; margin:0 auto; display:flex; flex-direction:column; gap:10px;}
   .hood-faq-item{
-    border:1px solid rgba(227,168,102,0.3); border-radius:14px; overflow:hidden;
-    background:rgba(111,207,58,0.04);
+    border:1px solid rgba(111,207,58,0.13); border-radius:14px; overflow:hidden;
+    background:rgba(255,255,255,0.015);
     transition:border-color .2s ease;
   }
   .hood-faq-q{
@@ -719,23 +727,20 @@
         0 22px 44px -6px rgba(139,232,90,0.75);
     }
     .rank-card:hover{
-      border-color:var(--bronze);
-      box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.55),
-        0 0 32px -4px rgba(227,168,102,0.55);
+      border-color:rgba(111,207,58,0.4);
+      box-shadow:0 0 32px -6px rgba(111,207,58,0.4);
     }
     .rank-badge-item:hover{
-      transform:translateY(-3px); border-color:var(--bronze);
-      box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.55),
-        0 0 26px -4px rgba(227,168,102,0.5);
+      transform:translateY(-3px); border-color:rgba(111,207,58,0.4);
+      box-shadow:0 0 26px -6px rgba(111,207,58,0.4);
     }
     .btn-connect:hover{
       background:rgba(111,207,58,0.1);
       box-shadow:0 0 20px 2px rgba(111,207,58,0.45), 0 0 38px 4px rgba(111,207,58,0.22);
     }
     .hood-ladder-item:hover{
-      border-color:var(--bronze);
-      box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.5),
-        0 0 26px -4px rgba(227,168,102,0.5);
+      border-color:rgba(111,207,58,0.35);
+      box-shadow:0 0 24px -6px rgba(111,207,58,0.35);
     }
-    .hood-faq-item:hover{border-color:var(--bronze);}
+    .hood-faq-item:hover{border-color:rgba(111,207,58,0.35);}
   }

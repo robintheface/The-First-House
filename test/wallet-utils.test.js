@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { tierFor, shortAddr, nextTierInfo } from "../js/wallet-utils.js";
+import { tierFor, shortAddr, nextTierInfo, splitTierLabel } from "../js/wallet-utils.js";
 
 describe("tierFor", () => {
   it("returns 'Not in the hood — yet' for a zero balance", () => {
@@ -78,5 +78,22 @@ describe("nextTierInfo", () => {
   it("returns null once past the top tier -- nothing left to climb toward", () => {
     expect(nextTierInfo(10000000)).toBeNull();
     expect(nextTierInfo(50000000)).toBeNull();
+  });
+});
+
+describe("splitTierLabel", () => {
+  it("splits a single-word tier name off its leading emoji", () => {
+    expect(splitTierLabel("🐋 Whale")).toEqual({ icon: "🐋", name: "Whale" });
+  });
+
+  it("keeps a multi-word tier name intact, em dash included", () => {
+    expect(splitTierLabel("👀 Not in the hood — yet")).toEqual({
+      icon: "👀",
+      name: "Not in the hood — yet"
+    });
+  });
+
+  it("falls back to an empty name when there's no space to split on", () => {
+    expect(splitTierLabel("—")).toEqual({ icon: "—", name: "" });
   });
 });

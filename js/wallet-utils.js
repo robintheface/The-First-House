@@ -25,6 +25,20 @@ export function shortAddr(a) {
   return a.slice(0, 6) + "…" + a.slice(-4);
 }
 
+/**
+ * Split a tierFor() label into its leading emoji and the rest of the name,
+ * so the UI can put the glyph in its own icon ring instead of inline with
+ * the text. The emoji is always the first space-separated token, however
+ * many words follow it ("Not in the hood — yet" included).
+ * @param {string} tierLabel
+ * @returns {{icon: string, name: string}}
+ */
+export function splitTierLabel(tierLabel) {
+  const spaceAt = tierLabel.indexOf(" ");
+  if (spaceAt === -1) return { icon: tierLabel, name: "" };
+  return { icon: tierLabel.slice(0, spaceAt), name: tierLabel.slice(spaceAt + 1) };
+}
+
 // Same thresholds as tierFor() above, in climbing order -- kept separate
 // (rather than deriving one from the other) since tierFor's early-return
 // ladder and this ascending list read clearest each in their own shape.

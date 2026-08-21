@@ -4,7 +4,7 @@
 // is the one page that actually talks to a wallet, so it's the one most
 // worth protecting from XSS-injected inline scripts that could otherwise
 // hook window.ethereum and tamper with a transaction before the user signs.
-import { tierFor, shortAddr, nextTierInfo } from "./wallet-utils.js";
+import { tierFor, shortAddr, nextTierInfo, splitTierLabel } from "./wallet-utils.js";
 
 const HOODFACE_ADDRESS = "0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274";
 const ROBINHOOD_CHAIN_ID_HEX = "0x1237"; // 4663 in hex
@@ -33,6 +33,7 @@ const errorBox = document.getElementById('holderError');
 const addrEl = document.getElementById('holderAddr');
 const balanceEl = document.getElementById('holderBalance');
 const tierEl = document.getElementById('holderTier');
+const tierIconEl = document.getElementById('holderTierIcon');
 const nextTierProgress = document.getElementById('nextTierProgress');
 const nextTierMaxed = document.getElementById('nextTierMaxed');
 const nextTierName = document.getElementById('nextTierName');
@@ -94,7 +95,9 @@ async function loadBalance(address, provider){
   const balanceNum = parseFloat(formatted);
   addrEl.textContent = shortAddr(address);
   balanceEl.textContent = balanceNum.toLocaleString(undefined, {maximumFractionDigits: 0});
-  tierEl.textContent = tierFor(balanceNum);
+  const { icon, name } = splitTierLabel(tierFor(balanceNum));
+  tierEl.textContent = name;
+  if (tierIconEl) tierIconEl.textContent = icon;
   renderNextTier(balanceNum);
   errorBox.classList.remove('show');
   resultBox.classList.add('show');
