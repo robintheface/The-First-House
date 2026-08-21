@@ -113,10 +113,27 @@
   /* ---------- "More"/"Explore" nav dropdown ---------- */
   .nav-more{position:relative;}
   .nav-more-trigger{
+    position:relative;
     font-family:'IM Fell English',serif; font-size:17px; font-weight:700; color:var(--ink-dim);
     background:transparent; border:none; padding:0; margin:0; cursor:pointer;
     display:inline-flex; align-items:center; gap:5px;
   }
+  /* Two more stars at the button's own corners (top-right/bottom-left),
+     filling out the set from .nav-more-sparkle's two (top-left/bottom-
+     right on the text itself) into four total. Kept on .nav-more-trigger
+     rather than nested inside .nav-more-sparkle -- that element's
+     -webkit-text-fill-color:transparent is inherited by real descendant
+     elements (unlike ::before/::after, which paint their own content
+     independent of it), so nesting more stars in there would need an
+     override just to stay visible. Different size + delay from the other
+     two so all four don't twinkle in lockstep. */
+  .nav-more-trigger::before,
+  .nav-more-trigger::after{
+    content:'✦'; position:absolute; font-size:6px; line-height:1; color:var(--gold);
+    animation:nav-sparkle-twinkle 1.8s ease-in-out infinite;
+  }
+  .nav-more-trigger::before{ top:-7px; right:-2px; animation-delay:0.45s; }
+  .nav-more-trigger::after{ bottom:-7px; left:2px; animation-delay:1.35s; }
   .nav-more-caret{font-size:11px; line-height:1; transition:transform .2s ease;}
   .nav-more-trigger[aria-expanded="true"] .nav-more-caret{transform:rotate(180deg);}
   /* Two small stars twinkle at opposite corners of the label, each on its
