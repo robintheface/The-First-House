@@ -451,8 +451,15 @@
   .holder-result{margin-top:14px; display:none;}
   .holder-result.show{display:block;}
   .rank-hero{
-    background:rgba(255,255,255,0.03); border-radius:14px; padding:16px;
-    display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px;
+    /* horizontal padding removed on purpose -- its own left/right inset
+       used to sit on top of .rank-card's, so "Whale" landed noticeably
+       more indented than the address/label text below and above it,
+       which only ever get the card's own padding. Keeping the vertical
+       padding + background for the highlighted-row look, just flush on
+       the sides now so "Whale" starts at the exact same edge as
+       "YOUR RANK" and the address. */
+    background:rgba(255,255,255,0.03); border-radius:14px; padding:14px 0;
+    display:flex; align-items:baseline; margin-bottom:10px;
   }
   .rank-hero-title{font-family:'IM Fell English',serif; font-size:25px; font-weight:400; color:var(--cream2);}
   .holder-addr{
