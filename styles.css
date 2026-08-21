@@ -122,7 +122,13 @@
 
   .nav-more-panel{display:none; flex-direction:column;}
   .nav-more-panel.open{display:flex;}
-  .nav-more-item{
+  /* Scoped as ".nav-more .nav-more-item" (not just ".nav-more-item") so its
+     specificity beats ".nav-links a" -- the plain-element selector below
+     that resets every other <a> in the nav to padding:0 at desktop width
+     was winning against a bare class and only the "Soon" locked items
+     (which are <span>, not <a>) were unaffected by it, so links and
+     locked items were landing at different row heights. */
+  .nav-more .nav-more-item{
     display:flex; align-items:center; justify-content:space-between; gap:12px;
     padding:10px 14px; border-radius:8px;
     font-family:'IM Fell English',serif; font-size:16px; color:var(--ink-dim);
@@ -431,12 +437,12 @@
     animation:hf-float 7s ease-in-out infinite;
   }
   .rank-hero-art img{
-    width:100%; max-width:300px; height:auto; object-fit:contain;
+    width:100%; max-width:270px; height:auto; object-fit:contain;
     animation:hf-glow-pulse 4s ease-in-out infinite;
   }
   /* Fills its grid column at the desktop two-up layout (~430px wide)
      rather than floating small inside it. */
-  @media(min-width:860px){ .rank-hero-art img{max-width:420px;} }
+  @media(min-width:860px){ .rank-hero-art img{max-width:378px;} }
   @keyframes hf-float{
     0%, 100%{ transform:translateY(0); }
     50%{ transform:translateY(-14px); }
