@@ -422,6 +422,13 @@
 
   /* ---------- wallet page hero (functions/wallet.html) ---------- */
   .rank-hero-section{max-width:1000px; margin:0 auto;}
+  .rank-chain-badge{
+    display:inline-flex; align-items:center; gap:6px; max-width:max-content;
+    font-family:'IM Fell English',serif; font-size:11px; letter-spacing:0.06em;
+    text-transform:uppercase; color:var(--green-bright);
+    background:rgba(111,207,58,0.08); border:1px solid rgba(111,207,58,0.3);
+    border-radius:999px; padding:6px 14px; margin:0 0 20px;
+  }
   .rank-hero-grid{
     display:grid; grid-template-columns:1fr; gap:36px; align-items:start;
   }
@@ -452,34 +459,19 @@
     50%{ filter:drop-shadow(0 0 40px rgba(232,212,77,0.55)); }
   }
 
-  /* ---------- holder check (modern rank card) ---------- */
-  .rank-card{
-    max-width:420px; margin:0 auto;
+  /* ---------- holder check (result panel, shown after connecting) ---------- */
+  .holder-result{
+    display:none; margin-top:20px; max-width:420px;
     background:radial-gradient(120% 100% at 90% 0%, rgba(111,207,58,0.14), rgba(255,255,255,0.012));
     border-radius:20px; padding:22px 24px;
     border:1px solid rgba(111,207,58,0.16);
     transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
   }
-  .rank-card-top{display:flex; align-items:center; justify-content:space-between; gap:10px;}
-  .rank-card-label{
-    font-family:'IM Fell English',serif; font-size:10px; letter-spacing:0.08em;
-    text-transform:uppercase; color:#9be89b;
-  }
-  .btn-connect{
-    font-family:'IM Fell English',serif; font-weight:600; font-size:13px;
-    padding:11px 20px; min-height:40px; border-radius:999px; text-decoration:none;
-    display:inline-flex; align-items:center; gap:6px;
-    background:transparent; border:1px solid #8be85a; color:#8be85a;
-    cursor:pointer; transition:transform .15s ease, background .15s ease, box-shadow .2s ease;
-  }
-  .btn-connect:active{transform:scale(0.97);}
-
-  .holder-result{margin-top:14px; display:none;}
   .holder-result.show{display:block;}
   .rank-hero{
-    /* Flush to the card's own padding on the sides (no extra inset of its
-       own) so "Whale" starts at the exact same left edge as "YOUR RANK"
-       and the address below it. */
+    /* Flush to the panel's own padding on the sides (no extra inset of
+       its own) so "Whale" starts at the exact same left edge as the
+       address below it. */
     padding:6px 0 14px;
     display:flex; align-items:center; gap:14px; margin-bottom:6px;
   }
@@ -526,10 +518,6 @@
   .hood-ladder-threshold{text-align:right; flex:0 0 auto; margin-left:auto;}
   .hood-ladder-threshold-label{font-family:'IM Fell English',serif; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-dim);}
   .hood-ladder-threshold-value{margin-top:5px; font-family:'IM Fell English',serif; font-size:17px; font-weight:600; color:var(--cream2);}
-
-  .dash-empty{padding:34px 10px; text-align:center;}
-  .dash-empty-icon{font-size:30px; margin-bottom:10px;}
-  .dash-empty p{margin:0 auto; max-width:320px; color:var(--ink-dim); font-size:15px; line-height:1.5;}
 
   .hood-next-tier{margin-top:18px; padding-top:16px; border-top:1px dashed var(--line);}
   .next-tier-top{
@@ -702,13 +690,9 @@
       box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(139,232,90,0.7),
         0 22px 44px -6px rgba(139,232,90,0.75);
     }
-    .rank-card:hover{
+    .holder-result:hover{
       border-color:rgba(111,207,58,0.4);
       box-shadow:0 0 32px -6px rgba(111,207,58,0.4);
-    }
-    .btn-connect:hover{
-      background:rgba(111,207,58,0.1);
-      box-shadow:0 0 20px 2px rgba(111,207,58,0.45), 0 0 38px 4px rgba(111,207,58,0.22);
     }
     .hood-ladder-item:hover{
       border-color:rgba(111,207,58,0.35);

@@ -21,13 +21,13 @@ const ERC20_ABI = [
   "function totalSupply() view returns (uint256)"
 ];
 
-// Every "Connect Wallet" trigger on the page stays in sync as one group --
+// Every "See your rank" trigger on the page stays in sync as one group --
 // same label, same disabled state -- rather than each one wiring up its
-// own copy of the connect flow. Currently just the one button in the rank
-// card, but the class-based query means adding another trigger elsewhere
-// needs no JS changes.
+// own copy of the connect flow. Currently just the one hero button, but
+// the class-based query means adding another trigger elsewhere needs no
+// JS changes.
+const RESTING_LABEL = 'See your rank';
 const connectBtns = document.querySelectorAll('.btn-connect-trigger');
-const dashPrompt = document.getElementById('dashPrompt');
 const resultBox = document.getElementById('holderResult');
 const errorBox = document.getElementById('holderError');
 const addrEl = document.getElementById('holderAddr');
@@ -101,7 +101,6 @@ async function loadBalance(address, provider){
   renderNextTier(balanceNum);
   errorBox.classList.remove('show');
   resultBox.classList.add('show');
-  if (dashPrompt) dashPrompt.style.display = 'none';
 }
 
 async function connectWallet(){
@@ -121,13 +120,13 @@ async function connectWallet(){
   } catch (err) {
     console.error(err);
     showError('Kết nối thất bại hoặc bị từ chối. Thử lại nhé.');
-    setConnectLabel('Connect Wallet', false);
+    setConnectLabel(RESTING_LABEL, false);
   }
 }
 
 connectBtns.forEach((btn) => btn.addEventListener('click', connectWallet));
 
 if (typeof window.ethereum !== 'undefined') {
-  window.ethereum.on('accountsChanged', () => { setConnectLabel('Connect Wallet', false); connectWallet(); });
+  window.ethereum.on('accountsChanged', () => { setConnectLabel(RESTING_LABEL, false); connectWallet(); });
   window.ethereum.on('chainChanged', () => { window.location.reload(); });
 }
