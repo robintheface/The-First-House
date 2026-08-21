@@ -135,12 +135,14 @@
     text-decoration:none; white-space:nowrap;
   }
   .nav-more-item.is-locked{color:rgba(238,244,234,0.32); cursor:not-allowed;}
-  .nav-more-item .lock-tag{
-    flex:0 0 auto;
+  /* Shared "Soon" pill -- reused wherever something is locked (nav items,
+     wallet options, the connect/leaderboard CTAs). */
+  .lock-tag{
     font-family:'IM Fell English',serif; font-size:9px; letter-spacing:0.08em; text-transform:uppercase;
     color:rgba(238,244,234,0.32); border:1px solid rgba(238,244,234,0.18); border-radius:999px;
     padding:2px 7px;
   }
+  .nav-more-item .lock-tag{flex:0 0 auto;}
 
   /* Mobile: the panel expands inline under the "More" row (indented,
      left rule) inside the already-open hamburger menu -- a second
@@ -300,10 +302,16 @@
     color:rgba(238,244,234,0.32); border-color:rgba(238,244,234,0.18);
     cursor:not-allowed;
   }
-  .btn-ghost.is-locked .lock-tag{
-    font-family:'IM Fell English',serif; font-size:9px; letter-spacing:0.08em; text-transform:uppercase;
-    color:rgba(238,244,234,0.32); border:1px solid rgba(238,244,234,0.18); border-radius:999px;
-    padding:2px 7px;
+  /* .btn-primary carries its own animated gradient/glow (shine sweep +
+     pulsing box-shadow) -- locked state strips all of that back down to a
+     flat dim chip matching .btn-ghost.is-locked instead of just dimming
+     colors on top of a still-animating background. */
+  .btn-primary.is-locked{
+    color:rgba(238,244,234,0.32);
+    background-image:none; background-color:rgba(238,244,234,0.06);
+    border:1px solid rgba(238,244,234,0.18);
+    box-shadow:none; animation:none;
+    cursor:not-allowed;
   }
   /* ---------- section shells ---------- */
   section{padding:96px 20px;}
