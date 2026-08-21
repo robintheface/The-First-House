@@ -1,5 +1,6 @@
-// Wires up the mobile hamburger nav dropdown. Defensive about missing
-// elements since this same script is shared across every page.
+// Wires up the topbar's two dropdowns: the mobile hamburger nav, and the
+// "More" menu nested inside it. Defensive about missing elements since
+// this same script is shared across every page.
 import { setupDropdown } from "./dropdown.js";
 
 var MOBILE_BREAKPOINT = 720;
@@ -14,9 +15,15 @@ var navDropdown = setupDropdown({
   }
 });
 
-// If the viewport grows past the breakpoint (rotation, resize) while the
-// mobile dropdown is open, drop the "open" state so it doesn't fight the
-// desktop nav-row layout.
+var moreTrigger = document.querySelector(".nav-more-trigger");
+var morePanel = document.querySelector(".nav-more-panel");
+var moreDropdown = setupDropdown({ trigger: moreTrigger, panel: morePanel });
+
+// If the viewport grows past the breakpoint (rotation, resize) while a
+// dropdown is open, drop its "open" state so it doesn't fight the desktop
+// layout.
 window.addEventListener("resize", function () {
-  if (window.innerWidth >= MOBILE_BREAKPOINT && navDropdown) navDropdown.close();
+  if (window.innerWidth < MOBILE_BREAKPOINT) return;
+  if (navDropdown) navDropdown.close();
+  if (moreDropdown) moreDropdown.close();
 });

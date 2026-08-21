@@ -1,10 +1,10 @@
-// Wallet connect + $HOODFACE holder-check logic for functions/wallet.html.
+// Wallet connect + $HOODFACE holder-check logic for explore/wallet/index.html.
 // Kept as an external module (not an inline <script>) so the site can run
 // under a Content-Security-Policy without 'unsafe-inline' script-src — this
 // is the one page that actually talks to a wallet, so it's the one most
 // worth protecting from XSS-injected inline scripts that could otherwise
 // hook window.ethereum and tamper with a transaction before the user signs.
-import { tierFor, shortAddr } from "./wallet-utils.js";
+import { tierFor, shortAddr, nextTierInfo, splitTierLabel } from "./wallet-utils.js";
 
 const HOODFACE_ADDRESS = "0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274";
 const ROBINHOOD_CHAIN_ID_HEX = "0x1237"; // 4663 in hex
@@ -21,17 +21,48 @@ const ERC20_ABI = [
   "function totalSupply() view returns (uint256)"
 ];
 
-const connectBtn = document.getElementById('connectBtn');
+// Every "Connect Wallet" trigger on the page stays in sync as one group --
+// same label, same disabled state -- rather than each one wiring up its
+// own copy of the connect flow. Currently just the one button in the rank
+// card, but the class-based query means adding another trigger elsewhere
+// needs no JS changes.
+const connectBtns = document.querySelectorAll('.btn-connect-trigger');
+const dashPrompt = document.getElementById('dashPrompt');
 const resultBox = document.getElementById('holderResult');
 const errorBox = document.getElementById('holderError');
 const addrEl = document.getElementById('holderAddr');
 const balanceEl = document.getElementById('holderBalance');
 const tierEl = document.getElementById('holderTier');
+const tierIconEl = document.getElementById('holderTierIcon');
+const nextTierProgress = document.getElementById('nextTierProgress');
+const nextTierMaxed = document.getElementById('nextTierMaxed');
+const nextTierName = document.getElementById('nextTierName');
+const nextTierFill = document.getElementById('nextTierBarFill');
+const nextTierRemaining = document.getElementById('nextTierRemaining');
+
+function setConnectLabel(text, disabled){
+  connectBtns.forEach((btn) => { btn.textContent = text; btn.disabled = disabled; });
+}
 
 function showError(msg){
   errorBox.textContent = msg;
   errorBox.classList.add('show');
   resultBox.classList.remove('show');
+}
+
+function renderNextTier(balanceNum){
+  if (!nextTierProgress || !nextTierMaxed) return;
+  const next = nextTierInfo(balanceNum);
+  if (!next) {
+    nextTierProgress.style.display = 'none';
+    nextTierMaxed.style.display = 'block';
+    return;
+  }
+  nextTierProgress.style.display = 'block';
+  nextTierMaxed.style.display = 'none';
+  nextTierName.textContent = next.name;
+  nextTierFill.style.width = (next.progress * 100).toFixed(1) + '%';
+  nextTierRemaining.textContent = next.remaining.toLocaleString(undefined, {maximumFractionDigits: 0}) + ' more $HOODFACE to go';
 }
 
 async function ensureRobinhoodChain(provider){
@@ -64,9 +95,13 @@ async function loadBalance(address, provider){
   const balanceNum = parseFloat(formatted);
   addrEl.textContent = shortAddr(address);
   balanceEl.textContent = balanceNum.toLocaleString(undefined, {maximumFractionDigits: 0});
-  tierEl.textContent = tierFor(balanceNum);
+  const { icon, name } = splitTierLabel(tierFor(balanceNum));
+  tierEl.textContent = name;
+  if (tierIconEl) tierIconEl.textContent = icon;
+  renderNextTier(balanceNum);
   errorBox.classList.remove('show');
   resultBox.classList.add('show');
+  if (dashPrompt) dashPrompt.style.display = 'none';
 }
 
 async function connectWallet(){
@@ -74,8 +109,7 @@ async function connectWallet(){
     showError('Không tìm thấy ví. Cài MetaMask hoặc ví tương thích EVM để tiếp tục.');
     return;
   }
-  connectBtn.textContent = 'Connecting…';
-  connectBtn.disabled = true;
+  setConnectLabel('Connecting…', true);
   try {
     const provider = new ethers.BrowserProvider(window.ethereum);
     await provider.send('eth_requestAccounts', []);
@@ -83,18 +117,17 @@ async function connectWallet(){
     const signer = await provider.getSigner();
     const address = await signer.getAddress();
     await loadBalance(address, provider);
-    connectBtn.textContent = 'Connected ✓';
+    setConnectLabel('Connected ✓', true);
   } catch (err) {
     console.error(err);
     showError('Kết nối thất bại hoặc bị từ chối. Thử lại nhé.');
-    connectBtn.textContent = 'Connect Wallet';
-    connectBtn.disabled = false;
+    setConnectLabel('Connect Wallet', false);
   }
 }
 
-connectBtn.addEventListener('click', connectWallet);
+connectBtns.forEach((btn) => btn.addEventListener('click', connectWallet));
 
 if (typeof window.ethereum !== 'undefined') {
-  window.ethereum.on('accountsChanged', () => { connectBtn.textContent = 'Connect Wallet'; connectBtn.disabled = false; connectWallet(); });
+  window.ethereum.on('accountsChanged', () => { setConnectLabel('Connect Wallet', false); connectWallet(); });
   window.ethereum.on('chainChanged', () => { window.location.reload(); });
 }

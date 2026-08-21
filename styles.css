@@ -110,6 +110,55 @@
     .nav-links a{padding:0; border-bottom:0;}
   }
 
+  /* ---------- "More" nav dropdown ---------- */
+  .nav-more{position:relative;}
+  .nav-more-trigger{
+    font-family:'IM Fell English',serif; font-size:17px; font-weight:400; color:var(--ink-dim);
+    background:transparent; border:none; padding:0; margin:0; cursor:pointer;
+    display:inline-flex; align-items:center; gap:5px;
+  }
+  .nav-more-caret{font-size:11px; line-height:1; transition:transform .2s ease;}
+  .nav-more-trigger[aria-expanded="true"] .nav-more-caret{transform:rotate(180deg);}
+
+  .nav-more-panel{display:none; flex-direction:column;}
+  .nav-more-panel.open{display:flex;}
+  .nav-more-item{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:10px 14px; border-radius:8px;
+    font-family:'IM Fell English',serif; font-size:16px; color:var(--ink-dim);
+    text-decoration:none; white-space:nowrap;
+  }
+  .nav-more-item.is-locked{color:rgba(238,244,234,0.32); cursor:not-allowed;}
+  .nav-more-item .lock-tag{
+    flex:0 0 auto;
+    font-family:'IM Fell English',serif; font-size:9px; letter-spacing:0.08em; text-transform:uppercase;
+    color:rgba(238,244,234,0.32); border:1px solid rgba(238,244,234,0.18); border-radius:999px;
+    padding:2px 7px;
+  }
+
+  /* Mobile: the panel expands inline under the "More" row (indented,
+     left rule) inside the already-open hamburger menu -- a second
+     floating overlay stacked on the first would be confusing to dismiss. */
+  .nav-links.open .nav-more{padding:12px 4px 4px; border-bottom:1px solid rgba(241,234,220,0.08);}
+  .nav-links.open .nav-more:last-child{border-bottom:none;}
+  .nav-links.open .nav-more-trigger{width:100%; justify-content:space-between;}
+  .nav-links.open .nav-more-panel{
+    margin:8px 0 4px 4px; padding-left:14px; border-left:1px solid var(--line);
+  }
+  .nav-links.open .nav-more-item{padding:9px 10px;}
+
+  /* Desktop: a real floating panel below the trigger, matching the
+     mobile menu's own blurred-glass look. */
+  @media(min-width:720px){
+    .nav-more-panel{
+      position:absolute; top:calc(100% + 16px); right:0; z-index:60;
+      min-width:190px; padding:8px; border-radius:14px;
+      background:rgba(12,23,16,0.97); backdrop-filter:blur(10px);
+      border:1px solid var(--line);
+      box-shadow:0 16px 32px rgba(0,0,0,0.45);
+    }
+  }
+
   .topbar-cta{
     font-family:'IM Fell English',serif; font-size:16px; font-weight:400;
     padding:10px 18px; border-radius:999px; min-height:40px;
@@ -367,13 +416,6 @@
 
   /* ---------- wallet page hero (functions/wallet.html) ---------- */
   .rank-hero-section{max-width:1000px; margin:0 auto;}
-  .rank-chain-badge{
-    display:inline-flex; align-items:center; gap:6px; max-width:max-content;
-    font-family:'IM Fell English',serif; font-size:11px; letter-spacing:0.06em;
-    text-transform:uppercase; color:var(--green-bright);
-    background:rgba(111,207,58,0.08); border:1px solid rgba(111,207,58,0.3);
-    border-radius:999px; padding:6px 14px; margin:0 auto 32px;
-  }
   .rank-hero-grid{
     display:grid; grid-template-columns:1fr; gap:36px; align-items:start;
   }
@@ -381,32 +423,21 @@
     .rank-hero-grid{grid-template-columns:1.05fr 0.95fr; gap:48px;}
   }
   .rank-hero-art{display:flex; align-items:center; justify-content:center;}
+  /* No separate glow/pedestal layers here anymore -- logo-main.webp itself
+     now has the spotlight + coin-platform baked in, so a CSS drop-shadow on
+     top would just muddy it. */
   .rank-hero-art img{
-    width:100%; max-width:220px; height:auto; object-fit:contain;
-    filter:drop-shadow(0 14px 30px rgba(0,0,0,0.35));
+    width:100%; max-width:300px; height:auto; object-fit:contain;
+    /* Soft gold ambient glow instead of a hard shadow -- the medallion
+       already reads as lit, this just keeps it from sitting flat against
+       the page. */
+    filter:drop-shadow(0 0 26px rgba(232,212,77,0.35));
   }
-  @media(min-width:860px){ .rank-hero-art img{max-width:320px;} }
+  /* Fills its grid column at the desktop two-up layout (~430px wide)
+     rather than floating small inside it. */
+  @media(min-width:860px){ .rank-hero-art img{max-width:420px;} }
 
   /* ---------- rank tier showcase (static reference, no wallet needed) ---------- */
-  .rank-tiers{margin-top:44px; text-align:center;}
-  .rank-tiers-label{
-    font-family:'IM Fell English',serif; font-size:11px; letter-spacing:0.1em;
-    text-transform:uppercase; color:var(--ink-dim); margin-bottom:16px;
-  }
-  .rank-tiers-grid{
-    display:grid; grid-template-columns:repeat(2,1fr); gap:12px; max-width:760px; margin:0 auto;
-  }
-  @media(min-width:640px){ .rank-tiers-grid{grid-template-columns:repeat(5,1fr);} }
-  .rank-tier-chip{
-    display:flex; flex-direction:column; align-items:center; gap:4px;
-    background:rgba(111,207,58,0.04); border-radius:14px; padding:16px 10px;
-    border:1px solid rgba(227,168,102,0.4);
-    box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.22);
-    transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
-  }
-  .rank-tier-icon{font-size:24px; line-height:1;}
-  .rank-tier-name{font-family:'IM Fell English',serif; font-size:14px; color:var(--cream2);}
-  .rank-tier-threshold{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-dim);}
 
   .rank-badges{
     display:grid; grid-template-columns:1fr; gap:14px; margin-top:56px;
@@ -414,25 +445,32 @@
   @media(min-width:520px){ .rank-badges{grid-template-columns:1fr 1fr;} }
   @media(min-width:860px){ .rank-badges{grid-template-columns:repeat(4,1fr);} }
   .rank-badge-item{
-    display:flex; align-items:flex-start; gap:12px;
-    background:rgba(111,207,58,0.04); border-radius:16px;
+    display:flex; align-items:center; gap:14px;
+    background:rgba(255,255,255,0.015); border-radius:16px;
     padding:16px;
-    /* antique bronze trim, matching the coin-edge treatment on .quicklink-card */
-    border:1px solid rgba(227,168,102,0.4);
-    box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.22);
+    /* Thin glass-green edge -- the app-y cards on this page (rank card,
+       stats, ladder, FAQ) share this same quiet border instead of the
+       bronze coin-edge trim the rest of the site uses, per the reference
+       app design. */
+    border:1px solid rgba(111,207,58,0.14);
     transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
   }
-  .rank-badge-item .rank-badge-icon{font-size:22px; line-height:1; flex:0 0 auto;}
+  /* No frame around the icon anymore -- just the icon itself, bigger and
+     vertically centered against the two-line text block next to it. */
+  .rank-badge-item .rank-badge-icon{
+    display:flex; align-items:center; justify-content:center;
+    flex:0 0 auto;
+  }
+  .rank-badge-item .rank-badge-icon img{width:44px; height:44px; object-fit:contain;}
   .rank-badge-item strong{font-family:'IM Fell English',serif; font-weight:400; font-size:16px; color:var(--cream2); display:block; margin-bottom:2px;}
   .rank-badge-item > div > span{display:block; font-size:13px; color:var(--ink-dim); line-height:1.4;}
 
   /* ---------- holder check (modern rank card) ---------- */
   .rank-card{
-    max-width:420px; margin:0 auto; background:rgba(111,207,58,0.05);
-    border-radius:24px; padding:22px 24px;
-    /* antique bronze trim, matching the coin-edge treatment on .quicklink-card */
-    border:1px solid rgba(227,168,102,0.4);
-    box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.22);
+    max-width:420px; margin:0 auto;
+    background:radial-gradient(120% 100% at 90% 0%, rgba(111,207,58,0.14), rgba(255,255,255,0.012));
+    border-radius:20px; padding:22px 24px;
+    border:1px solid rgba(111,207,58,0.16);
     transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
   }
   .rank-card-top{display:flex; align-items:center; justify-content:space-between; gap:10px;}
@@ -452,21 +490,107 @@
   .holder-result{margin-top:14px; display:none;}
   .holder-result.show{display:block;}
   .rank-hero{
-    background:rgba(255,255,255,0.03); border-radius:14px; padding:16px;
-    display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px;
+    /* Flush to the card's own padding on the sides (no extra inset of its
+       own) so "Whale" starts at the exact same left edge as "YOUR RANK"
+       and the address below it. */
+    padding:6px 0 14px;
+    display:flex; align-items:center; gap:14px; margin-bottom:6px;
   }
-  .rank-hero-title{font-family:'IM Fell English',serif; font-size:25px; font-weight:400; color:var(--cream2);}
+  .rank-hero-icon{
+    flex:0 0 auto; width:52px; height:52px; padding:3px; border-radius:50%; box-sizing:border-box;
+    background:conic-gradient(from 200deg, var(--green-bright), rgba(255,255,255,0.12), var(--green-bright));
+  }
+  .rank-hero-icon-inner{
+    width:100%; height:100%; border-radius:50%; background:#07150c;
+    display:flex; align-items:center; justify-content:center; font-size:23px;
+  }
+  .rank-hero-title{font-family:'IM Fell English',serif; font-size:28px; font-weight:400; color:var(--cream2);}
   .holder-addr{
     font-family:'IM Fell English',serif; font-size:11px; color:var(--ink-dim);
     word-break:break-all; margin-bottom:12px;
   }
   .rank-stats{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
-  .rank-stat{background:rgba(255,255,255,0.04); border-radius:12px; padding:12px; text-align:left;}
+  .rank-stat{background:rgba(255,255,255,0.03); border:1px solid rgba(111,207,58,0.1); border-radius:12px; padding:12px; text-align:left;}
   .rank-stat-label{font-size:10px; color:var(--ink-dim); margin-bottom:4px;}
   .rank-stat-value{color:var(--cream2); font-size:16px; font-weight:500; word-break:break-word;}
 
   .holder-error{color:#e08a8a; font-size:13px; margin-top:14px; display:none;}
   .holder-error.show{display:block;}
+
+  /* ---------- Hood Status app (ladder / dashboard / faq) ---------- */
+  .hood-stats-grid{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px;
+    margin-top:48px;
+  }
+  .hood-stat-note{display:block; margin-top:8px; font-family:'IM Fell English',serif; font-size:13px; color:var(--green-bright);}
+
+  .hood-ladder{max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:12px;}
+  .hood-ladder-item{
+    display:flex; flex-wrap:wrap; align-items:center; gap:16px;
+    padding:20px 22px; border-radius:14px;
+    border:1px solid rgba(111,207,58,0.13);
+    /* --tier-color is set per-row inline, from the same token each tier
+       already uses elsewhere on the site (gold for top rank, down to
+       ink-dim for "not in the hood yet") -- keeps the ladder's hierarchy
+       readable without inventing a new palette just for this list. */
+    border-left:3px solid var(--tier-color, var(--green-bright));
+    background:linear-gradient(90deg, rgba(111,207,58,0.05), rgba(255,255,255,0.012));
+    transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+  }
+  .hood-ladder-num{font-family:'IM Fell English',serif; font-size:12px; letter-spacing:0.12em; color:var(--ink-dim); width:24px; flex:0 0 auto;}
+  .hood-ladder-glyph{font-size:28px; line-height:1; flex:0 0 auto;}
+  .hood-ladder-body{flex:1 1 200px; min-width:180px;}
+  .hood-ladder-name{font-family:'IM Fell English',serif; font-size:22px; color:var(--tier-color, var(--cream2));}
+  .hood-ladder-blurb{margin-top:4px; font-size:14px; color:var(--ink-dim); line-height:1.4;}
+  .hood-ladder-threshold{text-align:right; flex:0 0 auto; margin-left:auto;}
+  .hood-ladder-threshold-label{font-family:'IM Fell English',serif; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-dim);}
+  .hood-ladder-threshold-value{margin-top:5px; font-family:'IM Fell English',serif; font-size:17px; font-weight:600; color:var(--cream2);}
+
+  .dash-empty{padding:34px 10px; text-align:center;}
+  .dash-empty-icon{font-size:30px; margin-bottom:10px;}
+  .dash-empty p{margin:0 auto; max-width:320px; color:var(--ink-dim); font-size:15px; line-height:1.5;}
+
+  .hood-next-tier{margin-top:18px; padding-top:16px; border-top:1px dashed var(--line);}
+  .next-tier-top{
+    display:flex; justify-content:space-between;
+    font-family:'IM Fell English',serif; font-size:12px; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-dim);
+    margin-bottom:8px;
+  }
+  .next-tier-top span:last-child{color:var(--cream2); text-transform:none; font-size:14px;}
+  .next-tier-track{height:8px; border-radius:5px; background:rgba(255,255,255,0.08); overflow:hidden;}
+  .next-tier-fill{
+    height:100%; border-radius:5px; width:0%;
+    background:linear-gradient(90deg,#5fb63c,#c6ff8f);
+    box-shadow:0 0 12px rgba(111,207,58,0.5);
+    transition:width .5s ease;
+  }
+  .next-tier-remaining{margin-top:8px; font-family:'IM Fell English',serif; font-size:13px; color:var(--ink-dim);}
+  .next-tier-maxed{margin-top:18px; padding-top:16px; border-top:1px dashed var(--line); font-family:'IM Fell English',serif; font-size:14px; color:var(--gold); text-align:center;}
+
+  .hood-soon-note{
+    max-width:420px; margin:22px auto 0; text-align:center;
+    font-family:'IM Fell English',serif; font-size:14px; color:var(--ink-dim);
+  }
+
+  .hood-faq-list{max-width:680px; margin:0 auto; display:flex; flex-direction:column; gap:10px;}
+  .hood-faq-item{
+    border:1px solid rgba(111,207,58,0.13); border-radius:14px; overflow:hidden;
+    background:rgba(255,255,255,0.015);
+    transition:border-color .2s ease;
+  }
+  .hood-faq-q{
+    display:flex; width:100%; align-items:center; justify-content:space-between; gap:16px;
+    padding:18px 20px; background:transparent; border:none; color:var(--cream2); text-align:left; cursor:pointer;
+    font-family:'IM Fell English',serif; font-size:18px;
+  }
+  .hood-faq-sign{flex:0 0 auto; font-size:20px; line-height:1; color:var(--green-bright); transition:transform .2s ease;}
+  .hood-faq-item.open .hood-faq-sign{transform:rotate(45deg);}
+  /* max-height transition rather than height/display -- lets the collapse
+     animate without knowing the content's real height up front. 300px is
+     comfortable headroom for a couple of wrapped lines at this font size. */
+  .hood-faq-a{max-height:0; overflow:hidden; transition:max-height .25s ease;}
+  .hood-faq-item.open .hood-faq-a{max-height:300px;}
+  .hood-faq-a p{margin:0; padding:0 20px 20px; color:var(--ink-dim); font-size:15px; line-height:1.55;}
 
   /* ---------- community ---------- */
   .community-grid{
@@ -547,7 +671,7 @@
 
   /* ---------- press feedback for touch (no :hover, so give taps their own cue) ---------- */
   .lore-card:active, .face-card:active, .comm-card:active, .quicklink-card:active,
-  .rank-badge-item:active, .rank-tier-chip:active{
+  .rank-badge-item:active, .hood-ladder-item:active, .hood-faq-q:active{
     transform:scale(0.98);
   }
   .copy-btn:active{transform:scale(0.9);}
@@ -560,6 +684,8 @@
      taps something else. Mouse/trackpad users get the same effects as before. */
   @media (hover: hover) and (pointer: fine){
     .nav-links a:hover{color:var(--gold);}
+    .nav-more-trigger:hover{color:var(--gold);}
+    .nav-more-item:not(.is-locked):hover{background:rgba(111,207,58,0.08); color:var(--cream2);}
     .copy-btn:hover{border-color:var(--green-bright); color:var(--green-bright);}
     .contract-address:hover{color:var(--green-bright); border-color:var(--green-bright);}
     .topbar-cta:hover{
@@ -601,22 +727,20 @@
         0 22px 44px -6px rgba(139,232,90,0.75);
     }
     .rank-card:hover{
-      border-color:var(--bronze);
-      box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.55),
-        0 0 32px -4px rgba(227,168,102,0.55);
+      border-color:rgba(111,207,58,0.4);
+      box-shadow:0 0 32px -6px rgba(111,207,58,0.4);
     }
     .rank-badge-item:hover{
-      transform:translateY(-3px); border-color:var(--bronze);
-      box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.55),
-        0 0 26px -4px rgba(227,168,102,0.5);
-    }
-    .rank-tier-chip:hover{
-      transform:translateY(-3px); border-color:var(--bronze);
-      box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.55),
-        0 0 22px -4px rgba(227,168,102,0.5);
+      transform:translateY(-3px); border-color:rgba(111,207,58,0.4);
+      box-shadow:0 0 26px -6px rgba(111,207,58,0.4);
     }
     .btn-connect:hover{
       background:rgba(111,207,58,0.1);
       box-shadow:0 0 20px 2px rgba(111,207,58,0.45), 0 0 38px 4px rgba(111,207,58,0.22);
     }
+    .hood-ladder-item:hover{
+      border-color:rgba(111,207,58,0.35);
+      box-shadow:0 0 24px -6px rgba(111,207,58,0.35);
+    }
+    .hood-faq-item:hover{border-color:rgba(111,207,58,0.35);}
   }
