@@ -380,8 +380,19 @@
   @media(min-width:860px){
     .rank-hero-grid{grid-template-columns:1.05fr 0.95fr; gap:48px;}
   }
-  .rank-hero-art{display:flex; align-items:center; justify-content:center;}
+  .rank-hero-art{display:flex; align-items:center; justify-content:center; position:relative;}
+  /* Glowing pedestal the medallion appears to rest on, matching the
+     reference mock. A background-image on a pseudo-element rather than an
+     <img> -- it's pure decoration, no content to announce to a11y tools. */
+  .rank-hero-art::before{
+    content:""; position:absolute; z-index:0;
+    bottom:2%; left:50%; transform:translateX(-50%);
+    width:78%; max-width:260px; aspect-ratio:430/120;
+    background:url('icons/podium-glow.webp') center / contain no-repeat;
+    pointer-events:none;
+  }
   .rank-hero-art img{
+    position:relative; z-index:1;
     width:100%; max-width:220px; height:auto; object-fit:contain;
     filter:drop-shadow(0 14px 30px rgba(0,0,0,0.35));
   }
