@@ -114,28 +114,9 @@
   .nav-more{position:relative;}
   .nav-more-trigger{
     font-family:'IM Fell English',serif; font-size:17px; font-weight:400; color:var(--ink-dim);
-    background:transparent; border:none; border-radius:20px; margin:0; cursor:pointer;
-    padding:6px 14px; display:inline-flex; align-items:center; gap:5px;
-    position:relative;
+    background:transparent; border:none; padding:0; margin:0; cursor:pointer;
+    display:inline-flex; align-items:center; gap:5px;
   }
-  /* No visible frame -- just a 1.5px ring of glow chasing around the pill's
-     edge. The mask-composite:exclude trick punches out everything except
-     that ring from the (fully opaque, oversized) conic-gradient, so the
-     light never bleeds into the button's interior over the text -- unlike
-     a plain oversized background, which paints on top of its whole box. */
-  .nav-more-trigger::before{
-    content:''; position:absolute; inset:0; border-radius:inherit; padding:1.5px;
-    background:conic-gradient(from 0deg,
-      transparent 0deg, transparent 260deg,
-      rgba(111,207,58,0.95) 300deg, rgba(214,255,170,1) 320deg, rgba(111,207,58,0.95) 340deg,
-      transparent 360deg);
-    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite:xor;
-            mask-composite:exclude;
-    animation:nav-more-glow-spin 3s linear infinite;
-    pointer-events:none;
-  }
-  @keyframes nav-more-glow-spin{ to{ transform:rotate(360deg); } }
   .nav-more-caret{font-size:11px; line-height:1; transition:transform .2s ease;}
   .nav-more-trigger[aria-expanded="true"] .nav-more-caret{transform:rotate(180deg);}
 
