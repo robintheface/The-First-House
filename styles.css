@@ -422,12 +422,30 @@
 
   /* ---------- wallet page hero (functions/wallet.html) ---------- */
   .rank-hero-section{max-width:1000px; margin:0 auto;}
+  .rank-badge-row{
+    display:flex; align-items:center; flex-wrap:wrap; gap:10px;
+    margin:-8px 0 20px;
+  }
   .rank-chain-badge{
     display:inline-flex; align-items:center; gap:6px; max-width:max-content;
     font-family:'IM Fell English',serif; font-size:12px; letter-spacing:0.06em;
     text-transform:uppercase; color:var(--green-bright);
     background:rgba(111,207,58,0.08); border:1px solid rgba(111,207,58,0.3);
-    border-radius:999px; padding:6px 14px; margin:0 0 20px;
+    border-radius:999px; padding:6px 14px; margin:0;
+  }
+  .rank-live-badge{
+    display:inline-flex; align-items:center; gap:7px;
+    font-family:'IM Fell English',serif; font-size:12px; letter-spacing:0.06em;
+    text-transform:uppercase; color:var(--green-bright); padding:6px 2px;
+  }
+  .rank-live-dot{
+    width:8px; height:8px; border-radius:50%; flex:none;
+    background:var(--green-bright); box-shadow:0 0 6px rgba(111,207,58,0.85);
+    animation:rank-live-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes rank-live-pulse{
+    0%, 100%{ opacity:1; }
+    50%{ opacity:0.25; }
   }
   .rank-hero-grid{
     display:grid; grid-template-columns:1fr; gap:36px; align-items:start;
