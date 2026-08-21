@@ -110,6 +110,55 @@
     .nav-links a{padding:0; border-bottom:0;}
   }
 
+  /* ---------- "More" nav dropdown ---------- */
+  .nav-more{position:relative;}
+  .nav-more-trigger{
+    font-family:'IM Fell English',serif; font-size:17px; font-weight:400; color:var(--ink-dim);
+    background:transparent; border:none; padding:0; margin:0; cursor:pointer;
+    display:inline-flex; align-items:center; gap:5px;
+  }
+  .nav-more-caret{font-size:11px; line-height:1; transition:transform .2s ease;}
+  .nav-more-trigger[aria-expanded="true"] .nav-more-caret{transform:rotate(180deg);}
+
+  .nav-more-panel{display:none; flex-direction:column;}
+  .nav-more-panel.open{display:flex;}
+  .nav-more-item{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:10px 14px; border-radius:8px;
+    font-family:'IM Fell English',serif; font-size:16px; color:var(--ink-dim);
+    text-decoration:none; white-space:nowrap;
+  }
+  .nav-more-item.is-locked{color:rgba(238,244,234,0.32); cursor:not-allowed;}
+  .nav-more-item .lock-tag{
+    flex:0 0 auto;
+    font-family:'IM Fell English',serif; font-size:9px; letter-spacing:0.08em; text-transform:uppercase;
+    color:rgba(238,244,234,0.32); border:1px solid rgba(238,244,234,0.18); border-radius:999px;
+    padding:2px 7px;
+  }
+
+  /* Mobile: the panel expands inline under the "More" row (indented,
+     left rule) inside the already-open hamburger menu -- a second
+     floating overlay stacked on the first would be confusing to dismiss. */
+  .nav-links.open .nav-more{padding:12px 4px 4px; border-bottom:1px solid rgba(241,234,220,0.08);}
+  .nav-links.open .nav-more:last-child{border-bottom:none;}
+  .nav-links.open .nav-more-trigger{width:100%; justify-content:space-between;}
+  .nav-links.open .nav-more-panel{
+    margin:8px 0 4px 4px; padding-left:14px; border-left:1px solid var(--line);
+  }
+  .nav-links.open .nav-more-item{padding:9px 10px;}
+
+  /* Desktop: a real floating panel below the trigger, matching the
+     mobile menu's own blurred-glass look. */
+  @media(min-width:720px){
+    .nav-more-panel{
+      position:absolute; top:calc(100% + 16px); right:0; z-index:60;
+      min-width:190px; padding:8px; border-radius:14px;
+      background:rgba(12,23,16,0.97); backdrop-filter:blur(10px);
+      border:1px solid var(--line);
+      box-shadow:0 16px 32px rgba(0,0,0,0.45);
+    }
+  }
+
   .topbar-cta{
     font-family:'IM Fell English',serif; font-size:16px; font-weight:400;
     padding:10px 18px; border-radius:999px; min-height:40px;
@@ -627,6 +676,8 @@
      taps something else. Mouse/trackpad users get the same effects as before. */
   @media (hover: hover) and (pointer: fine){
     .nav-links a:hover{color:var(--gold);}
+    .nav-more-trigger:hover{color:var(--gold);}
+    .nav-more-item:not(.is-locked):hover{background:rgba(111,207,58,0.08); color:var(--cream2);}
     .copy-btn:hover{border-color:var(--green-bright); color:var(--green-bright);}
     .contract-address:hover{color:var(--green-bright); border-color:var(--green-bright);}
     .topbar-cta:hover{
