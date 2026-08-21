@@ -423,7 +423,7 @@
   /* ---------- wallet page hero (functions/wallet.html) ---------- */
   .rank-hero-section{max-width:1000px; margin:0 auto;}
   .rank-badge-row{
-    display:flex; flex-direction:column; align-items:flex-start; gap:8px;
+    display:flex; align-items:center; flex-wrap:wrap; gap:10px;
     margin:-8px 0 12px;
   }
   .rank-chain-badge{
@@ -436,7 +436,7 @@
   .rank-live-badge{
     display:inline-flex; align-items:center; gap:7px;
     font-family:'IM Fell English',serif; font-size:12px; letter-spacing:0.06em;
-    text-transform:uppercase; color:var(--green-bright); padding:0 2px;
+    text-transform:uppercase; color:var(--green-bright); padding:6px 2px;
   }
   .rank-live-dot{
     width:8px; height:8px; border-radius:50%; flex:none;
@@ -558,7 +558,7 @@
 
   .hood-stats-grid{
     display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px;
-    margin-top:48px;
+    margin-top:34px;
   }
   /* Scoped to this grid (not .rank-stat-label/.rank-stat-value directly)
      so this doesn't also apply to the Balance/Symbol tiles in the
