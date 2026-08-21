@@ -426,12 +426,20 @@
     display:flex; align-items:center; flex-wrap:wrap; gap:10px;
     margin:-8px 0 12px;
   }
+  /* Chain divider -- sits under the stats grid as a closing line for the
+     section rather than a bordered pill; the frame is gone, replaced by
+     two glowing green rules flanking the label. */
+  .rank-chain-divider{
+    display:flex; align-items:center; gap:14px; margin-top:28px;
+  }
+  .rank-chain-line{
+    flex:1; height:1px; background:var(--green-bright);
+    box-shadow:0 0 8px rgba(111,207,58,0.7), 0 0 3px rgba(111,207,58,0.9);
+  }
   .rank-chain-badge{
     display:inline-flex; align-items:center; gap:6px; max-width:max-content;
     font-family:'IM Fell English',serif; font-size:12px; letter-spacing:0.06em;
-    text-transform:uppercase; color:var(--green-bright);
-    background:rgba(111,207,58,0.08); border:1px solid rgba(111,207,58,0.3);
-    border-radius:999px; padding:6px 14px; margin:0;
+    text-transform:uppercase; color:var(--green-bright); white-space:nowrap;
   }
   .rank-live-badge{
     display:inline-flex; align-items:center; gap:7px;
