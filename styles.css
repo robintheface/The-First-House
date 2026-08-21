@@ -424,7 +424,7 @@
   .rank-hero-section{max-width:1000px; margin:0 auto;}
   .rank-badge-row{
     display:flex; align-items:center; flex-wrap:wrap; gap:10px;
-    margin:-8px 0 20px;
+    margin:-8px 0 12px;
   }
   .rank-chain-badge{
     display:inline-flex; align-items:center; gap:6px; max-width:max-content;
@@ -565,7 +565,7 @@
      Both label and value match .section-desc's 19px (the lede under
      "Every face earns its rank") for consistency with the rest of the
      hero. */
-  .hood-stats-grid .rank-stat-label{font-size:19px;}
+  .hood-stats-grid .rank-stat-label{font-size:17px;}
   .hood-stats-grid .rank-stat-value{font-size:19px;}
   .hood-stat-note{display:block; margin-top:8px; font-family:'IM Fell English',serif; font-size:13px; color:var(--green-bright);}
 
