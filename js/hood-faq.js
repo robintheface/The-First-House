@@ -1,4 +1,4 @@
-// FAQ accordion for the Hood Status page (explore/wallet/index.html).
+// FAQ accordion for the Ladder + FAQ page (explore/wallet/faq/index.html).
 // One open item at a time reads calmer than a wall of open text, but
 // nothing stops more than one being open if a user wants it.
 

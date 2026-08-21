@@ -300,11 +300,14 @@ function attachProviderListeners(provider){
   provider.on('chainChanged', () => { window.location.reload(); });
   // Injected wallets signal a disconnect via an empty accountsChanged, but
   // WalletConnect sessions (ended from the wallet app, or expired) fire
-  // their own 'disconnect' event instead.
+  // their own 'disconnect' event instead. Deliberately NOT clearing
+  // listenersAttachedTo here: the WalletConnect provider instance is reused
+  // across reconnects (see getWalletConnectProvider's cache), so the
+  // listeners bound above stay correct for the next session too -- clearing
+  // the guard would just re-attach a duplicate set on every reconnect.
   provider.on('disconnect', () => {
     activeProvider = null;
     activeAddress = null;
-    listenersAttachedTo = null;
     setConnectLabel(RESTING_LABEL, false);
     closeModal();
   });

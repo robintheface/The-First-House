@@ -502,6 +502,7 @@
 
   .holder-error{color:#e08a8a; font-size:13px; margin-top:14px; display:none;}
   .holder-error.show{display:block;}
+  .hood-soon-note{font-family:'IM Fell English',serif; font-size:13px; color:var(--ink-dim);}
 
   /* ---------- wallet connect modal ---------- */
   .wallet-modal{
