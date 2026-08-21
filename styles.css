@@ -113,7 +113,7 @@
   /* ---------- "More"/"Explore" nav dropdown ---------- */
   .nav-more{position:relative;}
   .nav-more-trigger{
-    font-family:'IM Fell English',serif; font-size:17px; font-weight:400; color:var(--ink-dim);
+    font-family:'IM Fell English',serif; font-size:17px; font-weight:700; color:var(--ink-dim);
     background:transparent; border:none; padding:0; margin:0; cursor:pointer;
     display:inline-flex; align-items:center; gap:5px;
   }
