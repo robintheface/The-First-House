@@ -381,20 +381,39 @@
     .rank-hero-grid{grid-template-columns:1.05fr 0.95fr; gap:48px;}
   }
   .rank-hero-art{display:flex; align-items:center; justify-content:center; position:relative;}
-  /* Glowing pedestal the medallion appears to rest on, matching the
-     reference mock. A background-image on a pseudo-element rather than an
-     <img> -- it's pure decoration, no content to announce to a11y tools. */
+  /* Two decorative layers behind the medallion, both pseudo-elements (not
+     <img>) since they're pure light/atmosphere with nothing to announce to
+     a11y tools:
+     ::before -- a soft spotlight cone shining down from above, filling
+     most of the container so the medallion reads as lit from overhead.
+     ::after  -- a thin glowing ring at the base, like the medallion is
+     resting on a lit coin platform. Sits in front of the spotlight (later
+     in source order) but behind the medallion image itself. */
   .rank-hero-art::before{
     content:""; position:absolute; z-index:0;
-    bottom:2%; left:50%; transform:translateX(-50%);
-    width:78%; max-width:260px; aspect-ratio:430/120;
-    background:url('icons/podium-glow.webp') center / contain no-repeat;
+    top:-32%; left:50%; transform:translateX(-50%);
+    /* Stretched taller than the source image's own 450x280 ratio -- at
+       native proportions inside this roughly-square container the beam
+       had almost no vertical throw and barely read as "shining down".
+       A bit of distortion is fine for a soft abstract glow. */
+    width:118%; height:145%;
+    background:url('icons/bg-glow.webp') center top / 100% 100% no-repeat;
+    pointer-events:none;
+  }
+  .rank-hero-art::after{
+    content:""; position:absolute; z-index:0;
+    bottom:4%; left:50%; transform:translateX(-50%);
+    width:80%; max-width:270px; aspect-ratio:370/58;
+    background:url('icons/platform-glow.webp') center / contain no-repeat;
     pointer-events:none;
   }
   .rank-hero-art img{
     position:relative; z-index:1;
     width:100%; max-width:220px; height:auto; object-fit:contain;
-    filter:drop-shadow(0 14px 30px rgba(0,0,0,0.35));
+    /* Softened a lot now that real light/glow layers do the grounding --
+       the old harder shadow read as a dark smudge under the medallion
+       once the glow was added behind it. */
+    filter:drop-shadow(0 4px 10px rgba(0,0,0,0.25));
   }
   @media(min-width:860px){ .rank-hero-art img{max-width:320px;} }
 
