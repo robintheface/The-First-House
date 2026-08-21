@@ -110,7 +110,7 @@
     .nav-links a{padding:0; border-bottom:0;}
   }
 
-  /* ---------- "More" nav dropdown ---------- */
+  /* ---------- "More"/"Explore" nav dropdown ---------- */
   .nav-more{position:relative;}
   .nav-more-trigger{
     font-family:'IM Fell English',serif; font-size:17px; font-weight:400; color:var(--ink-dim);
@@ -119,6 +119,20 @@
   }
   .nav-more-caret{font-size:11px; line-height:1; transition:transform .2s ease;}
   .nav-more-trigger[aria-expanded="true"] .nav-more-caret{transform:rotate(180deg);}
+  /* Two small stars twinkle at opposite corners of the label, each on its
+     own offset timer so they never flash in sync. */
+  .nav-more-sparkle{position:relative;}
+  .nav-more-sparkle::before,
+  .nav-more-sparkle::after{
+    content:'✦'; position:absolute; font-size:8px; line-height:1; color:var(--gold);
+    animation:nav-sparkle-twinkle 1.8s ease-in-out infinite;
+  }
+  .nav-more-sparkle::before{ top:-5px; left:-11px; animation-delay:0s; }
+  .nav-more-sparkle::after{ bottom:-5px; right:-11px; animation-delay:0.9s; }
+  @keyframes nav-sparkle-twinkle{
+    0%, 100%{ opacity:0; transform:scale(0.4); }
+    50%{ opacity:1; transform:scale(1); }
+  }
 
   .nav-more-panel{display:none; flex-direction:column;}
   .nav-more-panel.open{display:flex;}
