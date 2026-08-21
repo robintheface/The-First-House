@@ -541,7 +541,7 @@
     50%{ opacity:0.25; }
   }
   .rank-hero-grid{
-    display:grid; grid-template-columns:1fr; gap:36px; align-items:start;
+    display:grid; grid-template-columns:1fr; gap:36px; align-items:center;
   }
   @media(min-width:860px){
     .rank-hero-grid{grid-template-columns:1.05fr 0.95fr; gap:48px;}
