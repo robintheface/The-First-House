@@ -548,11 +548,6 @@
   }
   .rank-hero-art{
     display:flex; align-items:center; justify-content:center;
-    /* Gentle, slow drift -- reads as the medallion hovering rather than
-       actively bouncing. Transform lives on the wrapper so the glow
-       filter animation below (on the img itself) runs independently and
-       both can be trimmed to a single frame under reduced-motion. */
-    animation:hf-float 7s ease-in-out infinite;
   }
   .rank-hero-art img{
     width:100%; max-width:270px; height:auto; object-fit:contain;
@@ -561,10 +556,6 @@
   /* Fills its grid column at the desktop two-up layout (~430px wide)
      rather than floating small inside it. */
   @media(min-width:860px){ .rank-hero-art img{max-width:378px;} }
-  @keyframes hf-float{
-    0%, 100%{ transform:translateY(0); }
-    50%{ transform:translateY(-14px); }
-  }
   @keyframes hf-glow-pulse{
     0%, 100%{ filter:drop-shadow(0 0 20px rgba(232,212,77,0.28)); }
     50%{ filter:drop-shadow(0 0 40px rgba(232,212,77,0.55)); }
