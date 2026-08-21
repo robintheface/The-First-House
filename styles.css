@@ -380,40 +380,12 @@
   @media(min-width:860px){
     .rank-hero-grid{grid-template-columns:1.05fr 0.95fr; gap:48px;}
   }
-  .rank-hero-art{display:flex; align-items:center; justify-content:center; position:relative;}
-  /* Two decorative layers behind the medallion, both pseudo-elements (not
-     <img>) since they're pure light/atmosphere with nothing to announce to
-     a11y tools:
-     ::before -- a soft spotlight cone shining down from above, filling
-     most of the container so the medallion reads as lit from overhead.
-     ::after  -- a thin glowing ring at the base, like the medallion is
-     resting on a lit coin platform. Sits in front of the spotlight (later
-     in source order) but behind the medallion image itself. */
-  .rank-hero-art::before{
-    content:""; position:absolute; z-index:0;
-    top:-32%; left:50%; transform:translateX(-50%);
-    /* Stretched taller than the source image's own 450x280 ratio -- at
-       native proportions inside this roughly-square container the beam
-       had almost no vertical throw and barely read as "shining down".
-       A bit of distortion is fine for a soft abstract glow. */
-    width:118%; height:145%;
-    background:url('icons/bg-glow.webp') center top / 100% 100% no-repeat;
-    pointer-events:none;
-  }
-  .rank-hero-art::after{
-    content:""; position:absolute; z-index:0;
-    bottom:4%; left:50%; transform:translateX(-50%);
-    width:80%; max-width:270px; aspect-ratio:370/58;
-    background:url('icons/platform-glow.webp') center / contain no-repeat;
-    pointer-events:none;
-  }
+  .rank-hero-art{display:flex; align-items:center; justify-content:center;}
+  /* No separate glow/pedestal layers here anymore -- logo-main.webp itself
+     now has the spotlight + coin-platform baked in, so a CSS drop-shadow on
+     top would just muddy it. */
   .rank-hero-art img{
-    position:relative; z-index:1;
     width:100%; max-width:220px; height:auto; object-fit:contain;
-    /* Softened a lot now that real light/glow layers do the grounding --
-       the old harder shadow read as a dark smudge under the medallion
-       once the glow was added behind it. */
-    filter:drop-shadow(0 4px 10px rgba(0,0,0,0.25));
   }
   @media(min-width:860px){ .rank-hero-art img{max-width:320px;} }
 
@@ -425,7 +397,7 @@
   @media(min-width:520px){ .rank-badges{grid-template-columns:1fr 1fr;} }
   @media(min-width:860px){ .rank-badges{grid-template-columns:repeat(4,1fr);} }
   .rank-badge-item{
-    display:flex; align-items:flex-start; gap:12px;
+    display:flex; align-items:center; gap:14px;
     background:rgba(111,207,58,0.04); border-radius:16px;
     padding:16px;
     /* antique bronze trim, matching the coin-edge treatment on .quicklink-card */
@@ -433,14 +405,13 @@
     box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.22);
     transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
   }
+  /* No frame around the icon anymore -- just the icon itself, bigger and
+     vertically centered against the two-line text block next to it. */
   .rank-badge-item .rank-badge-icon{
     display:flex; align-items:center; justify-content:center;
-    width:42px; height:42px; flex:0 0 auto;
-    border-radius:11px;
-    background:rgba(111,207,58,0.08);
-    border:1px solid rgba(111,207,58,0.35);
+    flex:0 0 auto;
   }
-  .rank-badge-item .rank-badge-icon img{width:26px; height:26px; object-fit:contain;}
+  .rank-badge-item .rank-badge-icon img{width:44px; height:44px; object-fit:contain;}
   .rank-badge-item strong{font-family:'IM Fell English',serif; font-weight:400; font-size:16px; color:var(--cream2); display:block; margin-bottom:2px;}
   .rank-badge-item > div > span{display:block; font-size:13px; color:var(--ink-dim); line-height:1.4;}
 
@@ -567,7 +538,8 @@
     width:100%;
     height:100%;
     object-fit:contain;
-    filter:drop-shadow(0 10px 18px rgba(0,0,0,.28));
+    /* logo-main.webp already bakes in its own spotlight + platform glow --
+       an extra drop-shadow on top just muddied it. */
   }
 
   /* ---------- press feedback for touch (no :hover, so give taps their own cue) ---------- */
