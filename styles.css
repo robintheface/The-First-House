@@ -422,7 +422,14 @@
     box-shadow:inset 0 0 0 2px rgba(12,23,16,0.9), inset 0 0 0 3px rgba(227,168,102,0.22);
     transition:border-color .2s ease, box-shadow .2s ease, transform .2s ease;
   }
-  .rank-badge-item .rank-badge-icon{font-size:22px; line-height:1; flex:0 0 auto;}
+  .rank-badge-item .rank-badge-icon{
+    display:flex; align-items:center; justify-content:center;
+    width:42px; height:42px; flex:0 0 auto;
+    border-radius:11px;
+    background:rgba(111,207,58,0.08);
+    border:1px solid rgba(111,207,58,0.35);
+  }
+  .rank-badge-item .rank-badge-icon img{width:26px; height:26px; object-fit:contain;}
   .rank-badge-item strong{font-family:'IM Fell English',serif; font-weight:400; font-size:16px; color:var(--cream2); display:block; margin-bottom:2px;}
   .rank-badge-item > div > span{display:block; font-size:13px; color:var(--ink-dim); line-height:1.4;}
 
