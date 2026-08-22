@@ -831,9 +831,6 @@
     border:1px solid var(--line);
     box-shadow:0 20px 40px -16px rgba(0,0,0,0.5);
   }
-  /* pencil-hatch shading along the inside bottom edge -- sits in the dead
-     band below the ground line, reads as a sketched drop shadow for a bit
-     of 3D lift without ever covering live gameplay */
   #hoodGameCanvas{
     display:block; width:100%; height:auto; background:#0c0f0a;
     touch-action:manipulation; cursor:pointer;

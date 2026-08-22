@@ -117,9 +117,12 @@ if (canvas) {
     if (clusterChain > 0) {
       clusterChain--;
       pendingClusterFollow = true;
-      // Tight follow-up gap -- reads as a second/third candle right on the
-      // heels of the last one, not a whole new spawn cycle.
-      nextObstacleAt = elapsed + 260 + Math.random() * 160;
+      // Closer than the normal gap (reads as a paired-up candle), but still
+      // enough room to clear both -- one longer jump, or land and hop the
+      // second. Scales down toward the floor as speed rises like the
+      // normal gap does, so the pixel-distance stays fair at any speed.
+      const followBase = Math.max(430, 900 - speed * 700);
+      nextObstacleAt = elapsed + followBase + Math.random() * 140;
       return;
     }
     pendingClusterFollow = false;
@@ -209,11 +212,11 @@ if (canvas) {
       startY = baseY;
     }
 
-    // A plain grounded candle can chain into a close-following one --
-    // "candles bunched up together" -- rarely a third. Kept off the
-    // trickier variants (falling/overhead/rugged) so those never compound.
+    // A plain grounded candle can chain into one close-following partner --
+    // a pair, never a third. Kept off the trickier variants
+    // (falling/overhead/rugged) so those never compound.
     if (!isRugged && variant === 'ground' && !isClusterFollow && clusterChain === 0 && Math.random() < 0.28) {
-      clusterChain = Math.random() < 0.25 ? 2 : 1;
+      clusterChain = 1;
     }
 
     obstacles.push({ kind, baseX: x, x, baseY, y: startY, w, h, moveType, moveAmp, moveSpeed, moveTimer: 0 });
@@ -458,10 +461,6 @@ if (canvas) {
       ctx.drawImage(bg, x, 0, bgW, bgH);
       x += bgW;
     }
-
-    // The background photo already has its own lighting, floor perspective
-    // and depth-of-field blur, so no extra vignette/ground-line overlay is
-    // needed here the way the old flat chart-grid backdrop needed one.
 
     // Soft contact shadows, drawn before any sprite -- a flat cutout with
     // nothing grounding it visually is the other half of why the scene
