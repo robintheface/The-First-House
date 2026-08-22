@@ -105,13 +105,34 @@ if (canvas) {
     nextCoinAt = elapsed + 1000 + Math.random() * 1400;
   }
 
+  // Candle body width stays constant across heights (like a real candlestick
+  // chart) -- only the wick/body length varies, short to tall.
+  const CANDLE_HEIGHT_RATIOS = [0.5, 0.72, 0.95, 1.2];
+  const RUGGED_CHANCE = 0.12; // reads hard to dodge, so it should be rare
+
   function spawnObstacle() {
-    const kind = Math.random() < 0.6 ? 'candle' : 'rugged';
+    const isRugged = Math.random() < RUGGED_CHANCE;
+    const kind = isRugged ? 'rugged' : 'candle';
     const sprite = SPRITES[kind];
     const aspect = sprite.img.naturalWidth / sprite.img.naturalHeight;
-    const h = GROUND_HEIGHT * (kind === 'rugged' ? 0.66 : 1); // rugged reads wide, keep it a touch shorter
-    const w = h * aspect;
-    obstacles.push({ kind, x: CW + 20, y: GROUND_Y - h, w, h });
+    let h, w;
+    if (isRugged) {
+      h = GROUND_HEIGHT * 0.66; // rugged reads wide, keep it a touch shorter
+      w = h * aspect;
+    } else {
+      const ratio = CANDLE_HEIGHT_RATIOS[(Math.random() * CANDLE_HEIGHT_RATIOS.length) | 0];
+      h = GROUND_HEIGHT * ratio;
+      w = GROUND_HEIGHT * aspect;
+    }
+    // Never land on top of a coin that's already in flight -- push spawn
+    // past it so the two never overlap (they move at identical speed, so
+    // clearing it here keeps them clear for the rest of the run).
+    let x = CW + 20;
+    const pad = 36;
+    coins.forEach((c) => {
+      if (x < c.x + c.w + pad && x + w > c.x - pad) x = c.x + c.w + pad;
+    });
+    obstacles.push({ kind, x, y: GROUND_Y - h, w, h });
     scheduleNextObstacle();
   }
 
@@ -122,7 +143,13 @@ if (canvas) {
     // Some coins sit low (grab while running), some hover at jump height.
     const hover = Math.random() < 0.55;
     const y = hover ? GROUND_Y - GROUND_HEIGHT - 70 - Math.random() * 30 : GROUND_Y - h - 6;
-    coins.push({ x: CW + 20, y, w, h, frame: (Math.random() * sprite.frames) | 0, timer: 0, taken: false });
+    // Coins always steer clear of obstacles -- same logic as above, mirrored.
+    let x = CW + 20;
+    const pad = 40;
+    obstacles.forEach((o) => {
+      if (x < o.x + o.w + pad && x + w > o.x - pad) x = o.x + o.w + pad;
+    });
+    coins.push({ x, y, w, h, frame: (Math.random() * sprite.frames) | 0, timer: 0, taken: false });
     scheduleNextCoin();
   }
 
