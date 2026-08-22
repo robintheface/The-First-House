@@ -427,7 +427,7 @@ if (canvas) {
     if (player.grounded) {
       drawFrame(SPRITES.run, state === STATE.PLAYING ? player.runFrame : 0, player.x, player.y, GROUND_HEIGHT * (122 / 160), GROUND_HEIGHT);
     } else {
-      drawFrame(SPRITES.jump, player.jumpFrame, player.x, player.y, GROUND_HEIGHT * (155 / 160), GROUND_HEIGHT);
+      drawFrame(SPRITES.jump, player.jumpFrame, player.x, player.y, GROUND_HEIGHT * (156 / 160), GROUND_HEIGHT);
     }
 
     // "+score" popups float up and fade out over their lifetime
