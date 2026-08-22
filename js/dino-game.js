@@ -363,6 +363,20 @@ if (canvas) {
       x += bgW;
     }
 
+    // Depth shading -- the chart backdrop on its own reads flat, so a soft
+    // vignette (darker at the edges) plus a touch of shading toward the
+    // ground gives it some sense of depth instead of a blank flat plane.
+    const vignette = ctx.createRadialGradient(CW / 2, bgH * 0.5, bgH * 0.2, CW / 2, bgH * 0.55, CW * 0.72);
+    vignette.addColorStop(0, 'rgba(32,51,28,0)');
+    vignette.addColorStop(1, 'rgba(32,51,28,0.18)');
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0, 0, CW, bgH);
+    const groundShade = ctx.createLinearGradient(0, bgH - 70, 0, bgH);
+    groundShade.addColorStop(0, 'rgba(32,51,28,0)');
+    groundShade.addColorStop(1, 'rgba(32,51,28,0.14)');
+    ctx.fillStyle = groundShade;
+    ctx.fillRect(0, bgH - 70, CW, 70);
+
     // ground line -- dark ink tone so it still reads against the cream backdrop
     ctx.strokeStyle = 'rgba(47,77,43,0.6)';
     ctx.lineWidth = 2;
@@ -370,6 +384,34 @@ if (canvas) {
     ctx.moveTo(0, GROUND_Y + 1);
     ctx.lineTo(CW, GROUND_Y + 1);
     ctx.stroke();
+
+    // Soft contact shadows, drawn before any sprite -- a flat cutout with
+    // nothing grounding it visually is the other half of why the scene
+    // reads flat. Airborne things (a jump, a floating rugged obstacle, a
+    // hovering coin) get a smaller, fainter shadow the higher they are.
+    const drawGroundShadow = (cx, w, lift) => {
+      const t = Math.min(1, Math.max(0, lift) / 140);
+      const alpha = 0.24 * (1 - t * 0.75);
+      if (alpha < 0.02) return;
+      const sw = w * (1 - t * 0.3);
+      const sh = 9 * (1 - t * 0.4);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = '#1a2916';
+      ctx.beginPath();
+      ctx.ellipse(cx, GROUND_Y + 3, Math.max(1, sw / 2), Math.max(1, sh / 2), 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    };
+    for (let i = 0; i < coins.length; i++) {
+      const c = coins[i];
+      if (!c.taken) drawGroundShadow(c.x + c.w / 2, c.w, (GROUND_Y - c.h) - c.y);
+    }
+    for (let i = 0; i < obstacles.length; i++) {
+      const o = obstacles[i];
+      drawGroundShadow(o.x + o.w / 2, o.w, (GROUND_Y - o.h) - o.y);
+    }
+    drawGroundShadow(player.x + GROUND_HEIGHT * 0.45, GROUND_HEIGHT * 0.85, (GROUND_Y - GROUND_HEIGHT) - player.y);
 
     // coins
     for (let i = 0; i < coins.length; i++) {
@@ -385,9 +427,9 @@ if (canvas) {
 
     // player
     if (player.grounded) {
-      drawFrame(SPRITES.run, state === STATE.PLAYING ? player.runFrame : 0, player.x, player.y, GROUND_HEIGHT * (144 / 160), GROUND_HEIGHT);
+      drawFrame(SPRITES.run, state === STATE.PLAYING ? player.runFrame : 0, player.x, player.y, GROUND_HEIGHT * (122 / 160), GROUND_HEIGHT);
     } else {
-      drawFrame(SPRITES.jump, player.jumpFrame, player.x, player.y, GROUND_HEIGHT * (157 / 160), GROUND_HEIGHT);
+      drawFrame(SPRITES.jump, player.jumpFrame, player.x, player.y, GROUND_HEIGHT * (155 / 160), GROUND_HEIGHT);
     }
 
     // "+score" popups float up and fade out over their lifetime
