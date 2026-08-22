@@ -33,7 +33,7 @@ if (canvas) {
   const SPRITES = {
     background: { src: 'background.webp' },
     run: { src: 'character-run.webp', frames: 6 },
-    jump: { src: 'character-jump.webp', frames: 24 },
+    jump: { src: 'character-jump.webp', frames: 13 },
     coin: { src: 'coin-spin.webp', frames: 12 },
     candle: { src: 'obstacle-candle.webp', frames: 1 },
     rugged: { src: 'obstacle-rugged.webp', frames: 1 }
@@ -353,8 +353,8 @@ if (canvas) {
       }
     } else {
       player.jumpTimer += dt;
-      while (player.jumpTimer > 34 && player.jumpFrame < SPRITES.jump.frames - 1) {
-        player.jumpTimer -= 34;
+      while (player.jumpTimer > 64 && player.jumpFrame < SPRITES.jump.frames - 1) {
+        player.jumpTimer -= 64;
         player.jumpFrame++;
       }
     }
