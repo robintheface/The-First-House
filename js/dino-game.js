@@ -32,14 +32,14 @@ if (canvas) {
 
   const SPRITES = {
     background: { src: 'background.webp' },
-    run: { src: 'character-run.webp', frames: 6 },
-    jump: { src: 'character-jump.webp', frames: 20 },
+    character: { src: 'character.webp' }, // single static pose -- animated procedurally, see drawPlayer()
     coin: { src: 'coin-spin.webp', frames: 12 },
     candle: { src: 'obstacle-candle.webp', frames: 1 },
     rugged: { src: 'obstacle-rugged.webp', frames: 1 }
   };
 
   let assetsReady = false;
+  let charAspect = 0.64; // recomputed from the real image once it loads
 
   // ---------- game state ----------
   const STATE = { LOADING: 'loading', IDLE: 'idle', PLAYING: 'playing', OVER: 'over' };
@@ -57,10 +57,7 @@ if (canvas) {
     y: GROUND_Y - GROUND_HEIGHT,
     vy: 0,
     grounded: true,
-    runFrame: 0,
-    runTimer: 0,
-    jumpFrame: 0,
-    jumpTimer: 0
+    gaitPhase: 0 // drives the procedural run bob/sway on the single static sprite
   };
 
   const COIN_SCORE = 25;
@@ -89,8 +86,7 @@ if (canvas) {
     player.y = GROUND_Y - GROUND_HEIGHT;
     player.vy = 0;
     player.grounded = true;
-    player.runFrame = 0;
-    player.runTimer = 0;
+    player.gaitPhase = 0;
     obstacles = [];
     coins = [];
     popups = [];
@@ -214,8 +210,6 @@ if (canvas) {
     if (!player.grounded) return;
     player.vy = JUMP_VELOCITY;
     player.grounded = false;
-    player.jumpFrame = 0;
-    player.jumpTimer = 0;
   }
 
   function showOverlay(title, lines) {
@@ -269,14 +263,10 @@ if (canvas) {
       }
     }
 
-    // animation timers
-    if (player.grounded) {
-      player.runTimer += dt;
-      if (player.runTimer > 90) { player.runTimer = 0; player.runFrame = (player.runFrame + 1) % SPRITES.run.frames; }
-    } else {
-      player.jumpTimer += dt;
-      if (player.jumpTimer > 55) { player.jumpTimer = 0; player.jumpFrame = Math.min(SPRITES.jump.frames - 1, player.jumpFrame + 1); }
-    }
+    // Single static sprite -- no frames to advance, just a stride-phase
+    // clock that runs while grounded (faster as speed rises) to drive the
+    // procedural bob/sway in drawPlayer().
+    if (player.grounded) player.gaitPhase += dt * speed * 0.035;
 
     // spawns
     if (elapsed >= nextObstacleAt) spawnObstacle();
@@ -330,7 +320,7 @@ if (canvas) {
 
     // collisions
     playerBox.x = player.x; playerBox.y = player.y;
-    playerBox.w = GROUND_HEIGHT * 0.9; playerBox.h = GROUND_HEIGHT;
+    playerBox.w = GROUND_HEIGHT * charAspect; playerBox.h = GROUND_HEIGHT;
     for (const o of obstacles) {
       if (hit(playerBox, o)) { endRun(); break; }
     }
@@ -350,6 +340,36 @@ if (canvas) {
     ctx.drawImage(img, frameIndex * fw, 0, fw, img.naturalHeight, x, y, w, h);
   }
 
+  // Single static character pose -- faked into looking alive with canvas
+  // transforms instead of a sprite sheet: a springy bob+sway while running,
+  // a lean that tracks vertical velocity while airborne. Pivoted around the
+  // feet so rotation/scale read as a body moving, not a sprite swimming.
+  function drawPlayer() {
+    const h = GROUND_HEIGHT;
+    const w = h * charAspect;
+    const feetX = player.x + w / 2;
+    const feetY = player.y + h;
+    const animate = state === STATE.PLAYING;
+
+    let bob = 0, rot = 0, scaleX = 1, scaleY = 1;
+    if (animate && player.grounded) {
+      const s = Math.abs(Math.sin(player.gaitPhase));
+      bob = -s * 4;
+      scaleY = 1 - s * 0.035;
+      scaleX = 1 + s * 0.025;
+      rot = Math.sin(player.gaitPhase * 0.5) * 0.03;
+    } else if (animate) {
+      rot = Math.max(-0.16, Math.min(0.16, player.vy * 0.00045));
+    }
+
+    ctx.save();
+    ctx.translate(feetX, feetY + bob);
+    ctx.rotate(rot);
+    ctx.scale(scaleX, scaleY);
+    ctx.drawImage(SPRITES.character.img, -w / 2, -h, w, h);
+    ctx.restore();
+  }
+
   function draw() {
     ctx.clearRect(0, 0, CW, CH);
 
@@ -363,27 +383,9 @@ if (canvas) {
       x += bgW;
     }
 
-    // Depth shading -- the chart backdrop on its own reads flat, so a soft
-    // vignette (darker at the edges) plus a touch of shading toward the
-    // ground gives it some sense of depth instead of a blank flat plane.
-    const vignette = ctx.createRadialGradient(CW / 2, bgH * 0.5, bgH * 0.2, CW / 2, bgH * 0.55, CW * 0.72);
-    vignette.addColorStop(0, 'rgba(32,51,28,0)');
-    vignette.addColorStop(1, 'rgba(32,51,28,0.18)');
-    ctx.fillStyle = vignette;
-    ctx.fillRect(0, 0, CW, bgH);
-    const groundShade = ctx.createLinearGradient(0, bgH - 70, 0, bgH);
-    groundShade.addColorStop(0, 'rgba(32,51,28,0)');
-    groundShade.addColorStop(1, 'rgba(32,51,28,0.14)');
-    ctx.fillStyle = groundShade;
-    ctx.fillRect(0, bgH - 70, CW, 70);
-
-    // ground line -- dark ink tone so it still reads against the cream backdrop
-    ctx.strokeStyle = 'rgba(47,77,43,0.6)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(0, GROUND_Y + 1);
-    ctx.lineTo(CW, GROUND_Y + 1);
-    ctx.stroke();
+    // The background photo already has its own lighting, floor perspective
+    // and depth-of-field blur, so no extra vignette/ground-line overlay is
+    // needed here the way the old flat chart-grid backdrop needed one.
 
     // Soft contact shadows, drawn before any sprite -- a flat cutout with
     // nothing grounding it visually is the other half of why the scene
@@ -411,7 +413,7 @@ if (canvas) {
       const o = obstacles[i];
       drawGroundShadow(o.x + o.w / 2, o.w, (GROUND_Y - o.h) - o.y);
     }
-    drawGroundShadow(player.x + GROUND_HEIGHT * 0.45, GROUND_HEIGHT * 0.85, (GROUND_Y - GROUND_HEIGHT) - player.y);
+    drawGroundShadow(player.x + (GROUND_HEIGHT * charAspect) / 2, GROUND_HEIGHT * charAspect * 0.95, (GROUND_Y - GROUND_HEIGHT) - player.y);
 
     // coins
     for (let i = 0; i < coins.length; i++) {
@@ -425,12 +427,9 @@ if (canvas) {
       ctx.drawImage(SPRITES[o.kind].img, o.x, o.y, o.w, o.h);
     }
 
-    // player
-    if (player.grounded) {
-      drawFrame(SPRITES.run, state === STATE.PLAYING ? player.runFrame : 0, player.x, player.y, GROUND_HEIGHT * (122 / 160), GROUND_HEIGHT);
-    } else {
-      drawFrame(SPRITES.jump, player.jumpFrame, player.x, player.y, GROUND_HEIGHT * (155 / 160), GROUND_HEIGHT);
-    }
+    // player -- single static pose, animated procedurally via canvas
+    // transforms since there's no run/jump sprite sheet to flip through
+    drawPlayer();
 
     // "+score" popups float up and fade out over their lifetime
     if (popups.length) {
@@ -512,6 +511,8 @@ if (canvas) {
       loadImage(sprite.src).then((img) => { sprite.img = img; })
     )
   ).then(() => {
+    const charImg = SPRITES.character.img;
+    charAspect = charImg.naturalWidth / charImg.naturalHeight;
     assetsReady = true;
     state = STATE.IDLE;
     showOverlay('HOOD RUN', ['PRESS SPACE TO START']);
