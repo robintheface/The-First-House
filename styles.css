@@ -354,17 +354,16 @@
     color:rgba(238,244,234,0.32); border-color:rgba(238,244,234,0.18);
     cursor:not-allowed;
   }
-  /* .btn-primary carries its own animated gradient/glow (shine sweep +
-     pulsing box-shadow) -- locked state strips all of that back down to a
-     flat dim chip matching .btn-ghost.is-locked instead of just dimming
-     colors on top of a still-animating background. */
-  .btn-primary.is-locked{
-    color:rgba(238,244,234,0.32);
-    background-image:none; background-color:rgba(238,244,234,0.06);
-    border:1px solid rgba(238,244,234,0.18);
-    box-shadow:none; animation:none;
-    cursor:not-allowed;
-  }
+  /* Per request, "See your rank" keeps its full active look (green fill,
+     left-to-right shine sweep, pulsing glow) even locked -- only the
+     cursor changes, plus the "Soon" tag sitting on top makes clear it's
+     not clickable. Unlike .btn-ghost.is-locked (Leaderboard), which stays
+     visually muted. */
+  .btn-primary.is-locked{cursor:not-allowed;}
+  /* The default .lock-tag (near-white at low opacity) all but disappears
+     on the bright green fill -- darkened to match the button's own dark
+     text color instead. */
+  .btn-primary.is-locked .lock-tag{color:rgba(13,26,15,0.55); border-color:rgba(13,26,15,0.35);}
   /* ---------- section shells ---------- */
   section{padding:96px 20px;}
   .section-head{max-width:640px; margin:0 auto 48px; text-align:center;}
