@@ -363,7 +363,7 @@
   /* The default .lock-tag (near-white at low opacity) all but disappears
      on the bright green fill -- bronze instead, reading clearly against
      the green. */
-  .btn-primary.is-locked .lock-tag{color:var(--bronze); border-color:var(--bronze);}
+  .btn-primary.is-locked .lock-tag{color:var(--bronze); border-color:var(--bronze); font-weight:700;}
   /* ---------- section shells ---------- */
   section{padding:96px 20px;}
   .section-head{max-width:640px; margin:0 auto 48px; text-align:center;}
