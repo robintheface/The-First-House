@@ -14,6 +14,7 @@ if (canvas) {
   const overlay = document.getElementById('hoodGameOverlay');
   const overlayTitle = document.getElementById('hoodGameOverlayTitle');
   const overlayLines = document.getElementById('hoodGameOverlayLines');
+  const muteBtn = document.getElementById('hoodGameMuteBtn');
 
   const CW = canvas.width;   // 800
   const CH = canvas.height;  // 450
@@ -562,11 +563,108 @@ if (canvas) {
     requestAnimationFrame(loop);
   }
 
+  // ---------- background music ----------
+  // Synthesized live with the Web Audio API -- no external audio file, so
+  // there's no licensing question at all. A tiny 4-bar chiptune-style loop
+  // (bass pulse + arpeggiated lead) over an Am-F-C-G progression.
+  let musicMuted = false;
+  try { musicMuted = localStorage.getItem('hoodRunnerMuted') === '1'; } catch (err) { musicMuted = false; }
+  let actx = null;
+  let masterGain = null;
+  let musicRunning = false;
+  let nextStepTime = 0;
+  let stepIndex = 0;
+  let schedulerId = null;
+
+  const TEMPO = 132; // BPM
+  const STEP_SEC = 60 / TEMPO / 4; // 16th-note steps
+  const SCHEDULE_AHEAD = 0.2; // seconds of lookahead per scheduler tick
+  const STEPS_PER_BAR = 16;
+  // [root, third, fifth] per bar -- Am, F, C, G (4-bar loop)
+  const CHORDS = [
+    [110.00, 130.81, 164.81],
+    [87.31, 110.00, 130.81],
+    [130.81, 164.81, 196.00],
+    [98.00, 123.47, 146.83]
+  ];
+  const ARP = [0, 1, 2, 1]; // root-third-fifth-third, repeated across the bar
+
+  function playNote(freq, time, dur, gainPeak, type) {
+    const osc = actx.createOscillator();
+    const g = actx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, time);
+    g.gain.setValueAtTime(0, time);
+    g.gain.linearRampToValueAtTime(gainPeak, time + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+    osc.connect(g);
+    g.connect(masterGain);
+    osc.start(time);
+    osc.stop(time + dur + 0.02);
+  }
+
+  function scheduleStep(step, time) {
+    const bar = Math.floor(step / STEPS_PER_BAR) % CHORDS.length;
+    const posInBar = step % STEPS_PER_BAR;
+    const chord = CHORDS[bar];
+    if (posInBar % 4 === 0) playNote(chord[0] / 2, time, STEP_SEC * 3.2, 0.22, 'triangle');
+    playNote(chord[ARP[posInBar % 4]], time, STEP_SEC * 0.9, 0.09, 'square');
+  }
+
+  function musicScheduler() {
+    while (nextStepTime < actx.currentTime + SCHEDULE_AHEAD) {
+      scheduleStep(stepIndex, nextStepTime);
+      nextStepTime += STEP_SEC;
+      stepIndex++;
+    }
+  }
+
+  function startMusic() {
+    if (musicRunning || musicMuted) return;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return; // unsupported browser -- fail silent, game still works
+    if (!actx) {
+      actx = new AudioCtx();
+      masterGain = actx.createGain();
+      masterGain.gain.value = 0.35;
+      masterGain.connect(actx.destination);
+    }
+    if (actx.state === 'suspended') actx.resume();
+    musicRunning = true;
+    stepIndex = 0;
+    nextStepTime = actx.currentTime + 0.05;
+    musicScheduler();
+    schedulerId = setInterval(musicScheduler, 25);
+  }
+
+  function stopMusic() {
+    if (schedulerId) { clearInterval(schedulerId); schedulerId = null; }
+    musicRunning = false;
+    if (actx) actx.suspend();
+  }
+
+  function setMuted(muted) {
+    musicMuted = muted;
+    try { localStorage.setItem('hoodRunnerMuted', muted ? '1' : '0'); } catch (err) { /* private mode etc */ }
+    if (muteBtn) {
+      muteBtn.textContent = muted ? '🔇' : '🔊';
+      muteBtn.setAttribute('aria-pressed', String(muted));
+      muteBtn.setAttribute('aria-label', muted ? 'Unmute music' : 'Mute music');
+    }
+    if (muted) stopMusic(); else startMusic();
+  }
+  if (muteBtn) {
+    muteBtn.textContent = musicMuted ? '🔇' : '🔊';
+    muteBtn.setAttribute('aria-pressed', String(musicMuted));
+    muteBtn.addEventListener('click', () => setMuted(!musicMuted));
+  }
+
   // ---------- input ----------
   window.addEventListener('keydown', (e) => {
     if (e.code !== 'Space' && e.key !== ' ') return;
     if (!assetsReady) return;
     e.preventDefault();
+    startMusic(); // first call is always a genuine user gesture -- safe to satisfy autoplay policy here
     jump();
   });
   // Tap target is the whole section, not just the canvas -- on a small
@@ -577,6 +675,7 @@ if (canvas) {
   (gameSection || canvas).addEventListener('pointerdown', (e) => {
     if (!assetsReady) return;
     if (e.target.closest('a, button')) return;
+    startMusic();
     jump();
   });
 
