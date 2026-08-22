@@ -15,8 +15,8 @@ if (canvas) {
   const overlayText = document.getElementById('hoodGameOverlayText');
 
   const CW = canvas.width;   // 800
-  const CH = canvas.height;  // 300
-  const GROUND_Y = 250;
+  const CH = canvas.height;  // 450
+  const GROUND_Y = Math.round(CH * (250 / 300)); // keep the original ground/sky ratio at the taller size
 
   // ---------- assets ----------
   const ASSET_BASE = '/game/';
@@ -62,8 +62,11 @@ if (canvas) {
     jumpTimer: 0
   };
 
+  const COIN_SCORE = 25;
+
   let obstacles = [];
   let coins = [];
+  let popups = []; // floating "+score" text shown when a coin is grabbed
   let speed = BASE_SPEED;
   let elapsed = 0;
   let score = 0;
@@ -87,6 +90,7 @@ if (canvas) {
     player.runTimer = 0;
     obstacles = [];
     coins = [];
+    popups = [];
     speed = BASE_SPEED;
     elapsed = 0;
     score = 0;
@@ -126,13 +130,35 @@ if (canvas) {
     }
     // Never land on top of a coin that's already in flight -- push spawn
     // past it so the two never overlap (they move at identical speed, so
-    // clearing it here keeps them clear for the rest of the run).
+    // clearing it here keeps them clear for the rest of the run). Rugged
+    // obstacles can also drift sideways in place (see below), so give them
+    // extra clearance up front.
     let x = CW + 20;
-    const pad = 36;
+    const pad = isRugged ? 60 : 36;
     coins.forEach((c) => {
       if (x < c.x + c.w + pad && x + w > c.x - pad) x = c.x + c.w + pad;
     });
-    obstacles.push({ kind, x, y: GROUND_Y - h, w, h });
+
+    let baseY = GROUND_Y - h;
+    let moveType = 'none', moveAmp = 0, moveSpeed = 0;
+    if (isRugged) {
+      // Rugged reads mixed up: sometimes grounded, sometimes floating in
+      // the air; sometimes it bobs up and down, sometimes it drifts back
+      // and forth in place within a small range.
+      if (Math.random() < 0.5) baseY = GROUND_Y - h - (55 + Math.random() * 70);
+      const roll = Math.random();
+      if (roll < 0.34) {
+        moveType = 'vertical';
+        moveAmp = 18 + Math.random() * 14;
+        moveSpeed = 0.0028 + Math.random() * 0.0018;
+      } else if (roll < 0.68) {
+        moveType = 'horizontal';
+        moveAmp = 22 + Math.random() * 18;
+        moveSpeed = 0.0022 + Math.random() * 0.0016;
+      }
+    }
+
+    obstacles.push({ kind, baseX: x, x, baseY, y: baseY, w, h, moveType, moveAmp, moveSpeed, moveTimer: 0 });
     scheduleNextObstacle();
   }
 
@@ -144,9 +170,10 @@ if (canvas) {
     const hover = Math.random() < 0.55;
     const y = hover ? GROUND_Y - GROUND_HEIGHT - 70 - Math.random() * 30 : GROUND_Y - h - 6;
     // Coins always steer clear of obstacles -- same logic as above, mirrored.
+    // Extra padding against rugged obstacles since those can drift sideways.
     let x = CW + 20;
-    const pad = 40;
     obstacles.forEach((o) => {
+      const pad = o.kind === 'rugged' ? 60 : 40;
       if (x < o.x + o.w + pad && x + w > o.x - pad) x = o.x + o.w + pad;
     });
     coins.push({ x, y, w, h, frame: (Math.random() * sprite.frames) | 0, timer: 0, taken: false });
@@ -231,10 +258,24 @@ if (canvas) {
     if (elapsed >= nextObstacleAt) spawnObstacle();
     if (elapsed >= nextCoinAt) spawnCoin();
 
-    // move + cull obstacles
+    // move + cull obstacles (baseX/baseY scroll with the world; moveType
+    // layers a small bob or side-to-side drift on top for rugged obstacles)
     const dx = speed * dt;
-    obstacles.forEach((o) => { o.x -= dx; });
-    obstacles = obstacles.filter((o) => o.x + o.w > -20);
+    obstacles.forEach((o) => {
+      o.baseX -= dx;
+      o.moveTimer += dt;
+      if (o.moveType === 'vertical') {
+        o.x = o.baseX;
+        o.y = o.baseY + Math.sin(o.moveTimer * o.moveSpeed) * o.moveAmp;
+      } else if (o.moveType === 'horizontal') {
+        o.x = o.baseX + Math.sin(o.moveTimer * o.moveSpeed) * o.moveAmp;
+        o.y = o.baseY;
+      } else {
+        o.x = o.baseX;
+        o.y = o.baseY;
+      }
+    });
+    obstacles = obstacles.filter((o) => o.baseX + o.w > -20);
 
     // move + cull + animate coins
     coins.forEach((c) => {
@@ -243,6 +284,10 @@ if (canvas) {
       if (c.timer > 45) { c.timer = 0; c.frame = (c.frame + 1) % SPRITES.coin.frames; }
     });
     coins = coins.filter((c) => c.x + c.w > -20 && !c.taken);
+
+    // float + fade the "+score" popups, then drop the finished ones
+    popups.forEach((p) => { p.x -= dx; p.life += dt; });
+    popups = popups.filter((p) => p.life < p.dur);
 
     // background parallax
     bgScrollX -= dx * 0.5;
@@ -255,7 +300,11 @@ if (canvas) {
       if (hit(playerBox, o)) { endRun(); break; }
     }
     for (const c of coins) {
-      if (!c.taken && hit(playerBox, c)) { c.taken = true; score += 25; }
+      if (!c.taken && hit(playerBox, c)) {
+        c.taken = true;
+        score += COIN_SCORE;
+        popups.push({ x: c.x + c.w / 2, y: c.y, life: 0, dur: 650, text: '+' + COIN_SCORE });
+      }
     }
   }
 
@@ -302,6 +351,18 @@ if (canvas) {
     } else {
       drawFrame(SPRITES.jump, player.jumpFrame, player.x, player.y, GROUND_HEIGHT * (155 / 160), GROUND_HEIGHT);
     }
+
+    // "+score" popups float up and fade out over their lifetime
+    popups.forEach((p) => {
+      const t = p.life / p.dur;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, 1 - t);
+      ctx.font = "700 20px 'IBM Plex Mono', monospace";
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#f4c744';
+      ctx.fillText(p.text, p.x, p.y - t * 42);
+      ctx.restore();
+    });
 
     if (scoreEl) scoreEl.textContent = String(Math.floor(score));
   }
