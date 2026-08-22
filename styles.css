@@ -824,11 +824,23 @@
   }
 
   /* ---------- Hood Runner mini-game (index.html, between Lore and Faces) ---------- */
+  #game{cursor:pointer;}
   .hood-game-wrap{
     position:relative; max-width:800px; margin:0 auto;
     border-radius:16px; overflow:hidden;
     border:1px solid var(--line);
     box-shadow:0 20px 40px -16px rgba(0,0,0,0.5);
+  }
+  /* pencil-hatch shading along the inside bottom edge -- sits in the dead
+     band below the ground line, reads as a sketched drop shadow for a bit
+     of 3D lift without ever covering live gameplay */
+  .hood-game-wrap::after{
+    content:"";
+    position:absolute; left:0; right:0; bottom:0; height:34px;
+    background:
+      repeating-linear-gradient(135deg, rgba(32,51,28,0.4) 0 2px, transparent 2px 7px),
+      linear-gradient(to bottom, rgba(32,51,28,0) 0%, rgba(32,51,28,0.14) 100%);
+    pointer-events:none;
   }
   #hoodGameCanvas{
     display:block; width:100%; height:auto; background:var(--cream2);
@@ -859,6 +871,10 @@
   }
   .hood-game-overlay-lines p + p{
     margin-top:6px; font-size:15px; color:#20331c; opacity:0.7;
+  }
+  .hood-game-overlay-lines p.hood-game-overlay-score{
+    font-family:'IBM Plex Mono',monospace; font-size:42px; font-weight:700;
+    letter-spacing:0.02em; color:#8a6a16; margin:4px 0; opacity:1;
   }
 
   /* ---------- press feedback for touch (no :hover, so give taps their own cue) ---------- */

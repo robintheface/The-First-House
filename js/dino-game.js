@@ -188,13 +188,18 @@ if (canvas) {
 
   function endRun() {
     state = STATE.OVER;
+    const formatted = Math.floor(score).toLocaleString('en-US');
     if (score > best) {
       best = score;
       try { localStorage.setItem('hoodRunnerBest', String(Math.floor(best))); } catch (err) { /* private mode etc -- best just won't persist */ }
       updateBestLabel();
+      showOverlay('NEW HIGH SCORE!', [
+        { text: formatted, cls: 'hood-game-overlay-score' },
+        'PRESS SPACE TO RUN AGAIN'
+      ]);
+    } else {
+      showOverlay('RUGGED!', ['You scored ' + formatted + ' points', 'Click or press SPACE to continue']);
     }
-    const formatted = Math.floor(score).toLocaleString('en-US');
-    showOverlay('RUGGED!', ['You scored ' + formatted + ' points', 'Click or press SPACE to continue']);
   }
 
   function jump() {
@@ -215,7 +220,12 @@ if (canvas) {
       overlayLines.innerHTML = '';
       lines.forEach((line) => {
         const p = document.createElement('p');
-        p.textContent = line;
+        if (typeof line === 'string') {
+          p.textContent = line;
+        } else {
+          p.textContent = line.text;
+          if (line.cls) p.className = line.cls;
+        }
         overlayLines.appendChild(p);
       });
     }
@@ -394,7 +404,16 @@ if (canvas) {
     e.preventDefault();
     jump();
   });
-  canvas.addEventListener('pointerdown', () => { if (assetsReady) jump(); });
+  // Tap target is the whole section, not just the canvas -- on a small
+  // phone screen the canvas itself is a fiddly target mid-run. Real links
+  // or buttons (none currently live inside #game, but stay defensive) are
+  // left alone so they still work normally instead of being hijacked.
+  const gameSection = document.getElementById('game');
+  (gameSection || canvas).addEventListener('pointerdown', (e) => {
+    if (!assetsReady) return;
+    if (e.target.closest('a, button')) return;
+    jump();
+  });
 
   // ---------- boot ----------
   showOverlay('HOOD RUN', ['Loading…']);
