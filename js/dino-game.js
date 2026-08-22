@@ -328,8 +328,8 @@ if (canvas) {
       x += bgW;
     }
 
-    // ground line
-    ctx.strokeStyle = 'rgba(111,207,58,0.35)';
+    // ground line -- dark ink tone so it still reads against the cream backdrop
+    ctx.strokeStyle = 'rgba(47,77,43,0.6)';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(0, GROUND_Y + 1);
@@ -349,7 +349,7 @@ if (canvas) {
     if (player.grounded) {
       drawFrame(SPRITES.run, state === STATE.PLAYING ? player.runFrame : 0, player.x, player.y, GROUND_HEIGHT * (144 / 160), GROUND_HEIGHT);
     } else {
-      drawFrame(SPRITES.jump, player.jumpFrame, player.x, player.y, GROUND_HEIGHT * (155 / 160), GROUND_HEIGHT);
+      drawFrame(SPRITES.jump, player.jumpFrame, player.x, player.y, GROUND_HEIGHT * (157 / 160), GROUND_HEIGHT);
     }
 
     // "+score" popups float up and fade out over their lifetime
@@ -359,7 +359,7 @@ if (canvas) {
       ctx.globalAlpha = Math.max(0, 1 - t);
       ctx.font = "700 20px 'IBM Plex Mono', monospace";
       ctx.textAlign = 'center';
-      ctx.fillStyle = '#f4c744';
+      ctx.fillStyle = '#8a6a16';
       ctx.fillText(p.text, p.x, p.y - t * 42);
       ctx.restore();
     });
