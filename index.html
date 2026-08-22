@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=64">
+<link rel="stylesheet" href="styles.css?v=66">
 </head>
 <body>
 
@@ -62,6 +62,27 @@
   <div class="lore-card">
     <p>A green-hooded archer who steals the pump from whales and hands it back to the hood — but never fakes how he feels about it.</p>
     <p>Legend says he lives in the market's forest. <strong>Euphoric on a green day. Wrecked on a red one. Dead asleep watching a 3am candle.</strong> The community started calling him <strong>ROBIN THE FACE</strong> — not for the hood, but for the face underneath it, which has apparently never once looked chill. We're not selling "always up." We're selling a face that's been through it, same as you.</p>
+  </div>
+</section>
+
+<section id="game">
+  <div class="section-head">
+    <div class="kicker">Side quest</div>
+    <h2 class="section-title">Outrun the <span style="color:var(--green-bright);">rug</span>.</h2>
+    <p class="section-desc">Dodge red candles, grab the bag. Space to jump — or tap on mobile.</p>
+  </div>
+  <div class="hood-game-wrap">
+    <canvas id="hoodGameCanvas" width="800" height="450" role="img" aria-label="Robin The Face endless runner mini-game"></canvas>
+    <div class="hood-game-hud">
+      <span id="hoodGameScore">0</span>
+      <span id="hoodGameBest">Best: 0</span>
+    </div>
+    <div id="hoodGameOverlay" class="hood-game-overlay">
+      <div class="hood-game-overlay-inner">
+        <p id="hoodGameOverlayTitle" class="hood-game-overlay-title">HOOD RUN</p>
+        <div id="hoodGameOverlayLines" class="hood-game-overlay-lines"></div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -358,5 +379,6 @@
 
 <script type="module" src="js/topbar-menus.js"></script>
 <script src="js/copy.js"></script>
+<script type="module" src="js/dino-game.js"></script>
 </body>
 </html>
