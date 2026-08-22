@@ -835,21 +835,21 @@
      band below the ground line, reads as a sketched drop shadow for a bit
      of 3D lift without ever covering live gameplay */
   #hoodGameCanvas{
-    display:block; width:100%; height:auto; background:#f5f5f6;
+    display:block; width:100%; height:auto; background:#0c0f0a;
     touch-action:manipulation; cursor:pointer;
   }
   .hood-game-hud{
     position:absolute; top:12px; left:0; right:0;
     display:flex; justify-content:space-between; padding:0 16px;
     font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:14px;
-    color:#20331c; text-shadow:0 1px 2px rgba(241,234,220,0.85);
+    color:#c8f0b8; text-shadow:0 1px 3px rgba(0,0,0,0.7);
     pointer-events:none;
   }
-  #hoodGameBest{color:#8a6a16;}
+  #hoodGameBest{color:#e0b23a;}
   .hood-game-overlay{
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
     text-align:center; padding:20px;
-    background:rgba(247,247,248,0.9);
+    background:rgba(8,12,7,0.88);
     pointer-events:none;
     opacity:0; transition:opacity 0.25s ease;
   }
@@ -858,17 +858,17 @@
   .hood-game-overlay-inner{max-width:26ch;}
   .hood-game-overlay-title{
     font-family:'IM Fell English',serif; font-size:34px; letter-spacing:0.06em;
-    color:#20331c; -webkit-text-stroke:0.6px #20331c; margin:0 0 10px;
+    color:#d7ffca; -webkit-text-stroke:0.6px #d7ffca; margin:0 0 10px;
   }
   .hood-game-overlay-lines p{
-    font-family:'IM Fell English',serif; font-size:19px; color:#20331c; margin:0;
+    font-family:'IM Fell English',serif; font-size:19px; color:#d7ffca; margin:0;
   }
   .hood-game-overlay-lines p + p{
-    margin-top:6px; font-size:15px; color:#20331c; opacity:0.7;
+    margin-top:6px; font-size:15px; color:#d7ffca; opacity:0.7;
   }
   .hood-game-overlay-lines p.hood-game-overlay-score{
     font-family:'IBM Plex Mono',monospace; font-size:42px; font-weight:700;
-    letter-spacing:0.02em; color:#8a6a16; margin:4px 0; opacity:1;
+    letter-spacing:0.02em; color:#e0b23a; margin:4px 0; opacity:1;
   }
 
   /* ---------- press feedback for touch (no :hover, so give taps their own cue) ---------- */

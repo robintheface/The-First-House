@@ -32,14 +32,19 @@ if (canvas) {
 
   const SPRITES = {
     background: { src: 'background.webp' },
-    character: { src: 'character.webp' }, // single static pose -- animated procedurally, see drawPlayer()
+    run: { src: 'character-run.webp', frames: 6 },
+    jump: { src: 'character-jump.webp', frames: 24 },
     coin: { src: 'coin-spin.webp', frames: 12 },
     candle: { src: 'obstacle-candle.webp', frames: 1 },
     rugged: { src: 'obstacle-rugged.webp', frames: 1 }
   };
 
   let assetsReady = false;
-  let charAspect = 0.64; // recomputed from the real image once it loads
+  // Recomputed from the real sprite sheets once they load. Run and jump
+  // frames aren't the same aspect (arms/cape spread wider mid-jump), so the
+  // player's box and draw size both track whichever cycle is currently active.
+  let runAspect = 0.89;
+  let jumpAspect = 1.05;
 
   // ---------- game state ----------
   const STATE = { LOADING: 'loading', IDLE: 'idle', PLAYING: 'playing', OVER: 'over' };
@@ -57,7 +62,10 @@ if (canvas) {
     y: GROUND_Y - GROUND_HEIGHT,
     vy: 0,
     grounded: true,
-    gaitPhase: 0 // drives the procedural run bob/sway on the single static sprite
+    runFrame: 0,
+    runTimer: 0,
+    jumpFrame: 0,
+    jumpTimer: 0
   };
 
   const COIN_SCORE = 25;
@@ -87,7 +95,10 @@ if (canvas) {
     player.y = GROUND_Y - GROUND_HEIGHT;
     player.vy = 0;
     player.grounded = true;
-    player.gaitPhase = 0;
+    player.runFrame = 0;
+    player.runTimer = 0;
+    player.jumpFrame = 0;
+    player.jumpTimer = 0;
     obstacles = [];
     coins = [];
     popups = [];
@@ -218,6 +229,8 @@ if (canvas) {
     if (!player.grounded) return;
     player.vy = JUMP_VELOCITY;
     player.grounded = false;
+    player.jumpFrame = 0;
+    player.jumpTimer = 0;
   }
 
   let overlayHideTimer = null;
@@ -279,10 +292,23 @@ if (canvas) {
       }
     }
 
-    // Single static sprite -- no frames to advance, just a stride-phase
-    // clock that runs while grounded (faster as speed rises) to drive the
-    // procedural bob/sway in drawPlayer().
-    if (player.grounded) player.gaitPhase += dt * speed * 0.035;
+    // Advance whichever cycle is currently active. Run-frame pace scales
+    // with speed so the legs visibly hurry as the run speeds up; jump plays
+    // once through at a fixed pace and holds its last frame if still
+    // airborne (a long hang time shouldn't loop the cycle mid-air).
+    if (player.grounded) {
+      player.runTimer += dt * speed;
+      while (player.runTimer > 28) {
+        player.runTimer -= 28;
+        player.runFrame = (player.runFrame + 1) % SPRITES.run.frames;
+      }
+    } else {
+      player.jumpTimer += dt;
+      while (player.jumpTimer > 34 && player.jumpFrame < SPRITES.jump.frames - 1) {
+        player.jumpTimer -= 34;
+        player.jumpFrame++;
+      }
+    }
 
     // spawns
     if (elapsed >= nextObstacleAt) spawnObstacle();
@@ -336,7 +362,8 @@ if (canvas) {
 
     // collisions
     playerBox.x = player.x; playerBox.y = player.y;
-    playerBox.w = GROUND_HEIGHT * charAspect; playerBox.h = GROUND_HEIGHT;
+    playerBox.w = GROUND_HEIGHT * (player.grounded ? runAspect : jumpAspect);
+    playerBox.h = GROUND_HEIGHT;
     for (const o of obstacles) {
       if (hit(playerBox, o)) { endRun(); break; }
     }
@@ -356,34 +383,17 @@ if (canvas) {
     ctx.drawImage(img, frameIndex * fw, 0, fw, img.naturalHeight, x, y, w, h);
   }
 
-  // Single static character pose -- faked into looking alive with canvas
-  // transforms instead of a sprite sheet: a springy bob+sway while running,
-  // a lean that tracks vertical velocity while airborne. Pivoted around the
-  // feet so rotation/scale read as a body moving, not a sprite swimming.
+  // Player draw box tracks whichever cycle is active -- run frames and jump
+  // frames aren't the same aspect (arms/cape spread wider mid-jump).
   function drawPlayer() {
     const h = GROUND_HEIGHT;
-    const w = h * charAspect;
-    const feetX = player.x + w / 2;
-    const feetY = player.y + h;
-    const animate = state === STATE.PLAYING;
-
-    let bob = 0, rot = 0, scaleX = 1, scaleY = 1;
-    if (animate && player.grounded) {
-      const s = Math.abs(Math.sin(player.gaitPhase));
-      bob = -s * 4;
-      scaleY = 1 - s * 0.035;
-      scaleX = 1 + s * 0.025;
-      rot = Math.sin(player.gaitPhase * 0.5) * 0.03;
-    } else if (animate) {
-      rot = Math.max(-0.16, Math.min(0.16, player.vy * 0.00045));
+    if (player.grounded) {
+      const w = h * runAspect;
+      drawFrame(SPRITES.run, player.runFrame, player.x, player.y, w, h);
+    } else {
+      const w = h * jumpAspect;
+      drawFrame(SPRITES.jump, player.jumpFrame, player.x, player.y, w, h);
     }
-
-    ctx.save();
-    ctx.translate(feetX, feetY + bob);
-    ctx.rotate(rot);
-    ctx.scale(scaleX, scaleY);
-    ctx.drawImage(SPRITES.character.img, -w / 2, -h, w, h);
-    ctx.restore();
   }
 
   function draw() {
@@ -429,7 +439,8 @@ if (canvas) {
       const o = obstacles[i];
       drawGroundShadow(o.x + o.w / 2, o.w, (GROUND_Y - o.h) - o.y);
     }
-    drawGroundShadow(player.x + (GROUND_HEIGHT * charAspect) / 2, GROUND_HEIGHT * charAspect * 0.95, (GROUND_Y - GROUND_HEIGHT) - player.y);
+    const playerW = GROUND_HEIGHT * (player.grounded ? runAspect : jumpAspect);
+    drawGroundShadow(player.x + playerW / 2, playerW * 0.95, (GROUND_Y - GROUND_HEIGHT) - player.y);
 
     // coins
     for (let i = 0; i < coins.length; i++) {
@@ -443,8 +454,7 @@ if (canvas) {
       ctx.drawImage(SPRITES[o.kind].img, o.x, o.y, o.w, o.h);
     }
 
-    // player -- single static pose, animated procedurally via canvas
-    // transforms since there's no run/jump sprite sheet to flip through
+    // player -- run/jump sprite sheets, current frame picked in update()
     drawPlayer();
 
     // "+score" popups float up and fade out over their lifetime
@@ -452,7 +462,7 @@ if (canvas) {
       ctx.save();
       ctx.font = "700 20px 'IBM Plex Mono', monospace";
       ctx.textAlign = 'center';
-      ctx.fillStyle = '#8a6a16';
+      ctx.fillStyle = '#e0b23a';
       for (let i = 0; i < popups.length; i++) {
         const p = popups[i];
         const t = p.life / p.dur;
@@ -527,8 +537,8 @@ if (canvas) {
       loadImage(sprite.src).then((img) => { sprite.img = img; })
     )
   ).then(() => {
-    const charImg = SPRITES.character.img;
-    charAspect = charImg.naturalWidth / charImg.naturalHeight;
+    runAspect = (SPRITES.run.img.naturalWidth / SPRITES.run.frames) / SPRITES.run.img.naturalHeight;
+    jumpAspect = (SPRITES.jump.img.naturalWidth / SPRITES.jump.frames) / SPRITES.jump.img.naturalHeight;
     assetsReady = true;
     state = STATE.IDLE;
     showOverlay('HOOD RUN', ['PRESS SPACE TO START']);
