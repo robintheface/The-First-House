@@ -363,7 +363,13 @@
   /* The default .lock-tag (near-white at low opacity) all but disappears
      on the bright green fill -- bronze instead, reading clearly against
      the green. */
-  .btn-primary.is-locked .lock-tag{color:var(--bronze); border-color:var(--bronze); font-weight:700;}
+  /* font-weight:700 alone is a browser-synthesized bold (IM Fell English
+     only ships a regular cut) and barely reads as heavier at 9px --
+     -webkit-text-stroke thickens the glyph strokes on top of that. */
+  .btn-primary.is-locked .lock-tag{
+    color:var(--bronze); border-color:var(--bronze); font-weight:700;
+    -webkit-text-stroke:0.4px var(--bronze);
+  }
   /* ---------- section shells ---------- */
   section{padding:96px 20px;}
   .section-head{max-width:640px; margin:0 auto 48px; text-align:center;}
