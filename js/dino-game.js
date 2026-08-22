@@ -79,6 +79,7 @@ if (canvas) {
   let nextCoinAt = 0;
   let bgScrollX = 0;
   let lastTs = 0;
+  let overSince = 0; // timestamp a run ended -- restart input is ignored for a short cooldown after
 
   function updateBestLabel() {
     if (bestEl) bestEl.textContent = 'Best: ' + Math.floor(best);
@@ -191,8 +192,11 @@ if (canvas) {
     ensureLoopRunning();
   }
 
+  const RESTART_COOLDOWN = 2000; // ms -- avoids an accidental restart from the same tap/key that just lost the run
+
   function endRun() {
     state = STATE.OVER;
+    overSince = performance.now();
     const formatted = Math.floor(score).toLocaleString('en-US');
     if (score > best) {
       best = score;
@@ -209,7 +213,11 @@ if (canvas) {
 
   function jump() {
     if (state === STATE.IDLE) { startRun(); return; }
-    if (state === STATE.OVER) { startRun(); return; }
+    if (state === STATE.OVER) {
+      if (performance.now() - overSince < RESTART_COOLDOWN) return;
+      startRun();
+      return;
+    }
     if (state !== STATE.PLAYING) return;
     if (!player.grounded) return;
     player.vy = JUMP_VELOCITY;
@@ -363,27 +371,9 @@ if (canvas) {
       x += bgW;
     }
 
-    // Depth shading -- the chart backdrop on its own reads flat, so a soft
-    // vignette (darker at the edges) plus a touch of shading toward the
-    // ground gives it some sense of depth instead of a blank flat plane.
-    const vignette = ctx.createRadialGradient(CW / 2, bgH * 0.5, bgH * 0.2, CW / 2, bgH * 0.55, CW * 0.72);
-    vignette.addColorStop(0, 'rgba(32,51,28,0)');
-    vignette.addColorStop(1, 'rgba(32,51,28,0.18)');
-    ctx.fillStyle = vignette;
-    ctx.fillRect(0, 0, CW, bgH);
-    const groundShade = ctx.createLinearGradient(0, bgH - 70, 0, bgH);
-    groundShade.addColorStop(0, 'rgba(32,51,28,0)');
-    groundShade.addColorStop(1, 'rgba(32,51,28,0.14)');
-    ctx.fillStyle = groundShade;
-    ctx.fillRect(0, bgH - 70, CW, 70);
-
-    // ground line -- dark ink tone so it still reads against the cream backdrop
-    ctx.strokeStyle = 'rgba(47,77,43,0.6)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(0, GROUND_Y + 1);
-    ctx.lineTo(CW, GROUND_Y + 1);
-    ctx.stroke();
+    // The background photo already has its own lighting, floor perspective
+    // and depth-of-field blur, so no extra vignette/ground-line overlay is
+    // needed here the way the old flat chart-grid backdrop needed one.
 
     // Soft contact shadows, drawn before any sprite -- a flat cutout with
     // nothing grounding it visually is the other half of why the scene
