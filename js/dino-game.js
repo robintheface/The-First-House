@@ -192,7 +192,7 @@ if (canvas) {
     ensureLoopRunning();
   }
 
-  const RESTART_COOLDOWN = 3000; // ms -- avoids an accidental restart from the same tap/key that just lost the run
+  const RESTART_COOLDOWN = 2000; // ms -- avoids an accidental restart from the same tap/key that just lost the run
 
   function endRun() {
     state = STATE.OVER;
@@ -425,9 +425,9 @@ if (canvas) {
 
     // player
     if (player.grounded) {
-      drawFrame(SPRITES.run, state === STATE.PLAYING ? player.runFrame : 0, player.x, player.y, GROUND_HEIGHT * (144 / 160), GROUND_HEIGHT);
+      drawFrame(SPRITES.run, state === STATE.PLAYING ? player.runFrame : 0, player.x, player.y, GROUND_HEIGHT * (122 / 160), GROUND_HEIGHT);
     } else {
-      drawFrame(SPRITES.jump, player.jumpFrame, player.x, player.y, GROUND_HEIGHT * (157 / 160), GROUND_HEIGHT);
+      drawFrame(SPRITES.jump, player.jumpFrame, player.x, player.y, GROUND_HEIGHT * (155 / 160), GROUND_HEIGHT);
     }
 
     // "+score" popups float up and fade out over their lifetime
