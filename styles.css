@@ -555,6 +555,7 @@
   }
   .rank-hero-art{
     display:flex; align-items:center; justify-content:center;
+    position:relative;
   }
   .rank-hero-art img{
     width:100%; max-width:270px; height:auto; object-fit:contain;
@@ -563,6 +564,20 @@
   /* Fills its grid column at the desktop two-up layout (~430px wide)
      rather than floating small inside it. */
   @media(min-width:860px){ .rank-hero-art img{max-width:378px;} }
+  /* Twinkling stars scattered around the treasure scene -- each one's
+     position/delay set inline (one-off per-instance values, same pattern
+     as the ladder tier color custom props) so they land near the chest's
+     light beam and scattered coins rather than a generic grid. */
+  .hero-sparkle{
+    position:absolute; font-size:15px; color:var(--gold);
+    text-shadow:0 0 6px rgba(232,212,77,0.85), 0 0 12px rgba(232,212,77,0.5);
+    animation:hero-sparkle-twinkle 2.2s ease-in-out infinite;
+    pointer-events:none;
+  }
+  @keyframes hero-sparkle-twinkle{
+    0%, 100%{ opacity:0; transform:scale(0.4); }
+    50%{ opacity:1; transform:scale(1); }
+  }
   @keyframes hf-glow-pulse{
     0%, 100%{ filter:drop-shadow(0 0 20px rgba(232,212,77,0.28)); }
     50%{ filter:drop-shadow(0 0 40px rgba(232,212,77,0.55)); }
