@@ -68,6 +68,8 @@ if (canvas) {
   let obstacles = [];
   let coins = [];
   let popups = []; // floating "+score" text shown when a coin is grabbed
+  const playerBox = { x: 0, y: 0, w: 0, h: 0 }; // reused every frame instead of reallocated
+  let lastDisplayedScore = -1;
   let speed = BASE_SPEED;
   let elapsed = 0;
   let score = 0;
@@ -95,6 +97,7 @@ if (canvas) {
     speed = BASE_SPEED;
     elapsed = 0;
     score = 0;
+    lastDisplayedScore = -1;
     nextObstacleAt = 900;
     nextCoinAt = 1400;
     bgScrollX = 0;
@@ -114,9 +117,10 @@ if (canvas) {
   // chart) -- only the wick/body length varies, short to tall.
   const CANDLE_HEIGHT_RATIOS = [0.5, 0.72, 0.95, 1.2];
   const RUGGED_CHANCE = 1 / 21; // candles:rugged spawn ratio is 20:1
+  const RUGGED_MIN_ELAPSED = 10000; // never in the first 10s of a run
 
   function spawnObstacle() {
-    const isRugged = Math.random() < RUGGED_CHANCE;
+    const isRugged = elapsed >= RUGGED_MIN_ELAPSED && Math.random() < RUGGED_CHANCE;
     const kind = isRugged ? 'rugged' : 'candle';
     const sprite = SPRITES[kind];
     const aspect = sprite.img.naturalWidth / sprite.img.naturalHeight;
@@ -184,6 +188,7 @@ if (canvas) {
     resetRun();
     state = STATE.PLAYING;
     hideOverlay();
+    ensureLoopRunning();
   }
 
   function endRun() {
@@ -278,9 +283,14 @@ if (canvas) {
     if (elapsed >= nextCoinAt) spawnCoin();
 
     // move + cull obstacles (baseX/baseY scroll with the world; moveType
-    // layers a small bob or side-to-side drift on top for rugged obstacles)
+    // layers a small bob or side-to-side drift on top for rugged obstacles).
+    // Compacted in place (index-walk + splice from the tail) instead of
+    // forEach+filter, which would otherwise allocate a new closure and a
+    // new array every single frame -- a steady source of GC churn that
+    // reads as stutter under sustained play.
     const dx = speed * dt;
-    obstacles.forEach((o) => {
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+      const o = obstacles[i];
       o.baseX -= dx;
       o.moveTimer += dt;
       if (o.moveType === 'vertical') {
@@ -293,20 +303,25 @@ if (canvas) {
         o.x = o.baseX;
         o.y = o.baseY;
       }
-    });
-    obstacles = obstacles.filter((o) => o.baseX + o.w > -20);
+      if (o.baseX + o.w <= -20) obstacles.splice(i, 1);
+    }
 
     // move + cull + animate coins
-    coins.forEach((c) => {
+    for (let i = coins.length - 1; i >= 0; i--) {
+      const c = coins[i];
       c.x -= dx;
       c.timer += dt;
       if (c.timer > 45) { c.timer = 0; c.frame = (c.frame + 1) % SPRITES.coin.frames; }
-    });
-    coins = coins.filter((c) => c.x + c.w > -20 && !c.taken);
+      if (c.x + c.w <= -20 || c.taken) coins.splice(i, 1);
+    }
 
     // float + fade the "+score" popups, then drop the finished ones
-    popups.forEach((p) => { p.x -= dx; p.life += dt; });
-    popups = popups.filter((p) => p.life < p.dur);
+    for (let i = popups.length - 1; i >= 0; i--) {
+      const p = popups[i];
+      p.x -= dx;
+      p.life += dt;
+      if (p.life >= p.dur) popups.splice(i, 1);
+    }
 
     // background parallax
     bgScrollX -= dx * 0.5;
@@ -314,7 +329,8 @@ if (canvas) {
     if (bgScrollX <= -bgW) bgScrollX += bgW;
 
     // collisions
-    const playerBox = { x: player.x, y: player.y, w: GROUND_HEIGHT * 0.9, h: GROUND_HEIGHT };
+    playerBox.x = player.x; playerBox.y = player.y;
+    playerBox.w = GROUND_HEIGHT * 0.9; playerBox.h = GROUND_HEIGHT;
     for (const o of obstacles) {
       if (hit(playerBox, o)) { endRun(); break; }
     }
@@ -356,13 +372,16 @@ if (canvas) {
     ctx.stroke();
 
     // coins
-    coins.forEach((c) => { if (!c.taken) drawFrame(SPRITES.coin, c.frame, c.x, c.y, c.w, c.h); });
+    for (let i = 0; i < coins.length; i++) {
+      const c = coins[i];
+      if (!c.taken) drawFrame(SPRITES.coin, c.frame, c.x, c.y, c.w, c.h);
+    }
 
     // obstacles
-    obstacles.forEach((o) => {
-      const sprite = SPRITES[o.kind];
-      ctx.drawImage(sprite.img, o.x, o.y, o.w, o.h);
-    });
+    for (let i = 0; i < obstacles.length; i++) {
+      const o = obstacles[i];
+      ctx.drawImage(SPRITES[o.kind].img, o.x, o.y, o.w, o.h);
+    }
 
     // player
     if (player.grounded) {
@@ -372,21 +391,39 @@ if (canvas) {
     }
 
     // "+score" popups float up and fade out over their lifetime
-    popups.forEach((p) => {
-      const t = p.life / p.dur;
+    if (popups.length) {
       ctx.save();
-      ctx.globalAlpha = Math.max(0, 1 - t);
       ctx.font = "700 20px 'IBM Plex Mono', monospace";
       ctx.textAlign = 'center';
       ctx.fillStyle = '#8a6a16';
-      ctx.fillText(p.text, p.x, p.y - t * 42);
+      for (let i = 0; i < popups.length; i++) {
+        const p = popups[i];
+        const t = p.life / p.dur;
+        ctx.globalAlpha = Math.max(0, 1 - t);
+        ctx.fillText(p.text, p.x, p.y - t * 42);
+      }
       ctx.restore();
-    });
+    }
 
-    if (scoreEl) scoreEl.textContent = String(Math.floor(score));
+    // Only touch the DOM when the displayed integer actually changes --
+    // writing textContent every frame forces a layout/paint for no visual
+    // difference most of the time.
+    const shownScore = Math.floor(score);
+    if (scoreEl && shownScore !== lastDisplayedScore) {
+      lastDisplayedScore = shownScore;
+      scoreEl.textContent = String(shownScore);
+    }
   }
 
   // ---------- loop ----------
+  // requestAnimationFrame already syncs to the display's own refresh rate
+  // (60Hz, 120Hz, whatever) with no artificial cap here -- the actual fix
+  // for jank is keeping every frame cheap (see the in-place array
+  // compaction above) and not rendering frames nobody will ever see: the
+  // idle/game-over screen is completely static, so the loop stops
+  // scheduling itself once a run ends and only wakes back up when one
+  // starts, instead of redrawing an unchanging frame forever.
+  let loopScheduled = false;
   function loop(ts) {
     if (!lastTs) lastTs = ts;
     const dt = Math.min(48, ts - lastTs); // clamp so a dropped/backgrounded tab doesn't jump-teleport the run
@@ -394,6 +431,17 @@ if (canvas) {
 
     if (state === STATE.PLAYING) update(dt);
     if (assetsReady) draw();
+
+    if (state === STATE.PLAYING) {
+      requestAnimationFrame(loop);
+    } else {
+      loopScheduled = false;
+    }
+  }
+  function ensureLoopRunning() {
+    if (loopScheduled || !assetsReady) return;
+    loopScheduled = true;
+    lastTs = 0;
     requestAnimationFrame(loop);
   }
 
@@ -425,7 +473,7 @@ if (canvas) {
     assetsReady = true;
     state = STATE.IDLE;
     showOverlay('HOOD RUN', ['PRESS SPACE TO START']);
-    requestAnimationFrame(loop);
+    ensureLoopRunning(); // one draw of the idle screen, then the loop parks itself
   }).catch((err) => {
     console.error('Hood Runner: asset load failed', err);
     showOverlay('HOOD RUN', ['Could not load — try refreshing.']);
