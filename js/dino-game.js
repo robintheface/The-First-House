@@ -12,7 +12,8 @@ if (canvas) {
   const scoreEl = document.getElementById('hoodGameScore');
   const bestEl = document.getElementById('hoodGameBest');
   const overlay = document.getElementById('hoodGameOverlay');
-  const overlayText = document.getElementById('hoodGameOverlayText');
+  const overlayTitle = document.getElementById('hoodGameOverlayTitle');
+  const overlayLines = document.getElementById('hoodGameOverlayLines');
 
   const CW = canvas.width;   // 800
   const CH = canvas.height;  // 450
@@ -143,15 +144,14 @@ if (canvas) {
     let moveType = 'none', moveAmp = 0, moveSpeed = 0;
     if (isRugged) {
       // Rugged reads mixed up: sometimes grounded, sometimes floating in
-      // the air; sometimes it bobs up and down, sometimes it drifts back
-      // and forth in place within a small range.
+      // the air -- and it's always in motion, either bobbing up/down or
+      // drifting left/right in place within a small range.
       if (Math.random() < 0.5) baseY = GROUND_Y - h - (55 + Math.random() * 70);
-      const roll = Math.random();
-      if (roll < 0.34) {
+      if (Math.random() < 0.5) {
         moveType = 'vertical';
         moveAmp = 18 + Math.random() * 14;
         moveSpeed = 0.0028 + Math.random() * 0.0018;
-      } else if (roll < 0.68) {
+      } else {
         moveType = 'horizontal';
         moveAmp = 22 + Math.random() * 18;
         moveSpeed = 0.0022 + Math.random() * 0.0016;
@@ -193,7 +193,8 @@ if (canvas) {
       try { localStorage.setItem('hoodRunnerBest', String(Math.floor(best))); } catch (err) { /* private mode etc -- best just won't persist */ }
       updateBestLabel();
     }
-    showOverlay('Rugged! Score ' + Math.floor(score) + ' — tap or press Space to run it back');
+    const formatted = Math.floor(score).toLocaleString('en-US');
+    showOverlay('RUGGED!', ['You scored ' + formatted + ' points', 'Click or press SPACE to continue']);
   }
 
   function jump() {
@@ -207,9 +208,17 @@ if (canvas) {
     player.jumpTimer = 0;
   }
 
-  function showOverlay(text) {
+  function showOverlay(title, lines) {
     if (!overlay) return;
-    if (overlayText) overlayText.textContent = text;
+    if (overlayTitle) overlayTitle.textContent = title;
+    if (overlayLines) {
+      overlayLines.innerHTML = '';
+      lines.forEach((line) => {
+        const p = document.createElement('p');
+        p.textContent = line;
+        overlayLines.appendChild(p);
+      });
+    }
     overlay.hidden = false;
   }
   function hideOverlay() {
@@ -388,7 +397,7 @@ if (canvas) {
   canvas.addEventListener('pointerdown', () => { if (assetsReady) jump(); });
 
   // ---------- boot ----------
-  showOverlay('Loading…');
+  showOverlay('HOOD RUN', ['Loading…']);
   Promise.all(
     Object.entries(SPRITES).map(([key, sprite]) =>
       loadImage(sprite.src).then((img) => { sprite.img = img; })
@@ -396,10 +405,10 @@ if (canvas) {
   ).then(() => {
     assetsReady = true;
     state = STATE.IDLE;
-    showOverlay('Tap or press Space to run');
+    showOverlay('HOOD RUN', ['PRESS SPACE TO START']);
     requestAnimationFrame(loop);
   }).catch((err) => {
     console.error('Hood Runner: asset load failed', err);
-    showOverlay('Could not load the game — try refreshing.');
+    showOverlay('HOOD RUN', ['Could not load — try refreshing.']);
   });
 }

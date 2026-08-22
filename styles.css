@@ -849,9 +849,16 @@
     pointer-events:none;
   }
   .hood-game-overlay[hidden]{display:none;}
-  .hood-game-overlay p{
-    font-family:'IM Fell English',serif; font-size:19px; color:#20331c;
-    max-width:26ch; margin:0;
+  .hood-game-overlay-inner{max-width:26ch;}
+  .hood-game-overlay-title{
+    font-family:'IM Fell English',serif; font-size:34px; letter-spacing:0.06em;
+    color:#20331c; -webkit-text-stroke:0.6px #20331c; margin:0 0 10px;
+  }
+  .hood-game-overlay-lines p{
+    font-family:'IM Fell English',serif; font-size:19px; color:#20331c; margin:0;
+  }
+  .hood-game-overlay-lines p + p{
+    margin-top:6px; font-size:15px; color:#20331c; opacity:0.7;
   }
 
   /* ---------- press feedback for touch (no :hover, so give taps their own cue) ---------- */
