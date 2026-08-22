@@ -163,7 +163,7 @@ if (canvas) {
     const variant = variantRoll < 0.12 ? 'falling' : variantRoll < 0.22 ? 'overhead' : 'ground';
     // Decided up front (before picking a height) so both members of a pair
     // -- the one starting it and its close-follow partner -- stay short.
-    const startsPair = !isRugged && variant === 'ground' && !isClusterFollow && clusterChain === 0 && Math.random() < 0.28;
+    const startsPair = !isRugged && variant === 'ground' && !isClusterFollow && clusterChain === 0 && Math.random() < 0.14;
     const isPaired = startsPair || isClusterFollow;
     if (startsPair) clusterChain = 1;
     let h, w;
