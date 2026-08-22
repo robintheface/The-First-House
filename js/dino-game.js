@@ -119,10 +119,11 @@ if (canvas) {
       pendingClusterFollow = true;
       // Tight enough to clearly read as a paired-up candle, but still
       // enough room to clear both -- one longer jump, or land and hop the
-      // second. Scales down toward the floor as speed rises like the
-      // normal gap does, so the pixel-distance stays fair at any speed.
-      const followBase = Math.max(350, 760 - speed * 650);
-      nextObstacleAt = elapsed + followBase + Math.random() * 100;
+      // second. Both members of a pair are always short candles (see
+      // spawnObstacle), so a tighter gap here still stays fair. Scales
+      // down toward the floor as speed rises like the normal gap does.
+      const followBase = Math.max(260, 620 - speed * 550);
+      nextObstacleAt = elapsed + followBase + Math.random() * 80;
       return;
     }
     pendingClusterFollow = false;
@@ -140,6 +141,7 @@ if (canvas) {
   // tallest entries are still comfortably clearable: max jump height is
   // ~184px (JUMP_VELOCITY^2 / 2*GRAVITY) against a 144px obstacle top.
   const CANDLE_HEIGHT_RATIOS = [0.5, 0.72, 0.95, 1.2, 1.4, 1.6];
+  const PAIRED_CANDLE_RATIOS = [0.5, 0.72]; // both members of a close pair stay short
   const RUGGED_CHANCE = 1 / 21; // candles:rugged spawn ratio is 20:1
   const RUGGED_MIN_ELAPSED = 10000; // never in the first 10s of a run
   const FALL_SPEED = 0.6; // px/ms -- how fast a "falling" candle drops in
@@ -159,6 +161,11 @@ if (canvas) {
     pendingClusterFollow = false;
     const variantRoll = (isRugged || isClusterFollow) ? 1 : Math.random();
     const variant = variantRoll < 0.12 ? 'falling' : variantRoll < 0.22 ? 'overhead' : 'ground';
+    // Decided up front (before picking a height) so both members of a pair
+    // -- the one starting it and its close-follow partner -- stay short.
+    const startsPair = !isRugged && variant === 'ground' && !isClusterFollow && clusterChain === 0 && Math.random() < 0.28;
+    const isPaired = startsPair || isClusterFollow;
+    if (startsPair) clusterChain = 1;
     let h, w;
     if (isRugged) {
       h = GROUND_HEIGHT * 0.66; // rugged reads wide, keep it a touch shorter
@@ -167,7 +174,8 @@ if (canvas) {
       h = GROUND_HEIGHT * 0.55; // shorter bar reads clearly as "floating", not "tall candle"
       w = GROUND_HEIGHT * aspect;
     } else {
-      const ratio = CANDLE_HEIGHT_RATIOS[(Math.random() * CANDLE_HEIGHT_RATIOS.length) | 0];
+      const ratios = isPaired ? PAIRED_CANDLE_RATIOS : CANDLE_HEIGHT_RATIOS;
+      const ratio = ratios[(Math.random() * ratios.length) | 0];
       // Falling candles land on the ground -- cap their height so a fresh
       // drop-in never lands as a full tall wall with no warning.
       h = GROUND_HEIGHT * (variant === 'falling' ? Math.min(ratio, 0.95) : ratio);
@@ -210,13 +218,6 @@ if (canvas) {
       // head is -- clear while grounded, but a jump reaches straight into it.
       baseY = GROUND_Y - GROUND_HEIGHT - h - (10 + Math.random() * 20);
       startY = baseY;
-    }
-
-    // A plain grounded candle can chain into one close-following partner --
-    // a pair, never a third. Kept off the trickier variants
-    // (falling/overhead/rugged) so those never compound.
-    if (!isRugged && variant === 'ground' && !isClusterFollow && clusterChain === 0 && Math.random() < 0.28) {
-      clusterChain = 1;
     }
 
     obstacles.push({ kind, baseX: x, x, baseY, y: startY, w, h, moveType, moveAmp, moveSpeed, moveTimer: 0 });
