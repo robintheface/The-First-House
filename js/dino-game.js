@@ -112,7 +112,7 @@ if (canvas) {
   // Candle body width stays constant across heights (like a real candlestick
   // chart) -- only the wick/body length varies, short to tall.
   const CANDLE_HEIGHT_RATIOS = [0.5, 0.72, 0.95, 1.2];
-  const RUGGED_CHANCE = 0.12; // reads hard to dodge, so it should be rare
+  const RUGGED_CHANCE = 1 / 21; // candles:rugged spawn ratio is 20:1
 
   function spawnObstacle() {
     const isRugged = Math.random() < RUGGED_CHANCE;
