@@ -835,7 +835,7 @@
      band below the ground line, reads as a sketched drop shadow for a bit
      of 3D lift without ever covering live gameplay */
   #hoodGameCanvas{
-    display:block; width:100%; height:auto; background:#f5f5f6;
+    display:block; width:100%; height:auto; background:var(--cream2);
     touch-action:manipulation; cursor:pointer;
   }
   .hood-game-hud{
@@ -849,7 +849,7 @@
   .hood-game-overlay{
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
     text-align:center; padding:20px;
-    background:rgba(247,247,248,0.9);
+    background:rgba(241,234,220,0.88);
     pointer-events:none;
   }
   .hood-game-overlay[hidden]{display:none;}

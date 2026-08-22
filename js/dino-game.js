@@ -383,9 +383,27 @@ if (canvas) {
       x += bgW;
     }
 
-    // The background photo already has its own lighting, floor perspective
-    // and depth-of-field blur, so no extra vignette/ground-line overlay is
-    // needed here the way the old flat chart-grid backdrop needed one.
+    // Depth shading -- the chart backdrop on its own reads flat, so a soft
+    // vignette (darker at the edges) plus a touch of shading toward the
+    // ground gives it some sense of depth instead of a blank flat plane.
+    const vignette = ctx.createRadialGradient(CW / 2, bgH * 0.5, bgH * 0.2, CW / 2, bgH * 0.55, CW * 0.72);
+    vignette.addColorStop(0, 'rgba(32,51,28,0)');
+    vignette.addColorStop(1, 'rgba(32,51,28,0.18)');
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0, 0, CW, bgH);
+    const groundShade = ctx.createLinearGradient(0, bgH - 70, 0, bgH);
+    groundShade.addColorStop(0, 'rgba(32,51,28,0)');
+    groundShade.addColorStop(1, 'rgba(32,51,28,0.14)');
+    ctx.fillStyle = groundShade;
+    ctx.fillRect(0, bgH - 70, CW, 70);
+
+    // ground line -- dark ink tone so it still reads against the cream backdrop
+    ctx.strokeStyle = 'rgba(47,77,43,0.6)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, GROUND_Y + 1);
+    ctx.lineTo(CW, GROUND_Y + 1);
+    ctx.stroke();
 
     // Soft contact shadows, drawn before any sprite -- a flat cutout with
     // nothing grounding it visually is the other half of why the scene
