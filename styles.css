@@ -361,9 +361,9 @@
      visually muted. */
   .btn-primary.is-locked{cursor:not-allowed;}
   /* The default .lock-tag (near-white at low opacity) all but disappears
-     on the bright green fill -- darkened to match the button's own dark
-     text color instead. */
-  .btn-primary.is-locked .lock-tag{color:rgba(13,26,15,0.55); border-color:rgba(13,26,15,0.35);}
+     on the bright green fill -- gold instead, matching the site's accent
+     color and reading clearly against the green. */
+  .btn-primary.is-locked .lock-tag{color:var(--gold); border-color:var(--gold);}
   /* ---------- section shells ---------- */
   section{padding:96px 20px;}
   .section-head{max-width:640px; margin:0 auto 48px; text-align:center;}
