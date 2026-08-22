@@ -1,0 +1,317 @@
+// Endless-runner mini-game for the main page ("Outrun the rug"). Canvas +
+// vanilla JS, no dependencies -- same zero-build-step spirit as the rest of
+// the site. Space (or tap/click on the canvas) to jump; the run continues
+// until you clip an obstacle.
+//
+// Kept as an external module (not inline) for the same CSP reason as
+// wallet-connect.js: no 'unsafe-inline' script-src.
+
+const canvas = document.getElementById('hoodGameCanvas');
+if (canvas) {
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('hoodGameScore');
+  const bestEl = document.getElementById('hoodGameBest');
+  const overlay = document.getElementById('hoodGameOverlay');
+  const overlayText = document.getElementById('hoodGameOverlayText');
+
+  const CW = canvas.width;   // 800
+  const CH = canvas.height;  // 300
+  const GROUND_Y = 250;
+
+  // ---------- assets ----------
+  const ASSET_BASE = '/game/';
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = ASSET_BASE + src;
+    });
+  }
+
+  const SPRITES = {
+    background: { src: 'background.webp' },
+    run: { src: 'character-run.webp', frames: 6 },
+    jump: { src: 'character-jump.webp', frames: 20 },
+    coin: { src: 'coin-spin.webp', frames: 12 },
+    candle: { src: 'obstacle-candle.webp', frames: 1 },
+    rugged: { src: 'obstacle-rugged.webp', frames: 1 }
+  };
+
+  let assetsReady = false;
+
+  // ---------- game state ----------
+  const STATE = { LOADING: 'loading', IDLE: 'idle', PLAYING: 'playing', OVER: 'over' };
+  let state = STATE.LOADING;
+
+  const GROUND_HEIGHT = 90;      // character/obstacle/coin display height
+  const GRAVITY = 0.0022;        // px/ms^2
+  const JUMP_VELOCITY = -0.9;    // px/ms
+  const BASE_SPEED = 0.32;       // px/ms
+  const MAX_SPEED = 0.75;
+  const SPEED_RAMP = 0.000006;   // speed gained per ms survived
+
+  const player = {
+    x: 90,
+    y: GROUND_Y - GROUND_HEIGHT,
+    vy: 0,
+    grounded: true,
+    runFrame: 0,
+    runTimer: 0,
+    jumpFrame: 0,
+    jumpTimer: 0
+  };
+
+  let obstacles = [];
+  let coins = [];
+  let speed = BASE_SPEED;
+  let elapsed = 0;
+  let score = 0;
+  let best = 0;
+  try { best = parseInt(localStorage.getItem('hoodRunnerBest') || '0', 10) || 0; } catch (err) { best = 0; }
+  let nextObstacleAt = 0;
+  let nextCoinAt = 0;
+  let bgScrollX = 0;
+  let lastTs = 0;
+
+  function updateBestLabel() {
+    if (bestEl) bestEl.textContent = 'Best: ' + Math.floor(best);
+  }
+  updateBestLabel();
+
+  function resetRun() {
+    player.y = GROUND_Y - GROUND_HEIGHT;
+    player.vy = 0;
+    player.grounded = true;
+    player.runFrame = 0;
+    player.runTimer = 0;
+    obstacles = [];
+    coins = [];
+    speed = BASE_SPEED;
+    elapsed = 0;
+    score = 0;
+    nextObstacleAt = 900;
+    nextCoinAt = 1400;
+    bgScrollX = 0;
+  }
+
+  function scheduleNextObstacle() {
+    // Gap shrinks as speed rises but never gets unfair -- floor keeps a
+    // minimum reaction window even at max speed.
+    const base = Math.max(650, 1500 - speed * 900);
+    nextObstacleAt = elapsed + base + Math.random() * base * 0.6;
+  }
+  function scheduleNextCoin() {
+    nextCoinAt = elapsed + 1000 + Math.random() * 1400;
+  }
+
+  function spawnObstacle() {
+    const kind = Math.random() < 0.6 ? 'candle' : 'rugged';
+    const sprite = SPRITES[kind];
+    const aspect = sprite.img.naturalWidth / sprite.img.naturalHeight;
+    const h = GROUND_HEIGHT * (kind === 'rugged' ? 0.66 : 1); // rugged reads wide, keep it a touch shorter
+    const w = h * aspect;
+    obstacles.push({ kind, x: CW + 20, y: GROUND_Y - h, w, h });
+    scheduleNextObstacle();
+  }
+
+  function spawnCoin() {
+    const sprite = SPRITES.coin;
+    const h = 46;
+    const w = h * (sprite.img.naturalWidth / sprite.frames / sprite.img.naturalHeight);
+    // Some coins sit low (grab while running), some hover at jump height.
+    const hover = Math.random() < 0.55;
+    const y = hover ? GROUND_Y - GROUND_HEIGHT - 70 - Math.random() * 30 : GROUND_Y - h - 6;
+    coins.push({ x: CW + 20, y, w, h, frame: (Math.random() * sprite.frames) | 0, timer: 0, taken: false });
+    scheduleNextCoin();
+  }
+
+  function startRun() {
+    resetRun();
+    state = STATE.PLAYING;
+    hideOverlay();
+  }
+
+  function endRun() {
+    state = STATE.OVER;
+    if (score > best) {
+      best = score;
+      try { localStorage.setItem('hoodRunnerBest', String(Math.floor(best))); } catch (err) { /* private mode etc -- best just won't persist */ }
+      updateBestLabel();
+    }
+    showOverlay('Rugged! Score ' + Math.floor(score) + ' — tap or press Space to run it back');
+  }
+
+  function jump() {
+    if (state === STATE.IDLE) { startRun(); return; }
+    if (state === STATE.OVER) { startRun(); return; }
+    if (state !== STATE.PLAYING) return;
+    if (!player.grounded) return;
+    player.vy = JUMP_VELOCITY;
+    player.grounded = false;
+    player.jumpFrame = 0;
+    player.jumpTimer = 0;
+  }
+
+  function showOverlay(text) {
+    if (!overlay) return;
+    if (overlayText) overlayText.textContent = text;
+    overlay.hidden = false;
+  }
+  function hideOverlay() {
+    if (overlay) overlay.hidden = true;
+  }
+
+  // ---------- collision ----------
+  function hit(a, b) {
+    // Shrink both boxes a bit so near-misses feel fair rather than
+    // punishing on sprite-padding alone.
+    const pad = 0.16;
+    const ax = a.x + a.w * pad, aw = a.w * (1 - pad * 2);
+    const ay = a.y + a.h * pad, ah = a.h * (1 - pad * 2);
+    const bx = b.x + b.w * pad, bw = b.w * (1 - pad * 2);
+    const by = b.y + b.h * pad, bh = b.h * (1 - pad * 2);
+    return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+  }
+
+  // ---------- update ----------
+  function update(dt) {
+    elapsed += dt;
+    speed = Math.min(MAX_SPEED, BASE_SPEED + elapsed * SPEED_RAMP);
+    score += dt * speed * 0.05;
+
+    // player physics
+    if (!player.grounded) {
+      player.vy += GRAVITY * dt;
+      player.y += player.vy * dt;
+      if (player.y >= GROUND_Y - GROUND_HEIGHT) {
+        player.y = GROUND_Y - GROUND_HEIGHT;
+        player.vy = 0;
+        player.grounded = true;
+      }
+    }
+
+    // animation timers
+    if (player.grounded) {
+      player.runTimer += dt;
+      if (player.runTimer > 90) { player.runTimer = 0; player.runFrame = (player.runFrame + 1) % SPRITES.run.frames; }
+    } else {
+      player.jumpTimer += dt;
+      if (player.jumpTimer > 55) { player.jumpTimer = 0; player.jumpFrame = Math.min(SPRITES.jump.frames - 1, player.jumpFrame + 1); }
+    }
+
+    // spawns
+    if (elapsed >= nextObstacleAt) spawnObstacle();
+    if (elapsed >= nextCoinAt) spawnCoin();
+
+    // move + cull obstacles
+    const dx = speed * dt;
+    obstacles.forEach((o) => { o.x -= dx; });
+    obstacles = obstacles.filter((o) => o.x + o.w > -20);
+
+    // move + cull + animate coins
+    coins.forEach((c) => {
+      c.x -= dx;
+      c.timer += dt;
+      if (c.timer > 45) { c.timer = 0; c.frame = (c.frame + 1) % SPRITES.coin.frames; }
+    });
+    coins = coins.filter((c) => c.x + c.w > -20 && !c.taken);
+
+    // background parallax
+    bgScrollX -= dx * 0.5;
+    const bgW = SPRITES.background.img.naturalWidth;
+    if (bgScrollX <= -bgW) bgScrollX += bgW;
+
+    // collisions
+    const playerBox = { x: player.x, y: player.y, w: GROUND_HEIGHT * 0.9, h: GROUND_HEIGHT };
+    for (const o of obstacles) {
+      if (hit(playerBox, o)) { endRun(); break; }
+    }
+    for (const c of coins) {
+      if (!c.taken && hit(playerBox, c)) { c.taken = true; score += 25; }
+    }
+  }
+
+  // ---------- draw ----------
+  function drawFrame(sprite, frameIndex, x, y, w, h) {
+    const img = sprite.img;
+    const fw = img.naturalWidth / sprite.frames;
+    ctx.drawImage(img, frameIndex * fw, 0, fw, img.naturalHeight, x, y, w, h);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, CW, CH);
+
+    // background (two copies for seamless horizontal scroll)
+    const bg = SPRITES.background.img;
+    const bgH = GROUND_Y;
+    const bgW = bg.naturalWidth * (bgH / bg.naturalHeight);
+    let x = bgScrollX * (bgW / bg.naturalWidth);
+    while (x < CW) {
+      ctx.drawImage(bg, x, 0, bgW, bgH);
+      x += bgW;
+    }
+
+    // ground line
+    ctx.strokeStyle = 'rgba(111,207,58,0.35)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, GROUND_Y + 1);
+    ctx.lineTo(CW, GROUND_Y + 1);
+    ctx.stroke();
+
+    // coins
+    coins.forEach((c) => { if (!c.taken) drawFrame(SPRITES.coin, c.frame, c.x, c.y, c.w, c.h); });
+
+    // obstacles
+    obstacles.forEach((o) => {
+      const sprite = SPRITES[o.kind];
+      ctx.drawImage(sprite.img, o.x, o.y, o.w, o.h);
+    });
+
+    // player
+    if (player.grounded) {
+      drawFrame(SPRITES.run, state === STATE.PLAYING ? player.runFrame : 0, player.x, player.y, GROUND_HEIGHT * (144 / 160), GROUND_HEIGHT);
+    } else {
+      drawFrame(SPRITES.jump, player.jumpFrame, player.x, player.y, GROUND_HEIGHT * (155 / 160), GROUND_HEIGHT);
+    }
+
+    if (scoreEl) scoreEl.textContent = String(Math.floor(score));
+  }
+
+  // ---------- loop ----------
+  function loop(ts) {
+    if (!lastTs) lastTs = ts;
+    const dt = Math.min(48, ts - lastTs); // clamp so a dropped/backgrounded tab doesn't jump-teleport the run
+    lastTs = ts;
+
+    if (state === STATE.PLAYING) update(dt);
+    if (assetsReady) draw();
+    requestAnimationFrame(loop);
+  }
+
+  // ---------- input ----------
+  window.addEventListener('keydown', (e) => {
+    if (e.code !== 'Space' && e.key !== ' ') return;
+    if (!assetsReady) return;
+    e.preventDefault();
+    jump();
+  });
+  canvas.addEventListener('pointerdown', () => { if (assetsReady) jump(); });
+
+  // ---------- boot ----------
+  showOverlay('Loading…');
+  Promise.all(
+    Object.entries(SPRITES).map(([key, sprite]) =>
+      loadImage(sprite.src).then((img) => { sprite.img = img; })
+    )
+  ).then(() => {
+    assetsReady = true;
+    state = STATE.IDLE;
+    showOverlay('Tap or press Space to run');
+    requestAnimationFrame(loop);
+  }).catch((err) => {
+    console.error('Hood Runner: asset load failed', err);
+    showOverlay('Could not load the game — try refreshing.');
+  });
+}

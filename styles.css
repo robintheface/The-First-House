@@ -823,6 +823,36 @@
     filter:drop-shadow(0 10px 18px rgba(0,0,0,.28));
   }
 
+  /* ---------- Hood Runner mini-game (index.html, between Lore and Faces) ---------- */
+  .hood-game-wrap{
+    position:relative; max-width:800px; margin:0 auto;
+    border-radius:16px; overflow:hidden;
+    border:1px solid var(--line);
+    box-shadow:0 20px 40px -16px rgba(0,0,0,0.5);
+  }
+  #hoodGameCanvas{
+    display:block; width:100%; height:auto; background:var(--bg);
+    touch-action:manipulation; cursor:pointer;
+  }
+  .hood-game-hud{
+    position:absolute; top:12px; left:0; right:0;
+    display:flex; justify-content:space-between; padding:0 16px;
+    font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:14px;
+    color:var(--cream2); text-shadow:0 2px 4px rgba(0,0,0,0.6);
+    pointer-events:none;
+  }
+  #hoodGameBest{color:var(--gold);}
+  .hood-game-overlay{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    text-align:center; padding:20px;
+    background:rgba(12,23,16,0.72); backdrop-filter:blur(2px);
+    pointer-events:none;
+  }
+  .hood-game-overlay p{
+    font-family:'IM Fell English',serif; font-size:19px; color:var(--cream2);
+    max-width:26ch; margin:0;
+  }
+
   /* ---------- press feedback for touch (no :hover, so give taps their own cue) ---------- */
   .lore-card:active, .face-card:active, .comm-card:active, .quicklink-card:active,
   .hood-ladder-item:active, .hood-faq-q:active{
