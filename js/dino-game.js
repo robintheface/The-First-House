@@ -192,7 +192,7 @@ if (canvas) {
     ensureLoopRunning();
   }
 
-  const RESTART_COOLDOWN = 2000; // ms -- avoids an accidental restart from the same tap/key that just lost the run
+  const RESTART_COOLDOWN = 3000; // ms -- avoids an accidental restart from the same tap/key that just lost the run
 
   function endRun() {
     state = STATE.OVER;
@@ -226,8 +226,10 @@ if (canvas) {
     player.jumpTimer = 0;
   }
 
+  let overlayHideTimer = null;
   function showOverlay(title, lines) {
     if (!overlay) return;
+    if (overlayHideTimer) { clearTimeout(overlayHideTimer); overlayHideTimer = null; }
     if (overlayTitle) overlayTitle.textContent = title;
     if (overlayLines) {
       overlayLines.innerHTML = '';
@@ -243,9 +245,15 @@ if (canvas) {
       });
     }
     overlay.hidden = false;
+    // Force a reflow so the opacity transition below actually animates
+    // from 0 instead of snapping straight to 1 in the same paint.
+    void overlay.offsetWidth;
+    overlay.classList.add('is-visible');
   }
   function hideOverlay() {
-    if (overlay) overlay.hidden = true;
+    if (!overlay) return;
+    overlay.classList.remove('is-visible');
+    overlayHideTimer = setTimeout(() => { overlay.hidden = true; overlayHideTimer = null; }, 260);
   }
 
   // ---------- collision ----------
@@ -417,9 +425,9 @@ if (canvas) {
 
     // player
     if (player.grounded) {
-      drawFrame(SPRITES.run, state === STATE.PLAYING ? player.runFrame : 0, player.x, player.y, GROUND_HEIGHT * (122 / 160), GROUND_HEIGHT);
+      drawFrame(SPRITES.run, state === STATE.PLAYING ? player.runFrame : 0, player.x, player.y, GROUND_HEIGHT * (144 / 160), GROUND_HEIGHT);
     } else {
-      drawFrame(SPRITES.jump, player.jumpFrame, player.x, player.y, GROUND_HEIGHT * (155 / 160), GROUND_HEIGHT);
+      drawFrame(SPRITES.jump, player.jumpFrame, player.x, player.y, GROUND_HEIGHT * (157 / 160), GROUND_HEIGHT);
     }
 
     // "+score" popups float up and fade out over their lifetime
