@@ -845,9 +845,10 @@
   .hood-game-overlay{
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
     text-align:center; padding:20px;
-    background:rgba(12,23,16,0.72); backdrop-filter:blur(2px);
+    background:rgba(12,23,16,0.72);
     pointer-events:none;
   }
+  .hood-game-overlay[hidden]{display:none;}
   .hood-game-overlay p{
     font-family:'IM Fell English',serif; font-size:19px; color:var(--cream2);
     max-width:26ch; margin:0;
