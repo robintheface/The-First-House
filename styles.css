@@ -491,6 +491,14 @@
 
   /* ---------- wallet page hero (functions/wallet.html) ---------- */
   .rank-hero-section{max-width:1000px; margin:0 auto;}
+  /* Below ~480px the "See your rank"/"Leaderboard" pair no longer fits on
+     one line and wraps to two short, left-aligned pills with a lot of
+     dead space beside each -- stack them full-width instead, which also
+     gives each a bigger, easier tap target. */
+  @media(max-width:479px){
+    #holders .cta-row{flex-direction:column; align-items:stretch;}
+    #holders .cta-row .btn{width:100%; justify-content:center;}
+  }
   .rank-badge-row{
     display:flex; align-items:center; flex-wrap:wrap; gap:10px;
     margin:-8px 0 12px;
@@ -641,7 +649,11 @@
   #modalStepLoading .wallet-modal-title{margin-top:0;}
 
   .hood-stats-grid{
-    display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px;
+    /* 140px (not 160px) so this still fits a clean 2x2 at ~360px phone
+       widths -- at 160px the pair falls just short there and collapses
+       to a single stacked column, making the grid noticeably taller
+       than on slightly wider phones for no real reason. */
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:14px;
     margin-top:34px;
   }
   /* Scoped to this grid (not .rank-stat-label/.rank-stat-value directly)
