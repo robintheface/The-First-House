@@ -111,7 +111,18 @@ if (canvas) {
     bgScrollX = 0;
   }
 
+  let clusterChain = 0; // remaining close-follow spawns queued after this one
+  let pendingClusterFollow = false; // true while the *next* spawn is one of those close-follows
   function scheduleNextObstacle() {
+    if (clusterChain > 0) {
+      clusterChain--;
+      pendingClusterFollow = true;
+      // Tight follow-up gap -- reads as a second/third candle right on the
+      // heels of the last one, not a whole new spawn cycle.
+      nextObstacleAt = elapsed + 260 + Math.random() * 160;
+      return;
+    }
+    pendingClusterFollow = false;
     // Gap shrinks as speed rises but never gets unfair -- floor keeps a
     // minimum reaction window even at max speed.
     const base = Math.max(650, 1500 - speed * 900);
@@ -122,23 +133,41 @@ if (canvas) {
   }
 
   // Candle body width stays constant across heights (like a real candlestick
-  // chart) -- only the wick/body length varies, short to tall.
-  const CANDLE_HEIGHT_RATIOS = [0.5, 0.72, 0.95, 1.2];
+  // chart) -- only the wick/body length varies, short to tall. The two
+  // tallest entries are still comfortably clearable: max jump height is
+  // ~184px (JUMP_VELOCITY^2 / 2*GRAVITY) against a 144px obstacle top.
+  const CANDLE_HEIGHT_RATIOS = [0.5, 0.72, 0.95, 1.2, 1.4, 1.6];
   const RUGGED_CHANCE = 1 / 21; // candles:rugged spawn ratio is 20:1
   const RUGGED_MIN_ELAPSED = 10000; // never in the first 10s of a run
+  const FALL_SPEED = 0.6; // px/ms -- how fast a "falling" candle drops in
 
   function spawnObstacle() {
     const isRugged = elapsed >= RUGGED_MIN_ELAPSED && Math.random() < RUGGED_CHANCE;
     const kind = isRugged ? 'rugged' : 'candle';
     const sprite = SPRITES[kind];
     const aspect = sprite.img.naturalWidth / sprite.img.naturalHeight;
+    // Candle variants: mostly a plain grounded candle, but sometimes one
+    // drops in from off-screen above, and sometimes one floats at head
+    // height -- clear to run under, but a jump carries you straight into it.
+    // A close-follow spawn from clustering is always forced to 'ground' --
+    // stacking a falling/overhead hazard right on a cluster's heels would
+    // compound unfairly.
+    const isClusterFollow = pendingClusterFollow;
+    pendingClusterFollow = false;
+    const variantRoll = (isRugged || isClusterFollow) ? 1 : Math.random();
+    const variant = variantRoll < 0.12 ? 'falling' : variantRoll < 0.22 ? 'overhead' : 'ground';
     let h, w;
     if (isRugged) {
       h = GROUND_HEIGHT * 0.66; // rugged reads wide, keep it a touch shorter
       w = h * aspect;
+    } else if (variant === 'overhead') {
+      h = GROUND_HEIGHT * 0.55; // shorter bar reads clearly as "floating", not "tall candle"
+      w = GROUND_HEIGHT * aspect;
     } else {
       const ratio = CANDLE_HEIGHT_RATIOS[(Math.random() * CANDLE_HEIGHT_RATIOS.length) | 0];
-      h = GROUND_HEIGHT * ratio;
+      // Falling candles land on the ground -- cap their height so a fresh
+      // drop-in never lands as a full tall wall with no warning.
+      h = GROUND_HEIGHT * (variant === 'falling' ? Math.min(ratio, 0.95) : ratio);
       w = GROUND_HEIGHT * aspect;
     }
     // Never land on top of a coin that's already in flight -- push spawn
@@ -154,6 +183,7 @@ if (canvas) {
 
     let baseY = GROUND_Y - h;
     let moveType = 'none', moveAmp = 0, moveSpeed = 0;
+    let startY = baseY;
     if (isRugged) {
       // Rugged reads mixed up: sometimes grounded, sometimes floating in
       // the air -- and it's always in motion, either bobbing up/down or
@@ -168,9 +198,25 @@ if (canvas) {
         moveAmp = 22 + Math.random() * 18;
         moveSpeed = 0.0022 + Math.random() * 0.0016;
       }
+      startY = baseY;
+    } else if (variant === 'falling') {
+      moveType = 'falling';
+      startY = -h - 40 - Math.random() * 60; // starts off-screen above, falls into place
+    } else if (variant === 'overhead') {
+      // Bottom edge sits a fixed margin above where a standing player's
+      // head is -- clear while grounded, but a jump reaches straight into it.
+      baseY = GROUND_Y - GROUND_HEIGHT - h - (10 + Math.random() * 20);
+      startY = baseY;
     }
 
-    obstacles.push({ kind, baseX: x, x, baseY, y: baseY, w, h, moveType, moveAmp, moveSpeed, moveTimer: 0 });
+    // A plain grounded candle can chain into a close-following one --
+    // "candles bunched up together" -- rarely a third. Kept off the
+    // trickier variants (falling/overhead/rugged) so those never compound.
+    if (!isRugged && variant === 'ground' && !isClusterFollow && clusterChain === 0 && Math.random() < 0.28) {
+      clusterChain = Math.random() < 0.25 ? 2 : 1;
+    }
+
+    obstacles.push({ kind, baseX: x, x, baseY, y: startY, w, h, moveType, moveAmp, moveSpeed, moveTimer: 0 });
     scheduleNextObstacle();
   }
 
@@ -331,6 +377,10 @@ if (canvas) {
       } else if (o.moveType === 'horizontal') {
         o.x = o.baseX + Math.sin(o.moveTimer * o.moveSpeed) * o.moveAmp;
         o.y = o.baseY;
+      } else if (o.moveType === 'falling') {
+        o.x = o.baseX;
+        o.y += FALL_SPEED * dt;
+        if (o.y >= o.baseY) { o.y = o.baseY; o.moveType = 'none'; } // landed -- behaves as grounded from here on
       } else {
         o.x = o.baseX;
         o.y = o.baseY;
