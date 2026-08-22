@@ -117,12 +117,12 @@ if (canvas) {
     if (clusterChain > 0) {
       clusterChain--;
       pendingClusterFollow = true;
-      // Closer than the normal gap (reads as a paired-up candle), but still
+      // Tight enough to clearly read as a paired-up candle, but still
       // enough room to clear both -- one longer jump, or land and hop the
       // second. Scales down toward the floor as speed rises like the
       // normal gap does, so the pixel-distance stays fair at any speed.
-      const followBase = Math.max(430, 900 - speed * 700);
-      nextObstacleAt = elapsed + followBase + Math.random() * 140;
+      const followBase = Math.max(350, 760 - speed * 650);
+      nextObstacleAt = elapsed + followBase + Math.random() * 100;
       return;
     }
     pendingClusterFollow = false;
