@@ -14,6 +14,7 @@ if (canvas) {
   const overlay = document.getElementById('hoodGameOverlay');
   const overlayTitle = document.getElementById('hoodGameOverlayTitle');
   const overlayLines = document.getElementById('hoodGameOverlayLines');
+  const muteBtn = document.getElementById('hoodGameMuteBtn');
 
   const CW = canvas.width;   // 800
   const CH = canvas.height;  // 450
@@ -247,6 +248,7 @@ if (canvas) {
     state = STATE.PLAYING;
     hideOverlay();
     ensureLoopRunning();
+    playRandomMusic();
   }
 
   const RESTART_COOLDOWN = 2000; // ms -- avoids an accidental restart from the same tap/key that just lost the run
@@ -254,6 +256,7 @@ if (canvas) {
   function endRun() {
     state = STATE.OVER;
     overSince = performance.now();
+    stopMusic();
     const formatted = Math.floor(score).toLocaleString('en-US');
     if (score > best) {
       best = score;
@@ -560,6 +563,74 @@ if (canvas) {
     loopScheduled = true;
     lastTs = 0;
     requestAnimationFrame(loop);
+  }
+
+  // ---------- background music ----------
+  // Real audio files this time (game/sound-effects/), not synthesized --
+  // one is picked at random each run and swapped in for the next one on
+  // restart, so back-to-back runs don't repeat the same track.
+  const MUSIC_BASE = 'sound-effects/';
+  const MUSIC_TRACKS = ['1sound.mp3', '2sound.mp3', '3sound.mp3', '4sound.mp3', '5sound.mp3'];
+  const MUSIC_VOLUME = 0.5;
+  const FADE_IN_MS = 2500;
+  let musicMuted = false;
+  try { musicMuted = localStorage.getItem('hoodRunnerMuted') === '1'; } catch (err) { musicMuted = false; }
+  let musicEl = null;
+  let lastTrackIdx = -1;
+  let fadeTimer = null;
+
+  function pickTrackIndex() {
+    if (MUSIC_TRACKS.length <= 1) return 0;
+    let idx;
+    do { idx = (Math.random() * MUSIC_TRACKS.length) | 0; } while (idx === lastTrackIdx);
+    return idx;
+  }
+
+  function fadeInMusic() {
+    if (fadeTimer) clearInterval(fadeTimer);
+    const steps = 30;
+    const stepMs = FADE_IN_MS / steps;
+    let i = 0;
+    musicEl.volume = 0;
+    fadeTimer = setInterval(() => {
+      i++;
+      musicEl.volume = Math.min(MUSIC_VOLUME, (MUSIC_VOLUME * i) / steps);
+      if (i >= steps) { clearInterval(fadeTimer); fadeTimer = null; }
+    }, stepMs);
+  }
+
+  function playRandomMusic() {
+    if (musicMuted) return;
+    lastTrackIdx = pickTrackIndex();
+    if (!musicEl) {
+      musicEl = new Audio();
+      musicEl.loop = true; // the shortest track (~8s) needs to loop to cover a run
+    }
+    musicEl.src = ASSET_BASE + MUSIC_BASE + MUSIC_TRACKS[lastTrackIdx];
+    musicEl.currentTime = 0;
+    musicEl.play().then(fadeInMusic).catch(() => { /* autoplay blocked or file missing -- game still works without music */ });
+  }
+
+  function stopMusic() {
+    if (fadeTimer) { clearInterval(fadeTimer); fadeTimer = null; }
+    if (musicEl) musicEl.pause();
+  }
+
+  function setMuted(muted) {
+    musicMuted = muted;
+    try { localStorage.setItem('hoodRunnerMuted', muted ? '1' : '0'); } catch (err) { /* private mode etc */ }
+    if (muteBtn) {
+      muteBtn.textContent = muted ? '🔇' : '🔊';
+      muteBtn.setAttribute('aria-pressed', String(muted));
+      muteBtn.setAttribute('aria-label', muted ? 'Unmute music' : 'Mute music');
+    }
+    if (muted) stopMusic();
+    else if (state === STATE.PLAYING) playRandomMusic();
+  }
+  if (muteBtn) {
+    muteBtn.textContent = musicMuted ? '🔇' : '🔊';
+    muteBtn.setAttribute('aria-pressed', String(musicMuted));
+    muteBtn.addEventListener('click', () => setMuted(!musicMuted));
   }
 
   // ---------- input ----------
