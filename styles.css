@@ -888,6 +888,7 @@
     font-family:'IM Fell English',serif; font-size:34px; letter-spacing:0.06em;
     color:#d7ffca; -webkit-text-stroke:0.6px #d7ffca; margin:0 0 10px;
   }
+  .hood-game-overlay-title-sm{font-size:27.2px;} /* "RUGGED!" only, 20% smaller */
   .hood-game-overlay-lines p{
     font-family:'IM Fell English',serif; font-size:19px; color:#d7ffca; margin:0;
   }

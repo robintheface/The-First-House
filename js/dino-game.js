@@ -249,6 +249,7 @@ if (canvas) {
     hideOverlay();
     ensureLoopRunning();
     playRandomMusic();
+    startRunSfx();
   }
 
   const RESTART_COOLDOWN = 2000; // ms -- avoids an accidental restart from the same tap/key that just lost the run
@@ -257,6 +258,7 @@ if (canvas) {
     state = STATE.OVER;
     overSince = performance.now();
     stopMusic();
+    stopRunSfx();
     const formatted = Math.floor(score).toLocaleString('en-US');
     if (score > best) {
       best = score;
@@ -284,13 +286,18 @@ if (canvas) {
     player.grounded = false;
     player.jumpFrame = 0;
     player.jumpTimer = 0;
+    playSfx('jump');
+    stopRunSfx();
   }
 
   let overlayHideTimer = null;
   function showOverlay(title, lines) {
     if (!overlay) return;
     if (overlayHideTimer) { clearTimeout(overlayHideTimer); overlayHideTimer = null; }
-    if (overlayTitle) overlayTitle.textContent = title;
+    if (overlayTitle) {
+      overlayTitle.textContent = title;
+      overlayTitle.classList.toggle('hood-game-overlay-title-sm', title === 'RUGGED!');
+    }
     if (overlayLines) {
       overlayLines.innerHTML = '';
       lines.forEach((line) => {
@@ -342,6 +349,8 @@ if (canvas) {
         player.y = GROUND_Y - GROUND_HEIGHT;
         player.vy = 0;
         player.grounded = true;
+        playSfx('land');
+        startRunSfx();
       }
     }
 
@@ -429,6 +438,7 @@ if (canvas) {
         c.taken = true;
         score += COIN_SCORE;
         popups.push({ x: c.x + c.w / 2, y: c.y, life: 0, dur: 650, text: '+' + COIN_SCORE });
+        playSfx('coin');
       }
     }
   }
@@ -616,6 +626,36 @@ if (canvas) {
     if (musicEl) musicEl.pause();
   }
 
+  // ---------- one-shot / looping sound effects ----------
+  // Jump, landing, coin pickup (one-shots) and the running footstep loop --
+  // all kept 30% quieter than the music so they sit underneath it, not
+  // compete with it.
+  const SFX_VOLUME = MUSIC_VOLUME * 0.7;
+  const SFX_FILES = { jump: 'jumping.m4a', land: 'landing.mp3', coin: 'coin.wav' };
+
+  function playSfx(name) {
+    if (musicMuted) return;
+    const a = new Audio(ASSET_BASE + MUSIC_BASE + SFX_FILES[name]);
+    a.volume = SFX_VOLUME;
+    a.play().catch(() => { /* autoplay blocked or file missing -- game still works without sfx */ });
+  }
+
+  let runSfxEl = null;
+  function startRunSfx() {
+    if (musicMuted) return;
+    if (!runSfxEl) {
+      runSfxEl = new Audio(ASSET_BASE + MUSIC_BASE + 'running.mp3');
+      runSfxEl.loop = true;
+      runSfxEl.volume = SFX_VOLUME;
+    }
+    if (!runSfxEl.paused) return; // already looping -- don't restart it from the top
+    runSfxEl.currentTime = 0;
+    runSfxEl.play().catch(() => { /* autoplay blocked or file missing */ });
+  }
+  function stopRunSfx() {
+    if (runSfxEl) runSfxEl.pause();
+  }
+
   function setMuted(muted) {
     musicMuted = muted;
     try { localStorage.setItem('hoodRunnerMuted', muted ? '1' : '0'); } catch (err) { /* private mode etc */ }
@@ -624,8 +664,13 @@ if (canvas) {
       muteBtn.setAttribute('aria-pressed', String(muted));
       muteBtn.setAttribute('aria-label', muted ? 'Unmute music' : 'Mute music');
     }
-    if (muted) stopMusic();
-    else if (state === STATE.PLAYING) playRandomMusic();
+    if (muted) {
+      stopMusic();
+      stopRunSfx();
+    } else if (state === STATE.PLAYING) {
+      playRandomMusic();
+      if (player.grounded) startRunSfx();
+    }
   }
   if (muteBtn) {
     muteBtn.textContent = musicMuted ? '🔇' : '🔊';
