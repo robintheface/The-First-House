@@ -48,7 +48,7 @@ if (canvas) {
   let jumpAspect = 1.05;
 
   // ---------- game state ----------
-  const STATE = { LOADING: 'loading', IDLE: 'idle', PLAYING: 'playing', FALLING: 'falling', OVER: 'over' };
+  const STATE = { LOADING: 'loading', IDLE: 'idle', PLAYING: 'playing', OVER: 'over' };
   let state = STATE.LOADING;
 
   const GROUND_HEIGHT = 90;      // character/obstacle/coin display height
@@ -66,14 +66,7 @@ if (canvas) {
     runFrame: 0,
     runTimer: 0,
     jumpFrame: 0,
-    jumpTimer: 0,
-    // Snapshot of whichever sprite/frame was showing at the moment of
-    // impact -- the fall animation just tips that frozen pose over rather
-    // than switching to a dedicated ragdoll sprite (there isn't one).
-    fallTimer: 0,
-    fallSprite: null,
-    fallFrame: 0,
-    fallAspect: 1
+    jumpTimer: 0
   };
 
   const COIN_SCORE = 25;
@@ -107,7 +100,6 @@ if (canvas) {
     player.runTimer = 0;
     player.jumpFrame = 0;
     player.jumpTimer = 0;
-    player.fallTimer = 0;
     obstacles = [];
     coins = [];
     popups = [];
@@ -261,19 +253,6 @@ if (canvas) {
   }
 
   const RESTART_COOLDOWN = 2000; // ms -- avoids an accidental restart from the same tap/key that just lost the run
-  const FALL_DURATION = 550; // ms -- brief tip-over beat before the overlay shows
-
-  // Hitting an obstacle doesn't end the run instantly -- the world freezes
-  // (nothing else moves or spawns) while the player topples over in place,
-  // then endRun() actually fires once the fall finishes playing out.
-  function startFall() {
-    state = STATE.FALLING;
-    player.fallTimer = 0;
-    player.fallSprite = player.grounded ? SPRITES.run : SPRITES.jump;
-    player.fallFrame = player.grounded ? player.runFrame : player.jumpFrame;
-    player.fallAspect = player.grounded ? runAspect : jumpAspect;
-    stopRunSfx();
-  }
 
   function endRun() {
     state = STATE.OVER;
@@ -358,11 +337,6 @@ if (canvas) {
 
   // ---------- update ----------
   function update(dt) {
-    if (state === STATE.FALLING) {
-      player.fallTimer += dt;
-      if (player.fallTimer >= FALL_DURATION) endRun();
-      return; // everything else stays frozen mid-fall -- no spawns, no scroll, no score
-    }
     elapsed += dt;
     speed = Math.min(MAX_SPEED, BASE_SPEED + elapsed * SPEED_RAMP);
     score += dt * speed * 0.05;
@@ -457,7 +431,7 @@ if (canvas) {
     playerBox.w = GROUND_HEIGHT * (player.grounded ? runAspect : jumpAspect);
     playerBox.h = GROUND_HEIGHT;
     for (const o of obstacles) {
-      if (hit(playerBox, o)) { startFall(); break; }
+      if (hit(playerBox, o)) { endRun(); break; }
     }
     for (const c of coins) {
       if (!c.taken && hit(playerBox, c)) {
@@ -480,7 +454,6 @@ if (canvas) {
   // frames aren't the same aspect (arms/cape spread wider mid-jump).
   function drawPlayer() {
     const h = GROUND_HEIGHT;
-    if (state === STATE.FALLING) { drawFallingPlayer(h); return; }
     if (player.grounded) {
       const w = h * runAspect;
       drawFrame(SPRITES.run, player.runFrame, player.x, player.y, w, h);
@@ -488,28 +461,6 @@ if (canvas) {
       const w = h * jumpAspect;
       drawFrame(SPRITES.jump, player.jumpFrame, player.x, player.y, w, h);
     }
-  }
-
-  // No dedicated ragdoll sprite -- tips the exact frame frozen at the
-  // moment of impact over onto its side, pivoted at the feet so it reads
-  // as toppling rather than spinning. Ease-out (fast tip, gentle settle)
-  // plus a small backward knockback slide.
-  function drawFallingPlayer(h) {
-    const w = h * player.fallAspect;
-    const t = Math.min(1, player.fallTimer / FALL_DURATION);
-    const eased = 1 - Math.pow(1 - t, 3);
-    const angle = eased * (100 * Math.PI / 180); // tips past horizontal -- reads as flat on the ground
-    const knockback = eased * 16;
-    const feetX = player.x + w / 2 - knockback;
-    const feetY = player.y + h;
-
-    ctx.save();
-    ctx.translate(feetX, feetY);
-    ctx.rotate(angle);
-    const img = player.fallSprite.img;
-    const fw = img.naturalWidth / player.fallSprite.frames;
-    ctx.drawImage(img, player.fallFrame * fw, 0, fw, img.naturalHeight, -w / 2, -h, w, h);
-    ctx.restore();
   }
 
   function draw() {
@@ -608,10 +559,10 @@ if (canvas) {
     const dt = Math.min(48, ts - lastTs); // clamp so a dropped/backgrounded tab doesn't jump-teleport the run
     lastTs = ts;
 
-    if (state === STATE.PLAYING || state === STATE.FALLING) update(dt);
+    if (state === STATE.PLAYING) update(dt);
     if (assetsReady) draw();
 
-    if (state === STATE.PLAYING || state === STATE.FALLING) {
+    if (state === STATE.PLAYING) {
       requestAnimationFrame(loop);
     } else {
       loopScheduled = false;
