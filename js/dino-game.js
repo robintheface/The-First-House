@@ -431,7 +431,7 @@ if (canvas) {
     playerBox.w = GROUND_HEIGHT * (player.grounded ? runAspect : jumpAspect);
     playerBox.h = GROUND_HEIGHT;
     for (const o of obstacles) {
-      if (hit(playerBox, o)) { endRun(); break; }
+      if (hit(playerBox, o)) { playSfx('impact'); endRun(); break; }
     }
     for (const c of coins) {
       if (!c.taken && hit(playerBox, c)) {
@@ -631,7 +631,7 @@ if (canvas) {
   // all kept 30% quieter than the music so they sit underneath it, not
   // compete with it.
   const SFX_VOLUME = MUSIC_VOLUME * 0.7;
-  const SFX_FILES = { jump: 'jumping.wav', land: 'landing.mp3', coin: 'coin.wav' };
+  const SFX_FILES = { jump: 'jumping.wav', land: 'landing.mp3', coin: 'coin.wav', impact: 'impact.mp3' };
 
   function playSfx(name) {
     if (musicMuted) return;
