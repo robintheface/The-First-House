@@ -580,7 +580,7 @@ if (canvas) {
   // one is picked at random each run and swapped in for the next one on
   // restart, so back-to-back runs don't repeat the same track.
   const MUSIC_BASE = 'sound-effects/';
-  const MUSIC_TRACKS = ['1sound.mp3', '2sound.mp3', '3sound.mp3', '4sound.mp3', '5sound.mp3'];
+  const MUSIC_TRACKS = ['1sound.mp3', '2sound.mp3', '3sound.mp3', '5sound.mp3'];
   const MUSIC_VOLUME = 0.5;
   const FADE_IN_MS = 2500;
   let musicMuted = false;
