@@ -463,6 +463,30 @@ if (canvas) {
     }
   }
 
+  // Soft contact shadows, drawn before any sprite -- a flat cutout with
+  // nothing grounding it visually is the other half of why the scene reads
+  // flat. Airborne things (a jump, a floating rugged obstacle, a hovering
+  // coin) get a smaller, fainter shadow the higher they are. Hoisted to a
+  // real top-level function instead of an arrow function re-created inside
+  // draw() every frame -- that was allocating a fresh closure 60+ times a
+  // second, exactly the GC churn the array-compaction pass elsewhere in
+  // this file was written to avoid (mobile CPUs feel this kind of thing as
+  // stutter much more than desktop does).
+  function drawGroundShadow(cx, w, lift) {
+    const t = Math.min(1, Math.max(0, lift) / 140);
+    const alpha = 0.24 * (1 - t * 0.75);
+    if (alpha < 0.02) return;
+    const sw = w * (1 - t * 0.3);
+    const sh = 9 * (1 - t * 0.4);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = '#1a2916';
+    ctx.beginPath();
+    ctx.ellipse(cx, GROUND_Y + 3, Math.max(1, sw / 2), Math.max(1, sh / 2), 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
   function draw() {
     ctx.clearRect(0, 0, CW, CH);
 
@@ -475,25 +499,6 @@ if (canvas) {
       ctx.drawImage(bg, x, 0, bgW, bgH);
       x += bgW;
     }
-
-    // Soft contact shadows, drawn before any sprite -- a flat cutout with
-    // nothing grounding it visually is the other half of why the scene
-    // reads flat. Airborne things (a jump, a floating rugged obstacle, a
-    // hovering coin) get a smaller, fainter shadow the higher they are.
-    const drawGroundShadow = (cx, w, lift) => {
-      const t = Math.min(1, Math.max(0, lift) / 140);
-      const alpha = 0.24 * (1 - t * 0.75);
-      if (alpha < 0.02) return;
-      const sw = w * (1 - t * 0.3);
-      const sh = 9 * (1 - t * 0.4);
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle = '#1a2916';
-      ctx.beginPath();
-      ctx.ellipse(cx, GROUND_Y + 3, Math.max(1, sw / 2), Math.max(1, sh / 2), 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    };
     for (let i = 0; i < coins.length; i++) {
       const c = coins[i];
       if (!c.taken) drawGroundShadow(c.x + c.w / 2, c.w, (GROUND_Y - c.h) - c.y);
@@ -633,10 +638,35 @@ if (canvas) {
   const SFX_VOLUME = MUSIC_VOLUME * 0.7;
   const SFX_FILES = { jump: 'jumping.wav', land: 'landing.mp3', coin: 'coin.wav', impact: 'impact.mp3' };
 
+  // Small round-robin pool per sound instead of `new Audio(src)` on every
+  // trigger -- a fresh Audio element means a fresh fetch+decode pipeline
+  // each time, which is cheap to overlook on desktop but a real source of
+  // stutter on mobile when jump/coin/impact fire in quick succession.
+  // Pooling reuses already-loaded elements; still supports overlapping
+  // plays (jump can fire again before a previous one finishes) since each
+  // pool has a few instances to cycle through.
+  const SFX_POOL_SIZE = 3;
+  const sfxPools = Object.create(null);
+  function getSfxPool(name) {
+    let pool = sfxPools[name];
+    if (!pool) {
+      const elements = [];
+      for (let i = 0; i < SFX_POOL_SIZE; i++) {
+        const a = new Audio(ASSET_BASE + MUSIC_BASE + SFX_FILES[name]);
+        a.preload = 'auto';
+        a.volume = SFX_VOLUME;
+        elements.push(a);
+      }
+      pool = sfxPools[name] = { elements, next: 0 };
+    }
+    return pool;
+  }
   function playSfx(name) {
     if (musicMuted) return;
-    const a = new Audio(ASSET_BASE + MUSIC_BASE + SFX_FILES[name]);
-    a.volume = SFX_VOLUME;
+    const pool = getSfxPool(name);
+    const a = pool.elements[pool.next];
+    pool.next = (pool.next + 1) % pool.elements.length;
+    a.currentTime = 0;
     a.play().catch(() => { /* autoplay blocked or file missing -- game still works without sfx */ });
   }
 
@@ -705,6 +735,10 @@ if (canvas) {
   ).then(() => {
     runAspect = (SPRITES.run.img.naturalWidth / SPRITES.run.frames) / SPRITES.run.img.naturalHeight;
     jumpAspect = (SPRITES.jump.img.naturalWidth / SPRITES.jump.frames) / SPRITES.jump.img.naturalHeight;
+    // Pre-warm the SFX pools now (fetch+decode happens once, off the
+    // critical path) so the first jump/landing/coin/impact in an actual
+    // run doesn't stutter loading them for the first time.
+    Object.keys(SFX_FILES).forEach(getSfxPool);
     assetsReady = true;
     state = STATE.IDLE;
     showOverlay('HOOD RUN', ['PRESS SPACE TO START']);
