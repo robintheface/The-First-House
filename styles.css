@@ -824,7 +824,19 @@
   }
 
   /* ---------- Hood Runner mini-game (index.html, between Lore and Faces) ---------- */
-  #game{cursor:pointer;}
+  /* touch-action here (not just on the canvas) is what actually makes "tap
+     anywhere in the section" fast on mobile -- without it, a tap on the
+     title/description text above the canvas still gets the browser's
+     ~300ms double-tap-zoom delay before the jump registers. user-select
+     and tap-highlight/callout are all just cleanup so repeatedly tapping
+     the title text to jump doesn't select it, flash a highlight box, or
+     (iOS Safari) pop the copy/share callout. */
+  #game{
+    cursor:pointer; touch-action:manipulation;
+    -webkit-user-select:none; user-select:none;
+    -webkit-tap-highlight-color:transparent;
+    -webkit-touch-callout:none;
+  }
   .hood-game-wrap{
     position:relative; max-width:800px; margin:0 auto;
     border-radius:16px; overflow:hidden;
@@ -852,12 +864,22 @@
     pointer-events:none;
   }
   #hoodGameBest{color:#e0b23a;}
+  .hood-game-mute{
+    position:absolute; right:10px; bottom:10px; z-index:2;
+    width:38px; height:38px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(0,0,0,0.45); border:1px solid rgba(241,234,220,0.22);
+    font-size:15px; line-height:1; cursor:pointer; touch-action:manipulation;
+    transition:background 0.15s ease, transform 0.15s ease;
+  }
+  .hood-game-mute:hover{background:rgba(0,0,0,0.65);}
+  .hood-game-mute:active{transform:scale(0.92);}
   .hood-game-overlay{
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
     text-align:center; padding:20px;
     background:rgba(8,12,7,0.88);
     pointer-events:none;
-    opacity:0; transition:opacity 0.25s ease;
+    opacity:0; transition:opacity 0.1s ease;
   }
   .hood-game-overlay.is-visible{opacity:1;}
   .hood-game-overlay[hidden]{display:none;}
@@ -866,6 +888,7 @@
     font-family:'IM Fell English',serif; font-size:34px; letter-spacing:0.06em;
     color:#d7ffca; -webkit-text-stroke:0.6px #d7ffca; margin:0 0 10px;
   }
+  .hood-game-overlay-title-sm{font-size:27.2px;} /* "RUGGED!" only, 20% smaller */
   .hood-game-overlay-lines p{
     font-family:'IM Fell English',serif; font-size:19px; color:#d7ffca; margin:0;
   }
