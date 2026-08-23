@@ -631,7 +631,7 @@ if (canvas) {
   // all kept 30% quieter than the music so they sit underneath it, not
   // compete with it.
   const SFX_VOLUME = MUSIC_VOLUME * 0.7;
-  const SFX_FILES = { jump: 'jumping.m4a', land: 'landing.mp3', coin: 'coin.wav' };
+  const SFX_FILES = { jump: 'jumping.wav', land: 'landing.mp3', coin: 'coin.wav' };
 
   function playSfx(name) {
     if (musicMuted) return;
