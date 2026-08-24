@@ -42,7 +42,6 @@ if (canvas) {
     background: { src: 'background.webp' },
     run: { src: 'character-run.webp', frames: 6 },
     jump: { src: 'character-jump.webp', frames: 13 },
-    kneel: { src: 'character-kneel.webp', frames: 6 }, // hit-reaction sprite sheet, sliced from the source kneel_anim.gif (6 frames, 90ms each)
     coin: { src: 'coin-spin.webp', frames: 12 },
     candle: { src: 'obstacle-candle.webp', frames: 1 },
     rugged: { src: 'obstacle-rugged.webp', frames: 1 }
@@ -54,7 +53,6 @@ if (canvas) {
   // player's box and draw size both track whichever cycle is currently active.
   let runAspect = 0.89;
   let jumpAspect = 1.05;
-  let kneelAspect = 0.86;
   // Background draw width + its scroll-scale ratio, computed once the
   // image loads (natural dimensions never change after that) instead of
   // redoing the same division/multiplication in draw() on every single
@@ -65,27 +63,8 @@ if (canvas) {
   let bgNaturalW = 0;
 
   // ---------- game state ----------
-  // FALL and HIT are the scripted post-collision beat between clipping an
-  // obstacle and the game-over overlay actually appearing -- the world
-  // freezes the instant the collision happens either way (see
-  // updateFall()/updateHitReaction(), neither of which touches obstacles/
-  // coins/background/score):
-  //  - FALL only happens if the player was airborne when they got hit --
-  //    a slow, constant-speed drop from wherever they were down to the
-  //    ground (still showing the jump sprite, mid-air), landing before
-  //    HIT's kneel starts. An already-grounded hit skips straight to HIT.
-  //  - HIT plays the player through the sprite sheet cut from the
-  //    kneel_anim.gif the user uploaded and holds on its last frame, then
-  //    -- only after that hold -- endRun() runs and the overlay text
-  //    shows up.
-  const STATE = { LOADING: 'loading', IDLE: 'idle', PLAYING: 'playing', FALL: 'fall', HIT: 'hit', OVER: 'over' };
+  const STATE = { LOADING: 'loading', IDLE: 'idle', PLAYING: 'playing', OVER: 'over' };
   let state = STATE.LOADING;
-  const HIT_FALL_SPEED = 0.28; // px/ms -- deliberately slower than a normal jump's landing speed (~0.9px/ms) for a dramatic, floaty drop
-  const KNEEL_FRAME_MS = 90;   // matches kneel_anim.gif's own per-frame duration
-  const KNEEL_HOLD_MS = 1000;  // pause on the held last frame before the overlay text appears
-  let kneelFrame = 0;
-  let kneelTimer = 0;
-  let kneelHoldTimer = 0;
 
   const GROUND_HEIGHT = 90;      // character/obstacle/coin display height
   const GRAVITY = 0.0022;        // px/ms^2
@@ -128,6 +107,7 @@ if (canvas) {
   updateBestLabel();
 
   function resetRun() {
+    if (overlayDelayTimer) { clearTimeout(overlayDelayTimer); overlayDelayTimer = null; }
     player.y = GROUND_Y - GROUND_HEIGHT;
     player.vy = 0;
     player.grounded = true;
@@ -135,9 +115,6 @@ if (canvas) {
     player.runTimer = 0;
     player.jumpFrame = 0;
     player.jumpTimer = 0;
-    kneelFrame = 0;
-    kneelTimer = 0;
-    kneelHoldTimer = 0;
     obstacles = [];
     coins = [];
     popups = [];
@@ -300,82 +277,44 @@ if (canvas) {
     startRunSfx();
   }
 
+  const OVERLAY_DELAY_MS = 1000; // ms after a run ends before the result text appears -- a beat to register the hit
   const RESTART_COOLDOWN = 1000; // ms after the overlay text appears -- avoids an accidental restart from the same tap/key that just lost the run
 
-  function startKneel() {
-    state = STATE.HIT;
-    kneelFrame = 0;
-    kneelTimer = 0;
-    kneelHoldTimer = 0;
-  }
-
-  // Collision entry point: no longer ends the run immediately -- kicks off
-  // the scripted hit-reaction beat instead (see updateFall()/
-  // updateHitReaction()), which calls endRun() itself once it's done. If
-  // the player was airborne when they clipped something, they fall to the
-  // ground first ("rớt xuống đất" -- slowly, see updateFall(), not an
-  // instant snap) before the kneel starts; an already-grounded hit skips
-  // straight to the kneel since there's nothing to fall.
-  function triggerHit() {
-    playSfx('impact');
-    stopRunSfx(); // not running anymore -- stop the footstep loop right away, same as landing/jumping already do
-    if (player.grounded) startKneel();
-    else state = STATE.FALL; // updateFall() below calls startKneel() itself once it lands
-  }
-
-  // Slow, constant-speed drop from wherever the player was when they got
-  // hit down to ground level -- still drawn with the jump sprite (see
-  // drawPlayer()) since visually they're still airborne until they land.
-  function updateFall(dt) {
-    player.y += HIT_FALL_SPEED * dt;
-    if (player.y >= GROUND_Y - GROUND_HEIGHT) {
-      player.y = GROUND_Y - GROUND_HEIGHT;
-      player.vy = 0;
-      player.grounded = true;
-      startKneel();
-    }
-  }
-
-  // Advances the kneel sprite sheet at its native 90ms/frame pace, holds on
-  // the last frame for KNEEL_HOLD_MS, then hands off to endRun() -- driven
-  // by loop()'s regular dt (see below), same simulation-time approach as
-  // every other timer in this file (runTimer/jumpTimer/moveTimer/etc.)
-  // rather than wall-clock timestamps, so it can't drift if a frame is late.
-  function updateHitReaction(dt) {
-    if (kneelFrame < SPRITES.kneel.frames - 1) {
-      kneelTimer += dt;
-      while (kneelTimer > KNEEL_FRAME_MS && kneelFrame < SPRITES.kneel.frames - 1) {
-        kneelTimer -= KNEEL_FRAME_MS;
-        kneelFrame++;
-      }
-    } else {
-      kneelHoldTimer += dt;
-      if (kneelHoldTimer >= KNEEL_HOLD_MS) endRun();
-    }
-  }
+  let overlayDelayTimer = null;
+  let resultShown = false; // true only once the delayed overlay text has actually appeared -- blocks restart input during OVERLAY_DELAY_MS too, not just RESTART_COOLDOWN after
 
   function endRun() {
     state = STATE.OVER;
-    overSince = performance.now();
+    resultShown = false;
     stopMusic();
     stopRunSfx();
     const formatted = Math.floor(score).toLocaleString('en-US');
-    if (score > best) {
+    const isHighScore = score > best;
+    if (isHighScore) {
       best = score;
       try { localStorage.setItem('hoodRunnerBest', String(Math.floor(best))); } catch (err) { /* private mode etc -- best just won't persist */ }
       updateBestLabel();
-      showOverlay('NEW HIGH SCORE!', [
-        { text: formatted, cls: 'hood-game-overlay-score' },
-        'PRESS SPACE TO RUN AGAIN'
-      ]);
-    } else {
-      showOverlay('RUGGED!', ['You scored ' + formatted + ' points', 'Click or press SPACE to continue']);
     }
+    if (overlayDelayTimer) clearTimeout(overlayDelayTimer);
+    overlayDelayTimer = setTimeout(() => {
+      overlayDelayTimer = null;
+      resultShown = true;
+      overSince = performance.now();
+      if (isHighScore) {
+        showOverlay('NEW HIGH SCORE!', [
+          { text: formatted, cls: 'hood-game-overlay-score' },
+          'PRESS SPACE TO RUN AGAIN'
+        ]);
+      } else {
+        showOverlay('RUGGED!', ['You scored ' + formatted + ' points', 'Click or press SPACE to continue']);
+      }
+    }, OVERLAY_DELAY_MS);
   }
 
   function jump() {
     if (state === STATE.IDLE) { startRun(); return; }
     if (state === STATE.OVER) {
+      if (!resultShown) return; // still in the pre-text beat -- ignore input entirely
       if (performance.now() - overSince < RESTART_COOLDOWN) return;
       startRun();
       return;
@@ -537,7 +476,7 @@ if (canvas) {
     playerHitBox.y = player.y + GROUND_HEIGHT * HIT_PAD;
     playerHitBox.h = GROUND_HEIGHT * (1 - HIT_PAD * 2);
     for (let i = 0; i < obstacles.length; i++) {
-      if (hit(obstacles[i])) { triggerHit(); break; }
+      if (hit(obstacles[i])) { playSfx('impact'); endRun(); break; }
     }
     for (let i = 0; i < coins.length; i++) {
       const c = coins[i];
@@ -558,27 +497,11 @@ if (canvas) {
     ctx.drawImage(img, frameIndex * sprite.frameW, 0, sprite.frameW, sprite.frameH, x, y, w, h);
   }
 
-  // Which sprite sheet/aspect is currently "the player" -- shared by
-  // drawPlayer() and the player's ground-shadow sizing in draw() below so
-  // the two never disagree about which cycle is active. OVER is included
-  // alongside HIT here -- endRun() only ever runs at the end of the kneel
-  // sequence now (see updateHitReaction()), so once the overlay text is up
-  // the player should still read as kneeling, not snap back to standing
-  // for the one final frame draw() gets before the loop stops scheduling
-  // itself (see loop() below).
-  function currentPlayerAspect() {
-    if (state === STATE.HIT || state === STATE.OVER) return kneelAspect;
-    return player.grounded ? runAspect : jumpAspect;
-  }
-
-  // Player draw box tracks whichever cycle is active -- run/jump/kneel
-  // frames aren't all the same aspect (arms/cape spread wider mid-jump,
-  // the kneel sheet is its own source image).
+  // Player draw box tracks whichever cycle is active -- run frames and jump
+  // frames aren't the same aspect (arms/cape spread wider mid-jump).
   function drawPlayer() {
     const h = GROUND_HEIGHT;
-    if (state === STATE.HIT || state === STATE.OVER) {
-      drawFrame(SPRITES.kneel, kneelFrame, player.x, player.y, h * kneelAspect, h);
-    } else if (player.grounded) {
+    if (player.grounded) {
       const w = h * runAspect;
       drawFrame(SPRITES.run, player.runFrame, player.x, player.y, w, h);
     } else {
@@ -635,7 +558,7 @@ if (canvas) {
       const o = obstacles[i];
       drawGroundShadow(o.x + o.w / 2, o.w, (GROUND_Y - o.h) - o.y);
     }
-    const playerW = GROUND_HEIGHT * currentPlayerAspect();
+    const playerW = GROUND_HEIGHT * (player.grounded ? runAspect : jumpAspect);
     drawGroundShadow(player.x + playerW / 2, playerW * 0.95, (GROUND_Y - GROUND_HEIGHT) - player.y);
     ctx.globalAlpha = 1; // shadows are the only thing that touches this -- reset once instead of per-call
 
@@ -694,11 +617,9 @@ if (canvas) {
     lastTs = ts;
 
     if (state === STATE.PLAYING) update(dt);
-    else if (state === STATE.FALL) updateFall(dt);
-    else if (state === STATE.HIT) updateHitReaction(dt);
     if (assetsReady) draw();
 
-    if (state === STATE.PLAYING || state === STATE.FALL || state === STATE.HIT) {
+    if (state === STATE.PLAYING) {
       requestAnimationFrame(loop);
     } else {
       loopScheduled = false;
@@ -1110,7 +1031,6 @@ if (canvas) {
   ).then(() => {
     runAspect = (SPRITES.run.img.naturalWidth / SPRITES.run.frames) / SPRITES.run.img.naturalHeight;
     jumpAspect = (SPRITES.jump.img.naturalWidth / SPRITES.jump.frames) / SPRITES.jump.img.naturalHeight;
-    kneelAspect = (SPRITES.kneel.img.naturalWidth / SPRITES.kneel.frames) / SPRITES.kneel.img.naturalHeight;
     // Precomputed once here instead of on every drawFrame()/draw() call --
     // natural image dimensions never change after load.
     Object.values(SPRITES).forEach((sprite) => {

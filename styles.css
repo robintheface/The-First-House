@@ -1256,15 +1256,7 @@
   .hood-game-overlay{
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
     text-align:center; padding:20px;
-    /* Was 0.88 -- nearly opaque, which made the kneeling player (now a
-       deliberate beat: falls, kneels, holds) read as basically invisible
-       underneath it (measured max brightness ~42/255 in the character's
-       area) right as the overlay text appeared, and made restarting look
-       like the character "flickering" into view as the overlay faded back
-       out. Lighter here keeps the text readable against the game's own
-       dark background while letting the kneeling player stay visible
-       through it the whole time. */
-    background:rgba(8,12,7,0.6);
+    background:rgba(8,12,7,0.88);
     pointer-events:none;
     opacity:0; transition:opacity 0.1s ease;
   }
