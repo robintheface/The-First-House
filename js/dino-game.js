@@ -14,7 +14,14 @@ if (canvas) {
   const overlay = document.getElementById('hoodGameOverlay');
   const overlayTitle = document.getElementById('hoodGameOverlayTitle');
   const overlayLines = document.getElementById('hoodGameOverlayLines');
+  // The standalone mute button was replaced by the settings panel's volume
+  // sliders (dragging either to 0 mutes it). This now always resolves to
+  // null since the element is gone -- the `if (muteBtn)` guards below are
+  // intentionally left in place rather than ripped out: musicMuted/
+  // setMuted() are still real internal state (every play call checks it),
+  // just with no UI control wired to it at the moment.
   const muteBtn = document.getElementById('hoodGameMuteBtn');
+  const fullscreenBtn = document.getElementById('hoodGameFullscreenBtn');
   const settingsBtn = document.getElementById('hoodGameSettingsBtn');
   const settingsPanel = document.getElementById('hoodGameSettingsPanel');
   const musicVolInput = document.getElementById('hoodGameMusicVol');
@@ -789,6 +796,46 @@ if (canvas) {
     if (sfxVolInput) {
       sfxVolInput.addEventListener('input', () => setSfxVolume(sfxVolInput.valueAsNumber / 100));
     }
+  }
+
+  // ---------- fullscreen ----------
+  // The wrap element itself goes fullscreen (not the whole page) -- see the
+  // :fullscreen CSS for how the canvas letterboxes to fill the screen at
+  // its native 16:9. Screen Orientation lock only succeeds while an
+  // element is fullscreen on the browsers that support it at all (it's a
+  // no-op on iOS Safari, which has never implemented orientation lock --
+  // fullscreen alone still works fine there, it just won't force landscape).
+  const wrapEl = document.getElementById('hoodGameWrap');
+  function isFullscreen() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+  function enterFullscreen() {
+    if (!wrapEl) return;
+    const req = wrapEl.requestFullscreen || wrapEl.webkitRequestFullscreen;
+    if (req) { const r = req.call(wrapEl); if (r && r.catch) r.catch(() => { /* denied / unsupported */ }); }
+  }
+  function exitFullscreen() {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) { const r = exit.call(document); if (r && r.catch) r.catch(() => { /* already exited */ }); }
+  }
+  function handleFullscreenChange() {
+    const active = isFullscreen();
+    if (fullscreenBtn) {
+      fullscreenBtn.classList.toggle('is-active', active);
+      fullscreenBtn.setAttribute('aria-label', active ? 'Exit fullscreen' : 'Play fullscreen');
+    }
+    if (active && screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(() => { /* not supported / not allowed -- fine, portrait still works */ });
+    } else if (!active && screen.orientation && screen.orientation.unlock) {
+      try { screen.orientation.unlock(); } catch (err) { /* ignore */ }
+    }
+  }
+  document.addEventListener('fullscreenchange', handleFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+  if (fullscreenBtn) {
+    fullscreenBtn.addEventListener('click', () => {
+      if (isFullscreen()) exitFullscreen(); else enterFullscreen();
+    });
   }
 
   // ---------- input ----------
