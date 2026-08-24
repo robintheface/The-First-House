@@ -63,8 +63,15 @@ if (canvas) {
   let bgNaturalW = 0;
 
   // ---------- game state ----------
-  const STATE = { LOADING: 'loading', IDLE: 'idle', PLAYING: 'playing', OVER: 'over' };
+  // SPAWN is a brief beat at the start of every run -- the world sits
+  // frozen (background static, nothing spawning) while the player flickers
+  // in place like they've just respawned, before real gameplay begins.
+  const STATE = { LOADING: 'loading', IDLE: 'idle', SPAWN: 'spawn', PLAYING: 'playing', OVER: 'over' };
   let state = STATE.LOADING;
+  const SPAWN_DURATION_MS = 1500;
+  const SPAWN_BLINK_MS = 100; // on/off toggle period during the spawn flicker
+  let spawnTimer = 0;
+  let spawnBlinkOn = true;
 
   const GROUND_HEIGHT = 90;      // character/obstacle/coin display height
   const GRAVITY = 0.0022;        // px/ms^2
@@ -270,11 +277,23 @@ if (canvas) {
 
   function startRun() {
     resetRun();
-    state = STATE.PLAYING;
+    state = STATE.SPAWN;
+    spawnTimer = 0;
+    spawnBlinkOn = true;
     hideOverlay();
     ensureLoopRunning();
-    playRandomMusic();
-    startRunSfx();
+    // Music/run-sfx and obstacle spawning all wait for updateSpawn() to
+    // hand off to STATE.PLAYING -- the world sits still through the flicker.
+  }
+
+  function updateSpawn(dt) {
+    spawnTimer += dt;
+    spawnBlinkOn = Math.floor(spawnTimer / SPAWN_BLINK_MS) % 2 === 0;
+    if (spawnTimer >= SPAWN_DURATION_MS) {
+      state = STATE.PLAYING;
+      playRandomMusic();
+      startRunSfx();
+    }
   }
 
   const OVERLAY_DELAY_MS = 500; // ms after a run ends before the result text appears -- a beat to register the hit
@@ -500,6 +519,7 @@ if (canvas) {
   // Player draw box tracks whichever cycle is active -- run frames and jump
   // frames aren't the same aspect (arms/cape spread wider mid-jump).
   function drawPlayer() {
+    if (state === STATE.SPAWN && !spawnBlinkOn) return; // mid-flicker off-frame -- skip drawing entirely
     const h = GROUND_HEIGHT;
     if (player.grounded) {
       const w = h * runAspect;
@@ -617,9 +637,10 @@ if (canvas) {
     lastTs = ts;
 
     if (state === STATE.PLAYING) update(dt);
+    else if (state === STATE.SPAWN) updateSpawn(dt);
     if (assetsReady) draw();
 
-    if (state === STATE.PLAYING) {
+    if (state === STATE.PLAYING || state === STATE.SPAWN) {
       requestAnimationFrame(loop);
     } else {
       loopScheduled = false;
