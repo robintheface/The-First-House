@@ -869,6 +869,12 @@
     color:#e0b23a; text-shadow:0 1px 3px rgba(0,0,0,0.7);
     pointer-events:none;
   }
+  .hood-game-version-badge{
+    position:absolute; left:10px; bottom:10px; z-index:1;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.03em;
+    color:rgba(200,240,184,0.55); text-shadow:0 1px 3px rgba(0,0,0,0.7);
+    pointer-events:none;
+  }
   .hood-game-settings-btn{
     position:absolute; top:8px; right:8px; z-index:3;
     padding:5px 12px; border-radius:0;
@@ -1116,6 +1122,13 @@
     height:calc(var(--hgw-scale-w) * 0.0475);
     font-size:calc(var(--hgw-scale-w) * 0.01875);
     right:calc(var(--hgw-scale-w) * 0.0125);
+    bottom:calc(var(--hgw-scale-w) * 0.0125);
+  }
+  .hood-game-wrap:fullscreen .hood-game-version-badge,
+  .hood-game-wrap:-webkit-full-screen .hood-game-version-badge,
+  .hood-game-wrap.is-pseudo-fullscreen .hood-game-version-badge{
+    font-size:calc(var(--hgw-scale-w) * 0.01375);
+    left:calc(var(--hgw-scale-w) * 0.0125);
     bottom:calc(var(--hgw-scale-w) * 0.0125);
   }
   /* Settings popup: same 800px-design-width fraction * --hgw-scale-w

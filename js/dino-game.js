@@ -21,7 +21,9 @@ if (canvas) {
   const musicVolInput = document.getElementById('hoodGameMusicVol');
   const sfxVolInput = document.getElementById('hoodGameSfxVol');
   const versionEl = document.getElementById('hoodGameVersion');
+  const versionBadgeEl = document.getElementById('hoodGameVersionBadge');
   const GAME_VERSION = '1.0.0';
+  if (versionBadgeEl) versionBadgeEl.textContent = 'v' + GAME_VERSION;
 
   const CW = canvas.width;   // 800
   const CH = canvas.height;  // 450
