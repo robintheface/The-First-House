@@ -40,6 +40,7 @@ if (canvas) {
 
   const SPRITES = {
     background: { src: 'background.webp' },
+    stand: { src: 'character-stand.webp', frames: 1 }, // static pose shown only during the SPAWN flicker -- the run cycle doesn't start until real movement (PLAYING) begins
     run: { src: 'character-run.webp', frames: 6 },
     jump: { src: 'character-jump.webp', frames: 24 }, // sliced from the user-supplied jump2_anim.gif (24 frames, 60ms each)
     coin: { src: 'coin-spin.webp', frames: 12 },
@@ -51,6 +52,7 @@ if (canvas) {
   // Recomputed from the real sprite sheets once they load. Run and jump
   // frames aren't the same aspect (arms/cape spread wider mid-jump), so the
   // player's box and draw size both track whichever cycle is currently active.
+  let standAspect = 0.63;
   let runAspect = 0.89;
   let jumpAspect = 0.85;
   // Background draw width + its scroll-scale ratio, computed once the
@@ -519,7 +521,12 @@ if (canvas) {
   // Player draw box tracks whichever cycle is active -- run frames and jump
   // frames aren't the same aspect (arms/cape spread wider mid-jump).
   function drawPlayer() {
-    if (state === STATE.SPAWN && !spawnBlinkOn) return; // mid-flicker off-frame -- skip drawing entirely
+    if (state === STATE.SPAWN) {
+      if (!spawnBlinkOn) return; // mid-flicker off-frame -- skip drawing entirely
+      const h = GROUND_HEIGHT;
+      drawFrame(SPRITES.stand, 0, player.x, player.y, h * standAspect, h);
+      return;
+    }
     const h = GROUND_HEIGHT;
     if (player.grounded) {
       const w = h * runAspect;
@@ -578,7 +585,7 @@ if (canvas) {
       const o = obstacles[i];
       drawGroundShadow(o.x + o.w / 2, o.w, (GROUND_Y - o.h) - o.y);
     }
-    const playerW = GROUND_HEIGHT * (player.grounded ? runAspect : jumpAspect);
+    const playerW = GROUND_HEIGHT * (state === STATE.SPAWN ? standAspect : player.grounded ? runAspect : jumpAspect);
     drawGroundShadow(player.x + playerW / 2, playerW * 0.95, (GROUND_Y - GROUND_HEIGHT) - player.y);
     ctx.globalAlpha = 1; // shadows are the only thing that touches this -- reset once instead of per-call
 
@@ -1050,6 +1057,7 @@ if (canvas) {
       loadImage(sprite.src).then((img) => { sprite.img = img; })
     )
   ).then(() => {
+    standAspect = (SPRITES.stand.img.naturalWidth / SPRITES.stand.frames) / SPRITES.stand.img.naturalHeight;
     runAspect = (SPRITES.run.img.naturalWidth / SPRITES.run.frames) / SPRITES.run.img.naturalHeight;
     jumpAspect = (SPRITES.jump.img.naturalWidth / SPRITES.jump.frames) / SPRITES.jump.img.naturalHeight;
     // Precomputed once here instead of on every drawFrame()/draw() call --
