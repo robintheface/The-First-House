@@ -41,7 +41,7 @@ if (canvas) {
   const SPRITES = {
     background: { src: 'background.webp' },
     run: { src: 'character-run.webp', frames: 6 },
-    jump: { src: 'character-jump.webp', frames: 13 },
+    jump: { src: 'character-jump.webp', frames: 24 }, // sliced from the user-supplied jump2_anim.gif (24 frames, 60ms each)
     coin: { src: 'coin-spin.webp', frames: 12 },
     candle: { src: 'obstacle-candle.webp', frames: 1 },
     rugged: { src: 'obstacle-rugged.webp', frames: 1 }
@@ -52,7 +52,7 @@ if (canvas) {
   // frames aren't the same aspect (arms/cape spread wider mid-jump), so the
   // player's box and draw size both track whichever cycle is currently active.
   let runAspect = 0.89;
-  let jumpAspect = 1.05;
+  let jumpAspect = 0.72;
   // Background draw width + its scroll-scale ratio, computed once the
   // image loads (natural dimensions never change after that) instead of
   // redoing the same division/multiplication in draw() on every single
@@ -277,7 +277,7 @@ if (canvas) {
     startRunSfx();
   }
 
-  const OVERLAY_DELAY_MS = 1000; // ms after a run ends before the result text appears -- a beat to register the hit
+  const OVERLAY_DELAY_MS = 500; // ms after a run ends before the result text appears -- a beat to register the hit
   const RESTART_COOLDOWN = 1000; // ms after the overlay text appears -- avoids an accidental restart from the same tap/key that just lost the run
 
   let overlayDelayTimer = null;
