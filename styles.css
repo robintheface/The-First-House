@@ -971,17 +971,21 @@
     border-top:1px solid rgba(241,234,220,0.14);
     font-size:10px; color:rgba(200,240,184,0.55); letter-spacing:0.04em;
   }
-  /* Same ~480px small-phone breakpoint used elsewhere on the page -- shrink
-     the popup's own padding/type a notch further once the wrap is narrow
-     enough to be hitting the min() width's percentage branch above. */
+  /* Same ~480px small-phone breakpoint used elsewhere on the page -- the
+     whole popup scales down a uniform 1/5 (0.8x) here, not just its width:
+     every dimension below is its non-mobile value above times 0.8, rounded
+     to a clean pixel. */
   @media(max-width:479px){
-    /* 20% narrower than the 85%-of-wrap width used above 480px (0.85 * 0.8
-       = 0.68) -- the percentage branch of that min() is what actually
-       governs width on a real phone, so that's the number to shrink. */
-    .hood-game-settings-panel{width:min(68%, 220px); padding:12px 14px;}
-    .hood-game-settings-title{font-size:16px; margin-bottom:8px; padding-bottom:6px;}
-    .hood-game-settings-row{font-size:11px;}
-    .hood-game-settings-version{font-size:9px;}
+    .hood-game-settings-panel{width:min(68%, 176px); padding:13px 14px; border-radius:10px;}
+    .hood-game-settings-title{font-size:15px; margin-bottom:10px; padding-bottom:6px;}
+    .hood-game-settings-row{font-size:10px; gap:3px;}
+    .hood-game-settings-row + .hood-game-settings-row{margin-top:8px;}
+    .hood-game-toggle{width:27px; height:15px;}
+    .hood-game-toggle-track::before{width:10px; height:10px; top:1.5px; left:1.5px;}
+    .hood-game-toggle input:checked + .hood-game-toggle-track::before{transform:translateX(12px);}
+    .hood-game-settings-row input[type="range"]::-webkit-slider-thumb{width:10px; height:10px;}
+    .hood-game-settings-row input[type="range"]::-moz-range-thumb{width:10px; height:10px;}
+    .hood-game-settings-version{margin-top:10px; padding-top:8px; font-size:8px;}
   }
   .hood-game-fullscreen-btn{
     position:absolute; right:10px; bottom:10px; z-index:2;
@@ -1083,15 +1087,15 @@
      the panel (title, rows, toggle switch, sliders, version line) so the
      whole modal grows together instead of staying pinned at its small
      non-fullscreen size while the canvas around it gets much bigger --
-     scaled down an extra 25% off of --hgw-scale-w (via this dedicated
-     --hgw-menu-scale-w derived from it) since scaling it at the exact
-     same rate as the canvas made the popup read as oversized once the
-     canvas itself got very large in fullscreen. */
+     boosted an extra 25% over --hgw-scale-w (via this dedicated
+     --hgw-menu-scale-w derived from it) so it reads clearly once the
+     canvas itself gets very large in fullscreen, after the popup came out
+     too small scaling it down instead. */
   .hood-game-wrap:fullscreen,
   .hood-game-wrap:-webkit-full-screen,
   .hood-game-wrap.is-pseudo-fullscreen,
   .hood-game-wrap.hood-game-force-landscape{
-    --hgw-menu-scale-w:calc(var(--hgw-scale-w) * 0.75);
+    --hgw-menu-scale-w:calc(var(--hgw-scale-w) * 1.25);
   }
   .hood-game-wrap:fullscreen .hood-game-settings-panel,
   .hood-game-wrap:-webkit-full-screen .hood-game-settings-panel,
