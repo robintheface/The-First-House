@@ -77,6 +77,18 @@
       <span id="hoodGameScore">0</span>
       <span id="hoodGameBest">Best: 0</span>
     </div>
+    <button id="hoodGameSettingsBtn" class="hood-game-settings-btn" type="button" aria-label="Settings" aria-expanded="false" aria-controls="hoodGameSettingsPanel">⚙</button>
+    <div id="hoodGameSettingsPanel" class="hood-game-settings-panel" hidden>
+      <label class="hood-game-settings-row">
+        <span>Music</span>
+        <input type="range" id="hoodGameMusicVol" min="0" max="100" step="1">
+      </label>
+      <label class="hood-game-settings-row">
+        <span>SFX</span>
+        <input type="range" id="hoodGameSfxVol" min="0" max="100" step="1">
+      </label>
+      <div id="hoodGameVersion" class="hood-game-settings-version"></div>
+    </div>
     <button id="hoodGameMuteBtn" class="hood-game-mute" type="button" aria-label="Mute music" aria-pressed="false">🔊</button>
     <div id="hoodGameOverlay" class="hood-game-overlay">
       <div class="hood-game-overlay-inner">

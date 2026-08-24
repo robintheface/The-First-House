@@ -15,6 +15,12 @@ if (canvas) {
   const overlayTitle = document.getElementById('hoodGameOverlayTitle');
   const overlayLines = document.getElementById('hoodGameOverlayLines');
   const muteBtn = document.getElementById('hoodGameMuteBtn');
+  const settingsBtn = document.getElementById('hoodGameSettingsBtn');
+  const settingsPanel = document.getElementById('hoodGameSettingsPanel');
+  const musicVolInput = document.getElementById('hoodGameMusicVol');
+  const sfxVolInput = document.getElementById('hoodGameSfxVol');
+  const versionEl = document.getElementById('hoodGameVersion');
+  const GAME_VERSION = '1.0.0';
 
   const CW = canvas.width;   // 800
   const CH = canvas.height;  // 450
@@ -595,13 +601,23 @@ if (canvas) {
   // ramps instead of a JS timer stepping .volume by hand.
   const MUSIC_BASE = 'sound-effects/';
   const MUSIC_TRACKS = ['1sound.mp3', '2sound.mp3', '3sound.mp3', '5sound.mp3'];
-  const MUSIC_VOLUME = 0.5;
   const FADE_IN_S = 2.5;
-  // SFX (jump/land/coin/impact/running) kept 30% quieter than the music so
-  // they sit underneath it, not compete with it.
-  const SFX_VOLUME = MUSIC_VOLUME * 0.7;
   const SFX_FILES = { jump: 'jumping.wav', land: 'landing.mp3', coin: 'coin.wav', impact: 'impact.mp3' };
   const RUN_SFX_FILE = 'running.mp3';
+
+  // User-adjustable via the settings panel (0-1), persisted like the mute
+  // flag. SFX default is 30% quieter than music's so it sits underneath it
+  // rather than competing, but the two are independent sliders from here.
+  function loadStoredVolume(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw === null) return fallback;
+      const v = parseFloat(raw);
+      return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : fallback;
+    } catch (err) { return fallback; }
+  }
+  let musicVolume = loadStoredVolume('hoodRunnerMusicVol', 0.5);
+  let sfxVolume = loadStoredVolume('hoodRunnerSfxVol', 0.35);
 
   let musicMuted = false;
   try { musicMuted = localStorage.getItem('hoodRunnerMuted') === '1'; } catch (err) { musicMuted = false; }
@@ -619,9 +635,23 @@ if (canvas) {
     if (!AudioCtx) return null;
     actx = new AudioCtx();
     musicGain = actx.createGain(); musicGain.gain.value = 0; musicGain.connect(actx.destination);
-    sfxGain = actx.createGain(); sfxGain.gain.value = SFX_VOLUME; sfxGain.connect(actx.destination);
-    runGain = actx.createGain(); runGain.gain.value = SFX_VOLUME; runGain.connect(actx.destination);
+    sfxGain = actx.createGain(); sfxGain.gain.value = sfxVolume; sfxGain.connect(actx.destination);
+    runGain = actx.createGain(); runGain.gain.value = sfxVolume; runGain.connect(actx.destination);
     return actx;
+  }
+
+  function setMusicVolume(v) {
+    musicVolume = Math.min(1, Math.max(0, v));
+    try { localStorage.setItem('hoodRunnerMusicVol', String(musicVolume)); } catch (err) { /* private mode etc */ }
+    if (actx && musicGain && !musicMuted) musicGain.gain.setTargetAtTime(musicVolume, actx.currentTime, 0.05);
+  }
+  function setSfxVolume(v) {
+    sfxVolume = Math.min(1, Math.max(0, v));
+    try { localStorage.setItem('hoodRunnerSfxVol', String(sfxVolume)); } catch (err) { /* private mode etc */ }
+    if (actx && sfxGain && !musicMuted) {
+      sfxGain.gain.setTargetAtTime(sfxVolume, actx.currentTime, 0.05);
+      runGain.gain.setTargetAtTime(sfxVolume, actx.currentTime, 0.05);
+    }
   }
 
   // Decodes a file exactly once regardless of how many times it's
@@ -669,7 +699,7 @@ if (canvas) {
     const now = ctx.currentTime;
     musicGain.gain.cancelScheduledValues(now);
     musicGain.gain.setValueAtTime(0, now);
-    musicGain.gain.linearRampToValueAtTime(MUSIC_VOLUME, now + FADE_IN_S);
+    musicGain.gain.linearRampToValueAtTime(musicVolume, now + FADE_IN_S);
     src.start(0);
     musicSource = src;
   }
@@ -731,6 +761,36 @@ if (canvas) {
     muteBtn.addEventListener('click', () => setMuted(!musicMuted));
   }
 
+  // ---------- settings panel (top-right gear: music/SFX volume, version) ----------
+  if (settingsBtn && settingsPanel) {
+    if (musicVolInput) musicVolInput.value = String(Math.round(musicVolume * 100));
+    if (sfxVolInput) sfxVolInput.value = String(Math.round(sfxVolume * 100));
+    if (versionEl) versionEl.textContent = 'Hood Runner v' + GAME_VERSION;
+
+    function closeSettings() {
+      settingsPanel.hidden = true;
+      settingsBtn.setAttribute('aria-expanded', 'false');
+    }
+    settingsBtn.addEventListener('click', () => {
+      const willOpen = settingsPanel.hidden;
+      settingsPanel.hidden = !willOpen;
+      settingsBtn.setAttribute('aria-expanded', String(willOpen));
+    });
+    // Close on any click/tap outside the button+panel -- pointerdown so it
+    // doesn't fight with the game's own pointerdown-to-jump listener below.
+    document.addEventListener('pointerdown', (e) => {
+      if (settingsPanel.hidden) return;
+      if (e.target === settingsBtn || settingsBtn.contains(e.target) || settingsPanel.contains(e.target)) return;
+      closeSettings();
+    });
+    if (musicVolInput) {
+      musicVolInput.addEventListener('input', () => setMusicVolume(musicVolInput.valueAsNumber / 100));
+    }
+    if (sfxVolInput) {
+      sfxVolInput.addEventListener('input', () => setSfxVolume(sfxVolInput.valueAsNumber / 100));
+    }
+  }
+
   // ---------- input ----------
   // The AudioContext is created (and, if needed, resumed) here -- as the
   // very first thing done inside a real user-gesture handler -- rather
@@ -759,13 +819,13 @@ if (canvas) {
     jump();
   });
   // Tap target is the whole section, not just the canvas -- on a small
-  // phone screen the canvas itself is a fiddly target mid-run. Real links
-  // or buttons (none currently live inside #game, but stay defensive) are
-  // left alone so they still work normally instead of being hijacked.
+  // phone screen the canvas itself is a fiddly target mid-run. Real links,
+  // buttons, and the settings panel (sliders aren't <button>s) are left
+  // alone so they still work normally instead of being hijacked into a jump.
   const gameSection = document.getElementById('game');
   (gameSection || canvas).addEventListener('pointerdown', (e) => {
     if (!assetsReady) return;
-    if (e.target.closest('a, button')) return;
+    if (e.target.closest('a, button, input, #hoodGameSettingsPanel')) return;
     primeAudio();
     jump();
   });
