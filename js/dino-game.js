@@ -580,19 +580,71 @@ if (canvas) {
     requestAnimationFrame(loop);
   }
 
-  // ---------- background music ----------
-  // Real audio files this time (game/sound-effects/), not synthesized --
-  // one is picked at random each run and swapped in for the next one on
-  // restart, so back-to-back runs don't repeat the same track.
+  // ---------- audio (Web Audio API, buffer-based) ----------
+  // Every sound used to be a plain HTMLMediaElement (`new Audio()` /
+  // `<audio>`), including two elements looping continuously for the whole
+  // run (music + running footsteps). Each one keeps its own live
+  // demux/decode/network-buffering pipeline running the entire time it
+  // plays -- fine on desktop, but a real source of stutter on mobile with
+  // two of those pipelines active simultaneously (confirmed: muting, which
+  // stops both, made the game smooth again). Web Audio fixes this at the
+  // root: every file is decoded ONCE into an in-memory AudioBuffer, and
+  // "playing" it after that is just scheduling a lightweight buffer-source
+  // node -- no ongoing decode/streaming cost, looping is sample-accurate
+  // with no per-loop re-trigger, and volume/fades are native GainNode
+  // ramps instead of a JS timer stepping .volume by hand.
   const MUSIC_BASE = 'sound-effects/';
   const MUSIC_TRACKS = ['1sound.mp3', '2sound.mp3', '3sound.mp3', '5sound.mp3'];
   const MUSIC_VOLUME = 0.5;
-  const FADE_IN_MS = 2500;
+  const FADE_IN_S = 2.5;
+  // SFX (jump/land/coin/impact/running) kept 30% quieter than the music so
+  // they sit underneath it, not compete with it.
+  const SFX_VOLUME = MUSIC_VOLUME * 0.7;
+  const SFX_FILES = { jump: 'jumping.wav', land: 'landing.mp3', coin: 'coin.wav', impact: 'impact.mp3' };
+  const RUN_SFX_FILE = 'running.mp3';
+
   let musicMuted = false;
   try { musicMuted = localStorage.getItem('hoodRunnerMuted') === '1'; } catch (err) { musicMuted = false; }
-  let musicEl = null;
+
+  let actx = null;
+  let musicGain = null, sfxGain = null, runGain = null;
+  const audioBuffers = Object.create(null); // filename -> AudioBuffer | Promise<AudioBuffer|null>
+  let musicSource = null;
+  let runSource = null;
   let lastTrackIdx = -1;
-  let fadeTimer = null;
+
+  function ensureAudioCtx() {
+    if (actx) return actx;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return null;
+    actx = new AudioCtx();
+    musicGain = actx.createGain(); musicGain.gain.value = 0; musicGain.connect(actx.destination);
+    sfxGain = actx.createGain(); sfxGain.gain.value = SFX_VOLUME; sfxGain.connect(actx.destination);
+    runGain = actx.createGain(); runGain.gain.value = SFX_VOLUME; runGain.connect(actx.destination);
+    return actx;
+  }
+
+  // Decodes a file exactly once regardless of how many times it's
+  // requested -- concurrent callers share the same in-flight promise.
+  function loadBuffer(file) {
+    if (audioBuffers[file]) return audioBuffers[file];
+    const ctx = ensureAudioCtx();
+    if (!ctx) return Promise.resolve(null);
+    const p = fetch(ASSET_BASE + MUSIC_BASE + file)
+      .then((r) => r.arrayBuffer())
+      .then((ab) => ctx.decodeAudioData(ab))
+      .catch((err) => { console.warn('Hood Runner: audio load failed', file, err); return null; });
+    audioBuffers[file] = p;
+    return p;
+  }
+
+  // Kicks off decoding everything up front (right after sprites finish
+  // loading, see boot below) so gameplay never pays a first-use decode
+  // cost -- only cheap buffer scheduling happens during an actual run.
+  function preloadAudio() {
+    if (!ensureAudioCtx()) return;
+    MUSIC_TRACKS.concat(RUN_SFX_FILE, Object.values(SFX_FILES)).forEach(loadBuffer);
+  }
 
   function pickTrackIndex() {
     if (MUSIC_TRACKS.length <= 1) return 0;
@@ -601,89 +653,60 @@ if (canvas) {
     return idx;
   }
 
-  function fadeInMusic() {
-    if (fadeTimer) clearInterval(fadeTimer);
-    const steps = 30;
-    const stepMs = FADE_IN_MS / steps;
-    let i = 0;
-    musicEl.volume = 0;
-    fadeTimer = setInterval(() => {
-      i++;
-      musicEl.volume = Math.min(MUSIC_VOLUME, (MUSIC_VOLUME * i) / steps);
-      if (i >= steps) { clearInterval(fadeTimer); fadeTimer = null; }
-    }, stepMs);
-  }
-
-  function playRandomMusic() {
+  async function playRandomMusic() {
     if (musicMuted) return;
+    const ctx = ensureAudioCtx();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume(); // must be synchronous-ish with the user gesture that triggered this
     lastTrackIdx = pickTrackIndex();
-    if (!musicEl) {
-      musicEl = new Audio();
-      musicEl.loop = true; // the shortest track (~8s) needs to loop to cover a run
-    }
-    musicEl.src = ASSET_BASE + MUSIC_BASE + MUSIC_TRACKS[lastTrackIdx];
-    musicEl.currentTime = 0;
-    musicEl.play().then(fadeInMusic).catch(() => { /* autoplay blocked or file missing -- game still works without music */ });
+    const buf = await loadBuffer(MUSIC_TRACKS[lastTrackIdx]);
+    if (!buf || musicMuted) return; // re-check -- state may have changed while awaiting decode
+    if (musicSource) { try { musicSource.stop(); } catch (err) { /* already stopped */ } }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    src.connect(musicGain);
+    const now = ctx.currentTime;
+    musicGain.gain.cancelScheduledValues(now);
+    musicGain.gain.setValueAtTime(0, now);
+    musicGain.gain.linearRampToValueAtTime(MUSIC_VOLUME, now + FADE_IN_S);
+    src.start(0);
+    musicSource = src;
   }
 
   function stopMusic() {
-    if (fadeTimer) { clearInterval(fadeTimer); fadeTimer = null; }
-    if (musicEl) musicEl.pause();
+    if (musicSource) { try { musicSource.stop(); } catch (err) { /* already stopped */ } musicSource = null; }
   }
 
-  // ---------- one-shot / looping sound effects ----------
-  // Jump, landing, coin pickup (one-shots) and the running footstep loop --
-  // all kept 30% quieter than the music so they sit underneath it, not
-  // compete with it.
-  const SFX_VOLUME = MUSIC_VOLUME * 0.7;
-  const SFX_FILES = { jump: 'jumping.wav', land: 'landing.mp3', coin: 'coin.wav', impact: 'impact.mp3' };
-
-  // Small round-robin pool per sound instead of `new Audio(src)` on every
-  // trigger -- a fresh Audio element means a fresh fetch+decode pipeline
-  // each time, which is cheap to overlook on desktop but a real source of
-  // stutter on mobile when jump/coin/impact fire in quick succession.
-  // Pooling reuses already-loaded elements; still supports overlapping
-  // plays (jump can fire again before a previous one finishes) since each
-  // pool has a few instances to cycle through.
-  const SFX_POOL_SIZE = 3;
-  const sfxPools = Object.create(null);
-  function getSfxPool(name) {
-    let pool = sfxPools[name];
-    if (!pool) {
-      const elements = [];
-      for (let i = 0; i < SFX_POOL_SIZE; i++) {
-        const a = new Audio(ASSET_BASE + MUSIC_BASE + SFX_FILES[name]);
-        a.preload = 'auto';
-        a.volume = SFX_VOLUME;
-        elements.push(a);
-      }
-      pool = sfxPools[name] = { elements, next: 0 };
-    }
-    return pool;
-  }
-  function playSfx(name) {
+  async function playSfx(name) {
     if (musicMuted) return;
-    const pool = getSfxPool(name);
-    const a = pool.elements[pool.next];
-    pool.next = (pool.next + 1) % pool.elements.length;
-    a.currentTime = 0;
-    a.play().catch(() => { /* autoplay blocked or file missing -- game still works without sfx */ });
+    const ctx = ensureAudioCtx();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
+    const buf = await loadBuffer(SFX_FILES[name]);
+    if (!buf || musicMuted) return;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(sfxGain);
+    src.start(0);
   }
 
-  let runSfxEl = null;
-  function startRunSfx() {
-    if (musicMuted) return;
-    if (!runSfxEl) {
-      runSfxEl = new Audio(ASSET_BASE + MUSIC_BASE + 'running.mp3');
-      runSfxEl.loop = true;
-      runSfxEl.volume = SFX_VOLUME;
-    }
-    if (!runSfxEl.paused) return; // already looping -- don't restart it from the top
-    runSfxEl.currentTime = 0;
-    runSfxEl.play().catch(() => { /* autoplay blocked or file missing */ });
+  async function startRunSfx() {
+    if (musicMuted || runSource) return; // already looping -- don't restart it from the top
+    const ctx = ensureAudioCtx();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
+    const buf = await loadBuffer(RUN_SFX_FILE);
+    if (!buf || musicMuted || runSource) return;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    src.connect(runGain);
+    src.start(0);
+    runSource = src;
   }
   function stopRunSfx() {
-    if (runSfxEl) runSfxEl.pause();
+    if (runSource) { try { runSource.stop(); } catch (err) { /* already stopped */ } runSource = null; }
   }
 
   function setMuted(muted) {
@@ -709,10 +732,30 @@ if (canvas) {
   }
 
   // ---------- input ----------
+  // The AudioContext is created (and, if needed, resumed) here -- as the
+  // very first thing done inside a real user-gesture handler -- rather
+  // than eagerly at boot. Creating it before any gesture leaves it
+  // 'suspended' on mobile browsers, and calling resume() *later* from
+  // inside a gesture isn't reliably enough to unlock it on some of them
+  // (notably iOS Safari): the activation has to be tied to the context's
+  // own creation/first-resume, not just any resume() call downstream.
+  // preloadAudio()'s decode work is safe to kick off from here too --
+  // loadBuffer() dedupes, so this is a no-op on every gesture after the
+  // first.
+  let audioPrimed = false;
+  function primeAudio() {
+    if (audioPrimed) return;
+    audioPrimed = true;
+    const ctx = ensureAudioCtx();
+    if (ctx && ctx.state === 'suspended') ctx.resume();
+    preloadAudio();
+  }
+
   window.addEventListener('keydown', (e) => {
     if (e.code !== 'Space' && e.key !== ' ') return;
     if (!assetsReady) return;
     e.preventDefault();
+    primeAudio();
     jump();
   });
   // Tap target is the whole section, not just the canvas -- on a small
@@ -723,6 +766,7 @@ if (canvas) {
   (gameSection || canvas).addEventListener('pointerdown', (e) => {
     if (!assetsReady) return;
     if (e.target.closest('a, button')) return;
+    primeAudio();
     jump();
   });
 
@@ -735,10 +779,10 @@ if (canvas) {
   ).then(() => {
     runAspect = (SPRITES.run.img.naturalWidth / SPRITES.run.frames) / SPRITES.run.img.naturalHeight;
     jumpAspect = (SPRITES.jump.img.naturalWidth / SPRITES.jump.frames) / SPRITES.jump.img.naturalHeight;
-    // Pre-warm the SFX pools now (fetch+decode happens once, off the
-    // critical path) so the first jump/landing/coin/impact in an actual
-    // run doesn't stutter loading them for the first time.
-    Object.keys(SFX_FILES).forEach(getSfxPool);
+    // Audio priming (AudioContext creation + decode) happens on the first
+    // real user gesture (see primeAudio() in the input section below), not
+    // here -- creating the context this early, before any gesture, is
+    // exactly what leaves it stuck unable to unlock on some mobile browsers.
     assetsReady = true;
     state = STATE.IDLE;
     showOverlay('HOOD RUN', ['PRESS SPACE TO START']);
