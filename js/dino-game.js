@@ -867,7 +867,7 @@ if (canvas) {
   // (the first FADE_IN_MS after a run starts) had no visible effect until
   // the fade finished snapping back to that stale pre-drag value, silently
   // discarding the adjustment.
-  function fadeMusicIn(ms) {
+  function beginMusicFade(ms) {
     if (musicFadeTimer) { clearInterval(musicFadeTimer); musicFadeTimer = null; }
     if (!musicEl) return;
     const start = currentMusicLevel();
@@ -877,6 +877,32 @@ if (canvas) {
       applyMusicLevel(start + (musicVolume - start) * t);
       if (t >= 1) { clearInterval(musicFadeTimer); musicFadeTimer = null; }
     }, 60);
+  }
+
+  // The fade has to be measured from the moment the track is actually
+  // AUDIBLE, not from a wall clock -- otherwise it silently misses on a
+  // slow connection. The music files run 578KB-3.1MB, so on mobile data
+  // play() often returns long before the element has buffered enough to
+  // emit sound; the old timer-driven fade then ran its whole FADE_IN_MS
+  // against silence and was already sitting at full level by the time the
+  // first audio came out, which is exactly the reported "no fade-in on
+  // mobile" (desktop, loading instantly, never showed it). Deferring to
+  // the element's own 'playing' event ties the ramp to real playback on
+  // any connection speed.
+  let musicPlaybackLive = false;
+  let pendingFadeMs = 0;
+  function fadeMusicIn(ms) {
+    if (!musicEl) return;
+    if (!musicPlaybackLive) { pendingFadeMs = ms; return; } // still buffering -- onMusicPlaying() picks this up
+    beginMusicFade(ms);
+  }
+  function onMusicPlaying() {
+    musicPlaybackLive = true;
+    if (pendingFadeMs) {
+      const ms = pendingFadeMs;
+      pendingFadeMs = 0;
+      beginMusicFade(ms);
+    }
   }
 
   // Live preview only -- does not persist. See persistSettings()/
@@ -950,6 +976,12 @@ if (canvas) {
     // speakers. Same gesture-scoped resume primeAudio() does for SFX.
     if (musicUsesWebAudio && actx && actx.state === 'suspended') actx.resume();
     lastTrackIdx = pickTrackIndex();
+    // Swapping src restarts buffering, so the track is silent again until
+    // the element re-fires 'playing' -- see fadeMusicIn()/onMusicPlaying().
+    musicPlaybackLive = false;
+    pendingFadeMs = 0;
+    el.removeEventListener('playing', onMusicPlaying);
+    el.addEventListener('playing', onMusicPlaying, { once: true });
     el.src = ASSET_BASE + MUSIC_BASE + MUSIC_TRACKS[lastTrackIdx];
     el.currentTime = 0;
     applyMusicLevel(0, true); // silent pre-roll -- fadeMusicIn() takes it up from here
@@ -967,7 +999,14 @@ if (canvas) {
 
   function stopMusic() {
     if (musicFadeTimer) { clearInterval(musicFadeTimer); musicFadeTimer = null; }
-    if (musicEl) musicEl.pause();
+    // Drop any fade still waiting on 'playing' -- otherwise a run that ended
+    // while the track was still buffering would fade in over the next one.
+    pendingFadeMs = 0;
+    musicPlaybackLive = false;
+    if (musicEl) {
+      musicEl.removeEventListener('playing', onMusicPlaying);
+      musicEl.pause();
+    }
   }
 
   async function playSfx(name) {
