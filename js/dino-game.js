@@ -773,14 +773,20 @@ if (canvas) {
     musicEl.volume = 0;
     return musicEl;
   }
-  function fadeMusicTo(target, ms) {
+  // Always fades toward the *current* musicVolume, re-read on every tick --
+  // not a target frozen at the moment the fade started. Bug fix: it used to
+  // take a fixed `target` snapshot, so dragging the Music slider mid-fade
+  // (the first FADE_IN_MS after a run starts) had no visible effect until
+  // the fade finished snapping back to that stale pre-drag value, silently
+  // discarding the adjustment.
+  function fadeMusicIn(ms) {
     if (musicFadeTimer) { clearInterval(musicFadeTimer); musicFadeTimer = null; }
     if (!musicEl) return;
     const start = musicEl.volume;
     const startTs = performance.now();
     musicFadeTimer = setInterval(() => {
       const t = Math.min(1, (performance.now() - startTs) / ms);
-      musicEl.volume = start + (target - start) * t;
+      musicEl.volume = start + (musicVolume - start) * t;
       if (t >= 1) { clearInterval(musicFadeTimer); musicFadeTimer = null; }
     }, 60);
   }
@@ -788,8 +794,9 @@ if (canvas) {
   function setMusicVolume(v) {
     musicVolume = Math.min(1, Math.max(0, v));
     try { localStorage.setItem('hoodRunnerMusicVol', String(musicVolume)); } catch (err) { /* private mode etc */ }
-    // Leave an in-progress fade-in alone -- it's already ramping toward the
-    // just-updated musicVolume target on its own next tick.
+    // Leave an in-progress fade-in alone -- it re-reads musicVolume on its
+    // own next tick (see fadeMusicIn()), so it's already heading toward the
+    // just-updated value instead of needing a jump-cut here.
     if (musicEl && !musicMuted && !musicFadeTimer) musicEl.volume = musicVolume;
   }
   function setSfxVolume(v) {
@@ -846,7 +853,7 @@ if (canvas) {
     el.volume = 0;
     const p = el.play();
     if (p && p.catch) p.catch(() => { /* blocked -- no gesture yet, next call will retry */ });
-    fadeMusicTo(musicVolume, FADE_IN_MS);
+    fadeMusicIn(FADE_IN_MS);
   }
 
   function stopMusic() {
@@ -892,9 +899,19 @@ if (canvas) {
     if (muted) {
       stopMusic();
       stopRunSfx();
-    } else if (state === STATE.PLAYING) {
-      playRandomMusic();
-      if (player.grounded) startRunSfx();
+    } else {
+      // setSfxVolume() no-ops on the actual gain nodes while musicMuted is
+      // true, so a slider drag during mute only updated the stored
+      // sfxVolume -- refresh both gains now that musicMuted is false again,
+      // or the next SFX plays at whatever stale level they were left at.
+      if (actx && sfxGain && runGain) {
+        sfxGain.gain.setTargetAtTime(sfxVolume, actx.currentTime, 0.05);
+        runGain.gain.setTargetAtTime(sfxVolume, actx.currentTime, 0.05);
+      }
+      if (state === STATE.PLAYING) {
+        playRandomMusic();
+        if (player.grounded) startRunSfx();
+      }
     }
   }
 
