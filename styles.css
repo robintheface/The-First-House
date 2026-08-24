@@ -886,13 +886,22 @@
     border-radius:12px;
     background:rgba(8,14,8,0.82);
     -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
-    border:1px solid rgba(241,234,220,0.18);
+    /* Classic/vintage look to match the IM Fell English font -- a native
+       CSS "double" border renders as two parallel lines with a gap (needs
+       >=3px width to read as two lines rather than one solid one), like
+       the double-rule border on an old book cover or card. */
+    border:3px double #e0b23a;
     box-shadow:0 16px 40px -12px rgba(0,0,0,0.7);
-    font-family:'IBM Plex Mono',monospace;
+    font-family:'IM Fell English',serif;
+  }
+  .hood-game-settings-title{
+    margin:0 0 12px; padding-bottom:8px;
+    text-align:center; font-size:19px; letter-spacing:0.08em; text-transform:uppercase;
+    color:#e0b23a; border-bottom:1px solid rgba(224,178,58,0.35);
   }
   .hood-game-settings-row{
     display:flex; flex-direction:column; gap:4px;
-    font-size:11px; color:#c8f0b8; text-transform:uppercase; letter-spacing:0.06em;
+    font-size:14px; color:#c8f0b8; text-transform:uppercase; letter-spacing:0.06em;
   }
   .hood-game-settings-row + .hood-game-settings-row{margin-top:10px;}
   .hood-game-settings-row input[type="range"]{
