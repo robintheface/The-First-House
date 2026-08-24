@@ -817,15 +817,42 @@ if (canvas) {
   // no-op on iOS Safari, which has never implemented orientation lock --
   // fullscreen alone still works fine there, it just won't force landscape).
   const wrapEl = document.getElementById('hoodGameWrap');
+  // iOS Safari has never implemented the Fullscreen API for ordinary
+  // elements (only <video> gets a fullscreen affordance, via a separate
+  // non-standard API) -- wrapEl.requestFullscreen/webkitRequestFullscreen
+  // is simply undefined there, on every iOS version. Rather than leave the
+  // button silently doing nothing on iPhones, fall back to a CSS-only
+  // "pseudo fullscreen": fix the wrap to cover the viewport and let it hit
+  // the exact same :fullscreen-scaled CSS via the .is-pseudo-fullscreen
+  // class (see styles.css). Real fullscreen is always tried first and used
+  // whenever the browser actually supports it.
+  let pseudoFullscreenActive = false;
   function isFullscreen() {
-    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+    return pseudoFullscreenActive || !!(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+  function enterPseudoFullscreen() {
+    if (!wrapEl || pseudoFullscreenActive) return;
+    pseudoFullscreenActive = true;
+    wrapEl.classList.add('is-pseudo-fullscreen');
+    document.documentElement.classList.add('hood-game-scroll-locked');
+    handleFullscreenChange();
+  }
+  function exitPseudoFullscreen() {
+    if (!pseudoFullscreenActive) return;
+    pseudoFullscreenActive = false;
+    if (wrapEl) wrapEl.classList.remove('is-pseudo-fullscreen');
+    document.documentElement.classList.remove('hood-game-scroll-locked');
+    handleFullscreenChange();
   }
   function enterFullscreen() {
     if (!wrapEl) return;
     const req = wrapEl.requestFullscreen || wrapEl.webkitRequestFullscreen;
-    if (req) { const r = req.call(wrapEl); if (r && r.catch) r.catch(() => { /* denied / unsupported */ }); }
+    if (!req || document.fullscreenEnabled === false) { enterPseudoFullscreen(); return; }
+    const r = req.call(wrapEl);
+    if (r && r.catch) r.catch(() => enterPseudoFullscreen()); // request rejected -- fall back instead of doing nothing
   }
   function exitFullscreen() {
+    if (pseudoFullscreenActive) { exitPseudoFullscreen(); return; }
     const exit = document.exitFullscreen || document.webkitExitFullscreen;
     if (exit) { const r = exit.call(document); if (r && r.catch) r.catch(() => { /* already exited */ }); }
   }
