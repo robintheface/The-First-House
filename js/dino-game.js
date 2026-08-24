@@ -40,6 +40,7 @@ if (canvas) {
 
   const SPRITES = {
     background: { src: 'background.webp' },
+    stand: { src: 'character-stand.webp', frames: 1 }, // static pose shown only during the SPAWN flicker -- the run cycle doesn't start until real movement (PLAYING) begins
     run: { src: 'character-run.webp', frames: 6 },
     jump: { src: 'character-jump.webp', frames: 24 }, // sliced from the user-supplied jump2_anim.gif (24 frames, 60ms each)
     coin: { src: 'coin-spin.webp', frames: 12 },
@@ -51,6 +52,7 @@ if (canvas) {
   // Recomputed from the real sprite sheets once they load. Run and jump
   // frames aren't the same aspect (arms/cape spread wider mid-jump), so the
   // player's box and draw size both track whichever cycle is currently active.
+  let standAspect = 0.63;
   let runAspect = 0.89;
   let jumpAspect = 0.85;
   // Background draw width + its scroll-scale ratio, computed once the
@@ -63,8 +65,18 @@ if (canvas) {
   let bgNaturalW = 0;
 
   // ---------- game state ----------
-  const STATE = { LOADING: 'loading', IDLE: 'idle', PLAYING: 'playing', OVER: 'over' };
+  // SPAWN is a brief beat at the start of every run -- the world sits
+  // frozen (background static, nothing spawning) while the player flickers
+  // in place like they've just respawned, before real gameplay begins. The
+  // same flicker plays in reverse right after a collision (see endRun()/
+  // updateHitBlink()) -- the player blinks out instead of in, then is gone
+  // entirely for the rest of STATE.OVER.
+  const STATE = { LOADING: 'loading', IDLE: 'idle', SPAWN: 'spawn', PLAYING: 'playing', OVER: 'over' };
   let state = STATE.LOADING;
+  const BLINK_TOGGLE_MS = 100; // on/off period shared by the spawn-in and hit-out flickers
+  const SPAWN_DURATION_MS = 1000; // matches OVERLAY_DELAY_MS -- spawn-in and hit-out flickers run for the same length
+  let spawnTimer = 0;
+  let spawnBlinkOn = true;
 
   const GROUND_HEIGHT = 90;      // character/obstacle/coin display height
   const GRAVITY = 0.0022;        // px/ms^2
@@ -107,7 +119,7 @@ if (canvas) {
   updateBestLabel();
 
   function resetRun() {
-    if (overlayDelayTimer) { clearTimeout(overlayDelayTimer); overlayDelayTimer = null; }
+    showResult = null; // drop any pending hit-blink result callback from a run that never finished blinking out
     player.y = GROUND_Y - GROUND_HEIGHT;
     player.vy = 0;
     player.grounded = true;
@@ -270,22 +282,38 @@ if (canvas) {
 
   function startRun() {
     resetRun();
-    state = STATE.PLAYING;
+    state = STATE.SPAWN;
+    spawnTimer = 0;
+    spawnBlinkOn = true;
     hideOverlay();
     ensureLoopRunning();
-    playRandomMusic();
-    startRunSfx();
+    // Music/run-sfx and obstacle spawning all wait for updateSpawn() to
+    // hand off to STATE.PLAYING -- the world sits still through the flicker.
   }
 
-  const OVERLAY_DELAY_MS = 500; // ms after a run ends before the result text appears -- a beat to register the hit
+  function updateSpawn(dt) {
+    spawnTimer += dt;
+    spawnBlinkOn = Math.floor(spawnTimer / BLINK_TOGGLE_MS) % 2 === 0;
+    if (spawnTimer >= SPAWN_DURATION_MS) {
+      state = STATE.PLAYING;
+      playRandomMusic();
+      startRunSfx();
+    }
+  }
+
+  const OVERLAY_DELAY_MS = 1000; // ms after a run ends before the result text appears -- also how long the hit-blink runs before the player is fully gone; matches SPAWN_DURATION_MS
   const RESTART_COOLDOWN = 1000; // ms after the overlay text appears -- avoids an accidental restart from the same tap/key that just lost the run
 
-  let overlayDelayTimer = null;
+  let hitTimer = 0;
+  let hitBlinkOn = true;
   let resultShown = false; // true only once the delayed overlay text has actually appeared -- blocks restart input during OVERLAY_DELAY_MS too, not just RESTART_COOLDOWN after
+  let showResult = null; // set by endRun(), called once by updateHitBlink() when the blink-out finishes
 
   function endRun() {
     state = STATE.OVER;
     resultShown = false;
+    hitTimer = 0;
+    hitBlinkOn = true;
     stopMusic();
     stopRunSfx();
     const formatted = Math.floor(score).toLocaleString('en-US');
@@ -295,9 +323,7 @@ if (canvas) {
       try { localStorage.setItem('hoodRunnerBest', String(Math.floor(best))); } catch (err) { /* private mode etc -- best just won't persist */ }
       updateBestLabel();
     }
-    if (overlayDelayTimer) clearTimeout(overlayDelayTimer);
-    overlayDelayTimer = setTimeout(() => {
-      overlayDelayTimer = null;
+    showResult = () => {
       resultShown = true;
       overSince = performance.now();
       if (isHighScore) {
@@ -308,7 +334,21 @@ if (canvas) {
       } else {
         showOverlay('RUGGED!', ['You scored ' + formatted + ' points', 'Click or press SPACE to continue']);
       }
-    }, OVERLAY_DELAY_MS);
+    };
+  }
+
+  // Plays the same on/off flicker as the spawn-in, but in reverse -- the
+  // player blinks a few times right where they got hit, then is gone
+  // entirely (no draw at all) for the rest of STATE.OVER, right as the
+  // result text appears.
+  function updateHitBlink(dt) {
+    hitTimer += dt;
+    if (hitTimer >= OVERLAY_DELAY_MS) {
+      hitBlinkOn = false;
+      if (showResult) { showResult(); showResult = null; }
+      return;
+    }
+    hitBlinkOn = Math.floor(hitTimer / BLINK_TOGGLE_MS) % 2 === 0;
   }
 
   function jump() {
@@ -499,9 +539,27 @@ if (canvas) {
 
   // Player draw box tracks whichever cycle is active -- run frames and jump
   // frames aren't the same aspect (arms/cape spread wider mid-jump).
+  // Single source of truth for "is there a player to draw (and shadow)
+  // this frame" -- shared by drawPlayer() and the shadow sizing in draw()
+  // so the two can't drift out of sync.
+  //  - LOADING/IDLE: no player at all, just the overlay text + background.
+  //  - SPAWN: blinks in (see updateSpawn()).
+  //  - OVER: blinks out right where it got hit, then gone for good once
+  //    the result text shows (see updateHitBlink()).
+  //  - PLAYING: always visible.
+  function playerVisible() {
+    if (state === STATE.LOADING || state === STATE.IDLE) return false;
+    if (state === STATE.SPAWN) return spawnBlinkOn;
+    if (state === STATE.OVER) return !resultShown && hitBlinkOn;
+    return true;
+  }
+
   function drawPlayer() {
+    if (!playerVisible()) return;
     const h = GROUND_HEIGHT;
-    if (player.grounded) {
+    if (state === STATE.SPAWN) {
+      drawFrame(SPRITES.stand, 0, player.x, player.y, h * standAspect, h);
+    } else if (player.grounded) {
       const w = h * runAspect;
       drawFrame(SPRITES.run, player.runFrame, player.x, player.y, w, h);
     } else {
@@ -558,8 +616,10 @@ if (canvas) {
       const o = obstacles[i];
       drawGroundShadow(o.x + o.w / 2, o.w, (GROUND_Y - o.h) - o.y);
     }
-    const playerW = GROUND_HEIGHT * (player.grounded ? runAspect : jumpAspect);
-    drawGroundShadow(player.x + playerW / 2, playerW * 0.95, (GROUND_Y - GROUND_HEIGHT) - player.y);
+    if (playerVisible()) {
+      const playerW = GROUND_HEIGHT * (state === STATE.SPAWN ? standAspect : player.grounded ? runAspect : jumpAspect);
+      drawGroundShadow(player.x + playerW / 2, playerW * 0.95, (GROUND_Y - GROUND_HEIGHT) - player.y);
+    }
     ctx.globalAlpha = 1; // shadows are the only thing that touches this -- reset once instead of per-call
 
     // coins
@@ -617,9 +677,11 @@ if (canvas) {
     lastTs = ts;
 
     if (state === STATE.PLAYING) update(dt);
+    else if (state === STATE.SPAWN) updateSpawn(dt);
+    else if (state === STATE.OVER && !resultShown) updateHitBlink(dt);
     if (assetsReady) draw();
 
-    if (state === STATE.PLAYING) {
+    if (state === STATE.PLAYING || state === STATE.SPAWN || (state === STATE.OVER && !resultShown)) {
       requestAnimationFrame(loop);
     } else {
       loopScheduled = false;
@@ -1029,6 +1091,7 @@ if (canvas) {
       loadImage(sprite.src).then((img) => { sprite.img = img; })
     )
   ).then(() => {
+    standAspect = (SPRITES.stand.img.naturalWidth / SPRITES.stand.frames) / SPRITES.stand.img.naturalHeight;
     runAspect = (SPRITES.run.img.naturalWidth / SPRITES.run.frames) / SPRITES.run.img.naturalHeight;
     jumpAspect = (SPRITES.jump.img.naturalWidth / SPRITES.jump.frames) / SPRITES.jump.img.naturalHeight;
     // Precomputed once here instead of on every drawFrame()/draw() call --
