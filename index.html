@@ -71,13 +71,33 @@
     <h2 class="section-title">Outrun the <span style="color:var(--green-bright);">rug</span>.</h2>
     <p class="section-desc">Dodge red candles, grab the bag. Space to jump — or tap on mobile.</p>
   </div>
-  <div class="hood-game-wrap">
+  <div class="hood-game-wrap" id="hoodGameWrap">
     <canvas id="hoodGameCanvas" width="800" height="450" role="img" aria-label="Robin The Face endless runner mini-game"></canvas>
     <div class="hood-game-hud">
       <span id="hoodGameScore">0</span>
-      <span id="hoodGameBest">Best: 0</span>
     </div>
-    <button id="hoodGameMuteBtn" class="hood-game-mute" type="button" aria-label="Mute music" aria-pressed="false">🔊</button>
+    <span id="hoodGameBest" class="hood-game-best">Best: 0</span>
+    <button id="hoodGameSettingsBtn" class="hood-game-settings-btn" type="button" aria-expanded="false" aria-controls="hoodGameSettingsPanel">Settings</button>
+    <div id="hoodGameSettingsPanel" class="hood-game-settings-panel" hidden>
+      <p class="hood-game-settings-title">Menu</p>
+      <label class="hood-game-settings-row hood-game-settings-row-toggle">
+        <span>Sound</span>
+        <span class="hood-game-toggle">
+          <input type="checkbox" id="hoodGameSoundToggle">
+          <span class="hood-game-toggle-track" aria-hidden="true"></span>
+        </span>
+      </label>
+      <label class="hood-game-settings-row">
+        <span>Music</span>
+        <input type="range" id="hoodGameMusicVol" min="0" max="100" step="1">
+      </label>
+      <label class="hood-game-settings-row">
+        <span>SFX</span>
+        <input type="range" id="hoodGameSfxVol" min="0" max="100" step="1">
+      </label>
+      <div id="hoodGameVersion" class="hood-game-settings-version"></div>
+    </div>
+    <button id="hoodGameFullscreenBtn" class="hood-game-fullscreen-btn" type="button" aria-label="Play fullscreen">⛶</button>
     <div id="hoodGameOverlay" class="hood-game-overlay">
       <div class="hood-game-overlay-inner">
         <p id="hoodGameOverlayTitle" class="hood-game-overlay-title">HOOD RUN</p>

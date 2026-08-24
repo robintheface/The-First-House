@@ -14,7 +14,14 @@ if (canvas) {
   const overlay = document.getElementById('hoodGameOverlay');
   const overlayTitle = document.getElementById('hoodGameOverlayTitle');
   const overlayLines = document.getElementById('hoodGameOverlayLines');
-  const muteBtn = document.getElementById('hoodGameMuteBtn');
+  const fullscreenBtn = document.getElementById('hoodGameFullscreenBtn');
+  const settingsBtn = document.getElementById('hoodGameSettingsBtn');
+  const settingsPanel = document.getElementById('hoodGameSettingsPanel');
+  const soundToggle = document.getElementById('hoodGameSoundToggle');
+  const musicVolInput = document.getElementById('hoodGameMusicVol');
+  const sfxVolInput = document.getElementById('hoodGameSfxVol');
+  const versionEl = document.getElementById('hoodGameVersion');
+  const GAME_VERSION = '1.0.0';
 
   const CW = canvas.width;   // 800
   const CH = canvas.height;  // 450
@@ -595,13 +602,23 @@ if (canvas) {
   // ramps instead of a JS timer stepping .volume by hand.
   const MUSIC_BASE = 'sound-effects/';
   const MUSIC_TRACKS = ['1sound.mp3', '2sound.mp3', '3sound.mp3', '5sound.mp3'];
-  const MUSIC_VOLUME = 0.5;
   const FADE_IN_S = 2.5;
-  // SFX (jump/land/coin/impact/running) kept 30% quieter than the music so
-  // they sit underneath it, not compete with it.
-  const SFX_VOLUME = MUSIC_VOLUME * 0.7;
   const SFX_FILES = { jump: 'jumping.wav', land: 'landing.mp3', coin: 'coin.wav', impact: 'impact.mp3' };
   const RUN_SFX_FILE = 'running.mp3';
+
+  // User-adjustable via the settings panel (0-1), persisted like the mute
+  // flag. SFX default is 30% quieter than music's so it sits underneath it
+  // rather than competing, but the two are independent sliders from here.
+  function loadStoredVolume(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw === null) return fallback;
+      const v = parseFloat(raw);
+      return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : fallback;
+    } catch (err) { return fallback; }
+  }
+  let musicVolume = loadStoredVolume('hoodRunnerMusicVol', 0.5);
+  let sfxVolume = loadStoredVolume('hoodRunnerSfxVol', 0.35);
 
   let musicMuted = false;
   try { musicMuted = localStorage.getItem('hoodRunnerMuted') === '1'; } catch (err) { musicMuted = false; }
@@ -619,9 +636,23 @@ if (canvas) {
     if (!AudioCtx) return null;
     actx = new AudioCtx();
     musicGain = actx.createGain(); musicGain.gain.value = 0; musicGain.connect(actx.destination);
-    sfxGain = actx.createGain(); sfxGain.gain.value = SFX_VOLUME; sfxGain.connect(actx.destination);
-    runGain = actx.createGain(); runGain.gain.value = SFX_VOLUME; runGain.connect(actx.destination);
+    sfxGain = actx.createGain(); sfxGain.gain.value = sfxVolume; sfxGain.connect(actx.destination);
+    runGain = actx.createGain(); runGain.gain.value = sfxVolume; runGain.connect(actx.destination);
     return actx;
+  }
+
+  function setMusicVolume(v) {
+    musicVolume = Math.min(1, Math.max(0, v));
+    try { localStorage.setItem('hoodRunnerMusicVol', String(musicVolume)); } catch (err) { /* private mode etc */ }
+    if (actx && musicGain && !musicMuted) musicGain.gain.setTargetAtTime(musicVolume, actx.currentTime, 0.05);
+  }
+  function setSfxVolume(v) {
+    sfxVolume = Math.min(1, Math.max(0, v));
+    try { localStorage.setItem('hoodRunnerSfxVol', String(sfxVolume)); } catch (err) { /* private mode etc */ }
+    if (actx && sfxGain && !musicMuted) {
+      sfxGain.gain.setTargetAtTime(sfxVolume, actx.currentTime, 0.05);
+      runGain.gain.setTargetAtTime(sfxVolume, actx.currentTime, 0.05);
+    }
   }
 
   // Decodes a file exactly once regardless of how many times it's
@@ -638,12 +669,34 @@ if (canvas) {
     return p;
   }
 
-  // Kicks off decoding everything up front (right after sprites finish
-  // loading, see boot below) so gameplay never pays a first-use decode
-  // cost -- only cheap buffer scheduling happens during an actual run.
+  // Kicks off decoding everything up front so gameplay never pays a
+  // first-use decode cost -- only cheap buffer scheduling happens during an
+  // actual run. This used to fire all ~9 fetch+decodeAudioData calls at
+  // once, synchronously, from inside primeAudio() -- which runs on the same
+  // gesture (and the same tick) as the very first jump/run start. Profiling
+  // under CPU throttling confirmed that concurrent decode burst landing
+  // right as physics/render kick off was the actual source of the "stutter
+  // on jump/start" -- not the game loop itself.
+  //
+  // Split into two priority tiers instead of one flat list:
+  //  - "critical" (running loop + jump/land/coin/impact SFX): small files,
+  //    needed within the first couple seconds of any run, so they still
+  //    kick off right away -- just chained one-at-a-time instead of fired
+  //    concurrently, which was the actual source of the CPU burst (five
+  //    small decodes serialized is cheaper on the main thread at any given
+  //    instant than the same five racing in parallel).
+  //  - the other three music tracks: not remotely time-critical (the one
+  //    actually playing this run is loaded separately by playRandomMusic()'s
+  //    own direct call), so those are pushed to an idle moment.
   function preloadAudio() {
     if (!ensureAudioCtx()) return;
-    MUSIC_TRACKS.concat(RUN_SFX_FILE, Object.values(SFX_FILES)).forEach(loadBuffer);
+    const critical = [RUN_SFX_FILE].concat(Object.values(SFX_FILES));
+    critical.reduce((p, file) => p.then(() => loadBuffer(file)), Promise.resolve());
+
+    const runIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
+    runIdle(() => {
+      MUSIC_TRACKS.reduce((p, file) => p.then(() => loadBuffer(file)), Promise.resolve());
+    });
   }
 
   function pickTrackIndex() {
@@ -669,7 +722,7 @@ if (canvas) {
     const now = ctx.currentTime;
     musicGain.gain.cancelScheduledValues(now);
     musicGain.gain.setValueAtTime(0, now);
-    musicGain.gain.linearRampToValueAtTime(MUSIC_VOLUME, now + FADE_IN_S);
+    musicGain.gain.linearRampToValueAtTime(musicVolume, now + FADE_IN_S);
     src.start(0);
     musicSource = src;
   }
@@ -712,11 +765,7 @@ if (canvas) {
   function setMuted(muted) {
     musicMuted = muted;
     try { localStorage.setItem('hoodRunnerMuted', muted ? '1' : '0'); } catch (err) { /* private mode etc */ }
-    if (muteBtn) {
-      muteBtn.textContent = muted ? '🔇' : '🔊';
-      muteBtn.setAttribute('aria-pressed', String(muted));
-      muteBtn.setAttribute('aria-label', muted ? 'Unmute music' : 'Mute music');
-    }
+    if (soundToggle) soundToggle.checked = !muted;
     if (muted) {
       stopMusic();
       stopRunSfx();
@@ -725,10 +774,79 @@ if (canvas) {
       if (player.grounded) startRunSfx();
     }
   }
-  if (muteBtn) {
-    muteBtn.textContent = musicMuted ? '🔇' : '🔊';
-    muteBtn.setAttribute('aria-pressed', String(musicMuted));
-    muteBtn.addEventListener('click', () => setMuted(!musicMuted));
+
+  // ---------- settings panel (top-right "Settings" button, popup centered over the game: music/SFX volume, version) ----------
+  if (settingsBtn && settingsPanel) {
+    if (soundToggle) soundToggle.checked = !musicMuted;
+    if (musicVolInput) musicVolInput.value = String(Math.round(musicVolume * 100));
+    if (sfxVolInput) sfxVolInput.value = String(Math.round(sfxVolume * 100));
+    if (versionEl) versionEl.textContent = 'Hood Runner v' + GAME_VERSION;
+
+    function closeSettings() {
+      settingsPanel.hidden = true;
+      settingsBtn.setAttribute('aria-expanded', 'false');
+    }
+    settingsBtn.addEventListener('click', () => {
+      const willOpen = settingsPanel.hidden;
+      settingsPanel.hidden = !willOpen;
+      settingsBtn.setAttribute('aria-expanded', String(willOpen));
+    });
+    // Close on any click/tap outside the button+panel -- pointerdown so it
+    // doesn't fight with the game's own pointerdown-to-jump listener below.
+    document.addEventListener('pointerdown', (e) => {
+      if (settingsPanel.hidden) return;
+      if (e.target === settingsBtn || settingsBtn.contains(e.target) || settingsPanel.contains(e.target)) return;
+      closeSettings();
+    });
+    if (soundToggle) {
+      soundToggle.addEventListener('change', () => setMuted(!soundToggle.checked));
+    }
+    if (musicVolInput) {
+      musicVolInput.addEventListener('input', () => setMusicVolume(musicVolInput.valueAsNumber / 100));
+    }
+    if (sfxVolInput) {
+      sfxVolInput.addEventListener('input', () => setSfxVolume(sfxVolInput.valueAsNumber / 100));
+    }
+  }
+
+  // ---------- fullscreen ----------
+  // The wrap element itself goes fullscreen (not the whole page) -- see the
+  // :fullscreen CSS for how the canvas letterboxes to fill the screen at
+  // its native 16:9. Screen Orientation lock only succeeds while an
+  // element is fullscreen on the browsers that support it at all (it's a
+  // no-op on iOS Safari, which has never implemented orientation lock --
+  // fullscreen alone still works fine there, it just won't force landscape).
+  const wrapEl = document.getElementById('hoodGameWrap');
+  function isFullscreen() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+  function enterFullscreen() {
+    if (!wrapEl) return;
+    const req = wrapEl.requestFullscreen || wrapEl.webkitRequestFullscreen;
+    if (req) { const r = req.call(wrapEl); if (r && r.catch) r.catch(() => { /* denied / unsupported */ }); }
+  }
+  function exitFullscreen() {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) { const r = exit.call(document); if (r && r.catch) r.catch(() => { /* already exited */ }); }
+  }
+  function handleFullscreenChange() {
+    const active = isFullscreen();
+    if (fullscreenBtn) {
+      fullscreenBtn.classList.toggle('is-active', active);
+      fullscreenBtn.setAttribute('aria-label', active ? 'Exit fullscreen' : 'Play fullscreen');
+    }
+    if (active && screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(() => { /* not supported / not allowed -- fine, portrait still works */ });
+    } else if (!active && screen.orientation && screen.orientation.unlock) {
+      try { screen.orientation.unlock(); } catch (err) { /* ignore */ }
+    }
+  }
+  document.addEventListener('fullscreenchange', handleFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+  if (fullscreenBtn) {
+    fullscreenBtn.addEventListener('click', () => {
+      if (isFullscreen()) exitFullscreen(); else enterFullscreen();
+    });
   }
 
   // ---------- input ----------
@@ -754,18 +872,22 @@ if (canvas) {
   window.addEventListener('keydown', (e) => {
     if (e.code !== 'Space' && e.key !== ' ') return;
     if (!assetsReady) return;
+    // Let Space do its normal job (toggling the Sound switch, activating a
+    // focused button/link) instead of hijacking it into a jump when focus
+    // is on one of the settings panel's own controls.
+    if (e.target && e.target.closest && e.target.closest('input, button, a')) return;
     e.preventDefault();
     primeAudio();
     jump();
   });
   // Tap target is the whole section, not just the canvas -- on a small
-  // phone screen the canvas itself is a fiddly target mid-run. Real links
-  // or buttons (none currently live inside #game, but stay defensive) are
-  // left alone so they still work normally instead of being hijacked.
+  // phone screen the canvas itself is a fiddly target mid-run. Real links,
+  // buttons, and the settings panel (sliders aren't <button>s) are left
+  // alone so they still work normally instead of being hijacked into a jump.
   const gameSection = document.getElementById('game');
   (gameSection || canvas).addEventListener('pointerdown', (e) => {
     if (!assetsReady) return;
-    if (e.target.closest('a, button')) return;
+    if (e.target.closest('a, button, input, #hoodGameSettingsPanel')) return;
     primeAudio();
     jump();
   });
