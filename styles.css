@@ -1014,6 +1014,68 @@
     right:calc(var(--hgw-scale-w) * 0.0125);
     bottom:calc(var(--hgw-scale-w) * 0.0125);
   }
+  /* Settings popup: same 800px-design-width fraction * --hgw-scale-w
+     approach as the HUD/buttons above, just applied to every sub-part of
+     the panel (title, rows, toggle switch, sliders, version line) so the
+     whole modal grows together instead of staying pinned at its small
+     non-fullscreen size while the canvas around it gets much bigger. */
+  .hood-game-wrap:fullscreen .hood-game-settings-panel,
+  .hood-game-wrap:-webkit-full-screen .hood-game-settings-panel{
+    width:calc(var(--hgw-scale-w) * 0.25);
+    padding:calc(var(--hgw-scale-w) * 0.02) calc(var(--hgw-scale-w) * 0.0225);
+    border-radius:calc(var(--hgw-scale-w) * 0.015);
+  }
+  .hood-game-wrap:fullscreen .hood-game-settings-title,
+  .hood-game-wrap:-webkit-full-screen .hood-game-settings-title{
+    font-size:calc(var(--hgw-scale-w) * 0.02375);
+    margin-bottom:calc(var(--hgw-scale-w) * 0.015);
+    padding-bottom:calc(var(--hgw-scale-w) * 0.01);
+  }
+  .hood-game-wrap:fullscreen .hood-game-settings-row,
+  .hood-game-wrap:-webkit-full-screen .hood-game-settings-row{
+    font-size:calc(var(--hgw-scale-w) * 0.015);
+    gap:calc(var(--hgw-scale-w) * 0.005);
+  }
+  .hood-game-wrap:fullscreen .hood-game-settings-row + .hood-game-settings-row,
+  .hood-game-wrap:-webkit-full-screen .hood-game-settings-row + .hood-game-settings-row{
+    margin-top:calc(var(--hgw-scale-w) * 0.0125);
+  }
+  .hood-game-wrap:fullscreen .hood-game-toggle,
+  .hood-game-wrap:-webkit-full-screen .hood-game-toggle{
+    width:calc(var(--hgw-scale-w) * 0.0425);
+    height:calc(var(--hgw-scale-w) * 0.02375);
+  }
+  .hood-game-wrap:fullscreen .hood-game-toggle-track::before,
+  .hood-game-wrap:-webkit-full-screen .hood-game-toggle-track::before{
+    width:calc(var(--hgw-scale-w) * 0.01625);
+    height:calc(var(--hgw-scale-w) * 0.01625);
+    top:calc(var(--hgw-scale-w) * 0.0025);
+    left:calc(var(--hgw-scale-w) * 0.0025);
+  }
+  .hood-game-wrap:fullscreen .hood-game-toggle input:checked + .hood-game-toggle-track::before,
+  .hood-game-wrap:-webkit-full-screen .hood-game-toggle input:checked + .hood-game-toggle-track::before{
+    transform:translateX(calc(var(--hgw-scale-w) * 0.01875));
+  }
+  .hood-game-wrap:fullscreen .hood-game-settings-row input[type="range"],
+  .hood-game-wrap:-webkit-full-screen .hood-game-settings-row input[type="range"]{
+    height:calc(var(--hgw-scale-w) * 0.00375);
+  }
+  .hood-game-wrap:fullscreen .hood-game-settings-row input[type="range"]::-webkit-slider-thumb,
+  .hood-game-wrap:-webkit-full-screen .hood-game-settings-row input[type="range"]::-webkit-slider-thumb{
+    width:calc(var(--hgw-scale-w) * 0.01625);
+    height:calc(var(--hgw-scale-w) * 0.01625);
+  }
+  .hood-game-wrap:fullscreen .hood-game-settings-row input[type="range"]::-moz-range-thumb,
+  .hood-game-wrap:-webkit-full-screen .hood-game-settings-row input[type="range"]::-moz-range-thumb{
+    width:calc(var(--hgw-scale-w) * 0.01625);
+    height:calc(var(--hgw-scale-w) * 0.01625);
+  }
+  .hood-game-wrap:fullscreen .hood-game-settings-version,
+  .hood-game-wrap:-webkit-full-screen .hood-game-settings-version{
+    margin-top:calc(var(--hgw-scale-w) * 0.015);
+    padding-top:calc(var(--hgw-scale-w) * 0.0125);
+    font-size:calc(var(--hgw-scale-w) * 0.0125);
+  }
   .hood-game-wrap:fullscreen #hoodGameCanvas,
   .hood-game-wrap:-webkit-full-screen #hoodGameCanvas{
     width:100%; height:100%;
