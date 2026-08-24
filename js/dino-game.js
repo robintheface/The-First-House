@@ -758,7 +758,7 @@ if (canvas) {
   let savedMuted = musicMuted;
 
   let actx = null;
-  let sfxGain = null, runGain = null;
+  let sfxGain = null, runGain = null, musicGain = null;
   const audioBuffers = Object.create(null); // filename -> AudioBuffer | Promise<AudioBuffer|null>
   let runSource = null;
   let lastTrackIdx = -1;
@@ -770,6 +770,10 @@ if (canvas) {
     actx = new AudioCtx();
     sfxGain = actx.createGain(); sfxGain.gain.value = sfxVolume; sfxGain.connect(actx.destination);
     runGain = actx.createGain(); runGain.gain.value = sfxVolume; runGain.connect(actx.destination);
+    // Only actually used on platforms where HTMLMediaElement.volume is
+    // read-only (see routeMusicThroughWebAudio) -- created unconditionally
+    // so the routing decision can be made lazily without re-checking ctx.
+    musicGain = actx.createGain(); musicGain.gain.value = 0; musicGain.connect(actx.destination);
     return actx;
   }
 
@@ -780,11 +784,81 @@ if (canvas) {
   // FADE_IN_MS, not a per-frame cost.
   let musicEl = null;
   let musicFadeTimer = null;
+  let musicUsesWebAudio = false;
+  let musicSourceNode = null;
+
+  // iOS (Safari/WebKit on iPhone+iPad) makes HTMLMediaElement.volume
+  // permanently read-only -- assignments are silently ignored and the
+  // property stays 1, with playback level owned entirely by the hardware
+  // volume buttons. That single quirk broke BOTH reported audio bugs on
+  // mobile at once: the Music slider did nothing at all (every
+  // musicEl.volume write was dropped), and the fade-in never happened
+  // (its per-step writes were dropped too, so a track that should have
+  // eased in over FADE_IN_MS instead slammed in at full level the instant
+  // it started). Feature-detected by writing a value and reading it back
+  // rather than sniffing the user agent.
+  function musicElVolumeIsWritable(el) {
+    try {
+      const orig = el.volume;
+      el.volume = 0.123;
+      const writable = Math.abs(el.volume - 0.123) < 0.001;
+      el.volume = orig;
+      return writable;
+    } catch (err) { return false; }
+  }
+
+  // Fallback path for those platforms: pipe the <audio> element through a
+  // Web Audio GainNode, whose gain IS scriptable everywhere, and drive
+  // volume/fades from that instead. The element still streams the file
+  // itself, so this keeps the streaming-decode architecture (and avoids
+  // decodeAudioData's big main-thread stall) exactly as documented above --
+  // only the volume stage moves. Desktop keeps the plain element-volume
+  // path untouched, since it works there and needs no extra graph.
+  function routeMusicThroughWebAudio() {
+    if (musicUsesWebAudio || !musicEl) return;
+    const ctx = ensureAudioCtx();
+    if (!ctx || !ctx.createMediaElementSource || !musicGain) return;
+    try {
+      musicSourceNode = ctx.createMediaElementSource(musicEl);
+      musicSourceNode.connect(musicGain);
+      musicEl.volume = 1; // ignored on these platforms anyway -- musicGain is the real control now
+      musicUsesWebAudio = true;
+    } catch (err) {
+      // createMediaElementSource throws if the element was already routed;
+      // nothing to undo, just stay on the element-volume path.
+      musicUsesWebAudio = false;
+    }
+  }
+
+  // Single funnel for "make the music this loud", so every caller (fade
+  // steps, slider drags, the silent pre-roll) works the same on both paths.
+  function applyMusicLevel(v, immediate) {
+    const level = Math.min(1, Math.max(0, v));
+    if (musicUsesWebAudio && musicGain && actx) {
+      const g = musicGain.gain;
+      if (immediate) {
+        g.cancelScheduledValues(actx.currentTime);
+        g.setValueAtTime(level, actx.currentTime);
+      } else {
+        // Short smoothing constant -- rounds off the 60ms fade steps and
+        // slider jumps so neither zippers, without lagging behind either.
+        g.setTargetAtTime(level, actx.currentTime, 0.03);
+      }
+    } else if (musicEl) {
+      musicEl.volume = level;
+    }
+  }
+  function currentMusicLevel() {
+    if (musicUsesWebAudio && musicGain) return musicGain.gain.value;
+    return musicEl ? musicEl.volume : 0;
+  }
+
   function ensureMusicEl() {
     if (musicEl) return musicEl;
     musicEl = new Audio();
     musicEl.loop = true;
     musicEl.volume = 0;
+    if (!musicElVolumeIsWritable(musicEl)) routeMusicThroughWebAudio();
     return musicEl;
   }
   // Always fades toward the *current* musicVolume, re-read on every tick --
@@ -796,11 +870,11 @@ if (canvas) {
   function fadeMusicIn(ms) {
     if (musicFadeTimer) { clearInterval(musicFadeTimer); musicFadeTimer = null; }
     if (!musicEl) return;
-    const start = musicEl.volume;
+    const start = currentMusicLevel();
     const startTs = performance.now();
     musicFadeTimer = setInterval(() => {
       const t = Math.min(1, (performance.now() - startTs) / ms);
-      musicEl.volume = start + (musicVolume - start) * t;
+      applyMusicLevel(start + (musicVolume - start) * t);
       if (t >= 1) { clearInterval(musicFadeTimer); musicFadeTimer = null; }
     }, 60);
   }
@@ -812,7 +886,7 @@ if (canvas) {
     // Leave an in-progress fade-in alone -- it re-reads musicVolume on its
     // own next tick (see fadeMusicIn()), so it's already heading toward the
     // just-updated value instead of needing a jump-cut here.
-    if (musicEl && !musicMuted && !musicFadeTimer) musicEl.volume = musicVolume;
+    if (musicEl && !musicMuted && !musicFadeTimer) applyMusicLevel(musicVolume);
   }
   function setSfxVolume(v) {
     sfxVolume = Math.min(1, Math.max(0, v));
@@ -871,10 +945,14 @@ if (canvas) {
   function startMusicPlayback() {
     if (musicMuted) return;
     const el = ensureMusicEl();
+    // On the Web Audio path the element feeds a GainNode, so the context
+    // has to actually be running or the routed audio never reaches the
+    // speakers. Same gesture-scoped resume primeAudio() does for SFX.
+    if (musicUsesWebAudio && actx && actx.state === 'suspended') actx.resume();
     lastTrackIdx = pickTrackIndex();
     el.src = ASSET_BASE + MUSIC_BASE + MUSIC_TRACKS[lastTrackIdx];
     el.currentTime = 0;
-    el.volume = 0;
+    applyMusicLevel(0, true); // silent pre-roll -- fadeMusicIn() takes it up from here
     const p = el.play();
     if (p && p.catch) p.catch(() => { /* blocked -- no gesture yet, next call will retry */ });
   }
