@@ -14,13 +14,6 @@ if (canvas) {
   const overlay = document.getElementById('hoodGameOverlay');
   const overlayTitle = document.getElementById('hoodGameOverlayTitle');
   const overlayLines = document.getElementById('hoodGameOverlayLines');
-  // The standalone mute button was replaced by the settings panel's volume
-  // sliders (dragging either to 0 mutes it). This now always resolves to
-  // null since the element is gone -- the `if (muteBtn)` guards below are
-  // intentionally left in place rather than ripped out: musicMuted/
-  // setMuted() are still real internal state (every play call checks it),
-  // just with no UI control wired to it at the moment.
-  const muteBtn = document.getElementById('hoodGameMuteBtn');
   const fullscreenBtn = document.getElementById('hoodGameFullscreenBtn');
   const settingsBtn = document.getElementById('hoodGameSettingsBtn');
   const settingsPanel = document.getElementById('hoodGameSettingsPanel');
@@ -676,12 +669,34 @@ if (canvas) {
     return p;
   }
 
-  // Kicks off decoding everything up front (right after sprites finish
-  // loading, see boot below) so gameplay never pays a first-use decode
-  // cost -- only cheap buffer scheduling happens during an actual run.
+  // Kicks off decoding everything up front so gameplay never pays a
+  // first-use decode cost -- only cheap buffer scheduling happens during an
+  // actual run. This used to fire all ~9 fetch+decodeAudioData calls at
+  // once, synchronously, from inside primeAudio() -- which runs on the same
+  // gesture (and the same tick) as the very first jump/run start. Profiling
+  // under CPU throttling confirmed that concurrent decode burst landing
+  // right as physics/render kick off was the actual source of the "stutter
+  // on jump/start" -- not the game loop itself.
+  //
+  // Split into two priority tiers instead of one flat list:
+  //  - "critical" (running loop + jump/land/coin/impact SFX): small files,
+  //    needed within the first couple seconds of any run, so they still
+  //    kick off right away -- just chained one-at-a-time instead of fired
+  //    concurrently, which was the actual source of the CPU burst (five
+  //    small decodes serialized is cheaper on the main thread at any given
+  //    instant than the same five racing in parallel).
+  //  - the other three music tracks: not remotely time-critical (the one
+  //    actually playing this run is loaded separately by playRandomMusic()'s
+  //    own direct call), so those are pushed to an idle moment.
   function preloadAudio() {
     if (!ensureAudioCtx()) return;
-    MUSIC_TRACKS.concat(RUN_SFX_FILE, Object.values(SFX_FILES)).forEach(loadBuffer);
+    const critical = [RUN_SFX_FILE].concat(Object.values(SFX_FILES));
+    critical.reduce((p, file) => p.then(() => loadBuffer(file)), Promise.resolve());
+
+    const runIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
+    runIdle(() => {
+      MUSIC_TRACKS.reduce((p, file) => p.then(() => loadBuffer(file)), Promise.resolve());
+    });
   }
 
   function pickTrackIndex() {
@@ -750,11 +765,6 @@ if (canvas) {
   function setMuted(muted) {
     musicMuted = muted;
     try { localStorage.setItem('hoodRunnerMuted', muted ? '1' : '0'); } catch (err) { /* private mode etc */ }
-    if (muteBtn) {
-      muteBtn.textContent = muted ? '🔇' : '🔊';
-      muteBtn.setAttribute('aria-pressed', String(muted));
-      muteBtn.setAttribute('aria-label', muted ? 'Unmute music' : 'Mute music');
-    }
     if (soundToggle) soundToggle.checked = !muted;
     if (muted) {
       stopMusic();
@@ -763,11 +773,6 @@ if (canvas) {
       playRandomMusic();
       if (player.grounded) startRunSfx();
     }
-  }
-  if (muteBtn) {
-    muteBtn.textContent = musicMuted ? '🔇' : '🔊';
-    muteBtn.setAttribute('aria-pressed', String(musicMuted));
-    muteBtn.addEventListener('click', () => setMuted(!musicMuted));
   }
 
   // ---------- settings panel (top-right "Settings" button, popup centered over the game: music/SFX volume, version) ----------
