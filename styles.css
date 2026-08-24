@@ -935,7 +935,13 @@
      translateX was an independently-chosen pixel value with no formal
      relationship to the track width it needed to stay flush against. */
   .hood-game-toggle{
-    --hgt-w:28px; --hgt-h:19px; --hgt-thumb:13px; --hgt-inset:2px;
+    /* Same shape as the fullscreen-scaled toggle, evaluated at the 800px
+       design width every other fullscreen-scaled element in this file
+       already treats as its "1x" reference (0.036/0.019/0.01625/0.0025 *
+       800, rounded) -- the base toggle used to have its own independently-
+       chosen width/height instead of just being the fullscreen pill at a
+       smaller scale. */
+    --hgt-w:29px; --hgt-h:15px; --hgt-thumb:13px; --hgt-inset:2px;
     position:relative; display:inline-block; width:var(--hgt-w); height:var(--hgt-h); flex:0 0 auto;
   }
   .hood-game-toggle input{
@@ -1012,7 +1018,7 @@
        values, same as everything else in this breakpoint) -- the track,
        thumb, and checked-state slide distance all rederive from these
        automatically. */
-    .hood-game-toggle{--hgt-w:22px; --hgt-h:15px; --hgt-thumb:10px; --hgt-inset:1.5px;}
+    .hood-game-toggle{--hgt-w:23px; --hgt-h:12px; --hgt-thumb:10px; --hgt-inset:1.5px;}
     .hood-game-settings-row input[type="range"]::-webkit-slider-thumb{width:10px; height:10px;}
     .hood-game-settings-row input[type="range"]::-moz-range-thumb{width:10px; height:10px;}
     .hood-game-settings-version{margin-top:10px; padding-top:8px; font-size:8px;}
