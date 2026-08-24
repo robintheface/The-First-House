@@ -65,15 +65,24 @@ if (canvas) {
   let bgNaturalW = 0;
 
   // ---------- game state ----------
-  // HIT is the scripted post-collision beat between clipping an obstacle
-  // and the game-over overlay actually appearing: the world freezes (see
-  // updateHitReaction()), the player kneels through the sprite sheet cut
-  // from kneel_anim.gif and holds its last frame, then -- only after that
-  // hold -- endRun() runs and the overlay text shows up.
-  const STATE = { LOADING: 'loading', IDLE: 'idle', PLAYING: 'playing', HIT: 'hit', OVER: 'over' };
+  // FALL and HIT are the scripted post-collision beat between clipping an
+  // obstacle and the game-over overlay actually appearing -- the world
+  // freezes the instant the collision happens either way (see
+  // updateFall()/updateHitReaction(), neither of which touches obstacles/
+  // coins/background/score):
+  //  - FALL only happens if the player was airborne when they got hit --
+  //    a slow, constant-speed drop from wherever they were down to the
+  //    ground (still showing the jump sprite, mid-air), landing before
+  //    HIT's kneel starts. An already-grounded hit skips straight to HIT.
+  //  - HIT plays the player through the sprite sheet cut from the
+  //    kneel_anim.gif the user uploaded and holds on its last frame, then
+  //    -- only after that hold -- endRun() runs and the overlay text
+  //    shows up.
+  const STATE = { LOADING: 'loading', IDLE: 'idle', PLAYING: 'playing', FALL: 'fall', HIT: 'hit', OVER: 'over' };
   let state = STATE.LOADING;
-  const KNEEL_FRAME_MS = 90;  // matches kneel_anim.gif's own per-frame duration
-  const KNEEL_HOLD_MS = 500;  // pause on the held last frame before the overlay text appears
+  const HIT_FALL_SPEED = 0.28; // px/ms -- deliberately slower than a normal jump's landing speed (~0.9px/ms) for a dramatic, floaty drop
+  const KNEEL_FRAME_MS = 90;   // matches kneel_anim.gif's own per-frame duration
+  const KNEEL_HOLD_MS = 1000;  // pause on the held last frame before the overlay text appears
   let kneelFrame = 0;
   let kneelTimer = 0;
   let kneelHoldTimer = 0;
@@ -293,25 +302,38 @@ if (canvas) {
 
   const RESTART_COOLDOWN = 1000; // ms after the overlay text appears -- avoids an accidental restart from the same tap/key that just lost the run
 
-  // Collision entry point: no longer ends the run immediately -- kicks off
-  // the scripted hit-reaction beat instead (see updateHitReaction()),
-  // which calls endRun() itself once it's done. If the player was airborne
-  // when they clipped something, they're snapped straight down to ground
-  // level first ("rớt xuống đất" -- falls to the ground) so the kneel
-  // plays from a standing pose; already-grounded hits skip that snap since
-  // there's nothing to fall.
-  function triggerHit() {
-    playSfx('impact');
-    stopRunSfx(); // not running anymore -- stop the footstep loop right away, same as landing/jumping already do
-    if (!player.grounded) {
-      player.y = GROUND_Y - GROUND_HEIGHT;
-      player.vy = 0;
-      player.grounded = true;
-    }
+  function startKneel() {
     state = STATE.HIT;
     kneelFrame = 0;
     kneelTimer = 0;
     kneelHoldTimer = 0;
+  }
+
+  // Collision entry point: no longer ends the run immediately -- kicks off
+  // the scripted hit-reaction beat instead (see updateFall()/
+  // updateHitReaction()), which calls endRun() itself once it's done. If
+  // the player was airborne when they clipped something, they fall to the
+  // ground first ("rớt xuống đất" -- slowly, see updateFall(), not an
+  // instant snap) before the kneel starts; an already-grounded hit skips
+  // straight to the kneel since there's nothing to fall.
+  function triggerHit() {
+    playSfx('impact');
+    stopRunSfx(); // not running anymore -- stop the footstep loop right away, same as landing/jumping already do
+    if (player.grounded) startKneel();
+    else state = STATE.FALL; // updateFall() below calls startKneel() itself once it lands
+  }
+
+  // Slow, constant-speed drop from wherever the player was when they got
+  // hit down to ground level -- still drawn with the jump sprite (see
+  // drawPlayer()) since visually they're still airborne until they land.
+  function updateFall(dt) {
+    player.y += HIT_FALL_SPEED * dt;
+    if (player.y >= GROUND_Y - GROUND_HEIGHT) {
+      player.y = GROUND_Y - GROUND_HEIGHT;
+      player.vy = 0;
+      player.grounded = true;
+      startKneel();
+    }
   }
 
   // Advances the kneel sprite sheet at its native 90ms/frame pace, holds on
@@ -667,10 +689,11 @@ if (canvas) {
     lastTs = ts;
 
     if (state === STATE.PLAYING) update(dt);
+    else if (state === STATE.FALL) updateFall(dt);
     else if (state === STATE.HIT) updateHitReaction(dt);
     if (assetsReady) draw();
 
-    if (state === STATE.PLAYING || state === STATE.HIT) {
+    if (state === STATE.PLAYING || state === STATE.FALL || state === STATE.HIT) {
       requestAnimationFrame(loop);
     } else {
       loopScheduled = false;
