@@ -24,6 +24,7 @@ if (canvas) {
   const fullscreenBtn = document.getElementById('hoodGameFullscreenBtn');
   const settingsBtn = document.getElementById('hoodGameSettingsBtn');
   const settingsPanel = document.getElementById('hoodGameSettingsPanel');
+  const soundToggle = document.getElementById('hoodGameSoundToggle');
   const musicVolInput = document.getElementById('hoodGameMusicVol');
   const sfxVolInput = document.getElementById('hoodGameSfxVol');
   const versionEl = document.getElementById('hoodGameVersion');
@@ -754,6 +755,7 @@ if (canvas) {
       muteBtn.setAttribute('aria-pressed', String(muted));
       muteBtn.setAttribute('aria-label', muted ? 'Unmute music' : 'Mute music');
     }
+    if (soundToggle) soundToggle.checked = !muted;
     if (muted) {
       stopMusic();
       stopRunSfx();
@@ -770,6 +772,7 @@ if (canvas) {
 
   // ---------- settings panel (top-right "Settings" button, popup centered over the game: music/SFX volume, version) ----------
   if (settingsBtn && settingsPanel) {
+    if (soundToggle) soundToggle.checked = !musicMuted;
     if (musicVolInput) musicVolInput.value = String(Math.round(musicVolume * 100));
     if (sfxVolInput) sfxVolInput.value = String(Math.round(sfxVolume * 100));
     if (versionEl) versionEl.textContent = 'Hood Runner v' + GAME_VERSION;
@@ -790,6 +793,9 @@ if (canvas) {
       if (e.target === settingsBtn || settingsBtn.contains(e.target) || settingsPanel.contains(e.target)) return;
       closeSettings();
     });
+    if (soundToggle) {
+      soundToggle.addEventListener('change', () => setMuted(!soundToggle.checked));
+    }
     if (musicVolInput) {
       musicVolInput.addEventListener('input', () => setMusicVolume(musicVolInput.valueAsNumber / 100));
     }
@@ -861,6 +867,10 @@ if (canvas) {
   window.addEventListener('keydown', (e) => {
     if (e.code !== 'Space' && e.key !== ' ') return;
     if (!assetsReady) return;
+    // Let Space do its normal job (toggling the Sound switch, activating a
+    // focused button/link) instead of hijacking it into a jump when focus
+    // is on one of the settings panel's own controls.
+    if (e.target && e.target.closest && e.target.closest('input, button, a')) return;
     e.preventDefault();
     primeAudio();
     jump();

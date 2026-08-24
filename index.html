@@ -80,6 +80,13 @@
     <button id="hoodGameSettingsBtn" class="hood-game-settings-btn" type="button" aria-expanded="false" aria-controls="hoodGameSettingsPanel">Settings</button>
     <div id="hoodGameSettingsPanel" class="hood-game-settings-panel" hidden>
       <p class="hood-game-settings-title">Menu</p>
+      <label class="hood-game-settings-row hood-game-settings-row-toggle">
+        <span>Sound</span>
+        <span class="hood-game-toggle">
+          <input type="checkbox" id="hoodGameSoundToggle">
+          <span class="hood-game-toggle-track" aria-hidden="true"></span>
+        </span>
+      </label>
       <label class="hood-game-settings-row">
         <span>Music</span>
         <input type="range" id="hoodGameMusicVol" min="0" max="100" step="1">

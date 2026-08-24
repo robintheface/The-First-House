@@ -908,6 +908,37 @@
     font-size:12px; color:#c8f0b8; letter-spacing:0.02em;
   }
   .hood-game-settings-row + .hood-game-settings-row{margin-top:10px;}
+  /* The Sound row is a master on/off switch, not a slider -- laid out as
+     a horizontal label+switch row instead of the stacked label-over-slider
+     layout the Music/SFX rows use. */
+  .hood-game-settings-row-toggle{
+    flex-direction:row; align-items:center; justify-content:space-between;
+  }
+  .hood-game-toggle{
+    position:relative; display:inline-block; width:34px; height:19px; flex:0 0 auto;
+  }
+  .hood-game-toggle input{
+    position:absolute; inset:0; margin:0; opacity:0; cursor:pointer; touch-action:manipulation;
+  }
+  .hood-game-toggle-track{
+    position:absolute; inset:0; border-radius:10px;
+    background:rgba(241,234,220,0.2);
+    border:1px solid rgba(241,234,220,0.25);
+    transition:background 0.15s ease, border-color 0.15s ease;
+  }
+  .hood-game-toggle-track::before{
+    content:''; position:absolute; top:2px; left:2px; width:13px; height:13px; border-radius:50%;
+    background:#c8f0b8; transition:transform 0.15s ease, background 0.15s ease;
+  }
+  .hood-game-toggle input:checked + .hood-game-toggle-track{
+    background:rgba(224,178,58,0.4); border-color:rgba(224,178,58,0.55);
+  }
+  .hood-game-toggle input:checked + .hood-game-toggle-track::before{
+    transform:translateX(15px); background:#e0b23a;
+  }
+  .hood-game-toggle input:focus-visible + .hood-game-toggle-track{
+    outline:1px solid rgba(224,178,58,0.7); outline-offset:2px;
+  }
   .hood-game-settings-row input[type="range"]{
     -webkit-appearance:none; appearance:none;
     width:100%; height:3px; border-radius:2px;
