@@ -53,6 +53,14 @@ if (canvas) {
   // player's box and draw size both track whichever cycle is currently active.
   let runAspect = 0.89;
   let jumpAspect = 1.05;
+  // Background draw width + its scroll-scale ratio, computed once the
+  // image loads (natural dimensions never change after that) instead of
+  // redoing the same division/multiplication in draw() on every single
+  // frame -- one more small piece of "keep every frame cheap" alongside
+  // the array-compaction/closure-hoisting already done elsewhere here.
+  let bgDrawW = 0;
+  let bgScaleRatio = 0;
+  let bgNaturalW = 0;
 
   // ---------- game state ----------
   const STATE = { LOADING: 'loading', IDLE: 'idle', PLAYING: 'playing', OVER: 'over' };
@@ -81,7 +89,6 @@ if (canvas) {
   let obstacles = [];
   let coins = [];
   let popups = []; // floating "+score" text shown when a coin is grabbed
-  const playerBox = { x: 0, y: 0, w: 0, h: 0 }; // reused every frame instead of reallocated
   let lastDisplayedScore = -1;
   let speed = BASE_SPEED;
   let elapsed = 0;
@@ -341,15 +348,18 @@ if (canvas) {
   }
 
   // ---------- collision ----------
-  function hit(a, b) {
-    // Shrink both boxes a bit so near-misses feel fair rather than
-    // punishing on sprite-padding alone.
-    const pad = 0.16;
-    const ax = a.x + a.w * pad, aw = a.w * (1 - pad * 2);
-    const ay = a.y + a.h * pad, ah = a.h * (1 - pad * 2);
-    const bx = b.x + b.w * pad, bw = b.w * (1 - pad * 2);
-    const by = b.y + b.h * pad, bh = b.h * (1 - pad * 2);
-    return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+  const HIT_PAD = 0.16; // shrink both boxes a bit so near-misses feel fair rather than punishing on sprite-padding alone
+  // Player's own shrunk box, recomputed once per frame (see update()) and
+  // reused for every obstacle/coin check that frame instead of hit()
+  // redoing the exact same a.x/a.w math once per candidate -- with several
+  // obstacles and coins on screen at once that was the same arithmetic
+  // repeated needlessly every single time.
+  const playerHitBox = { x: 0, y: 0, w: 0, h: 0 };
+  function hit(b) {
+    const bx = b.x + b.w * HIT_PAD, bw = b.w * (1 - HIT_PAD * 2);
+    const by = b.y + b.h * HIT_PAD, bh = b.h * (1 - HIT_PAD * 2);
+    return playerHitBox.x < bx + bw && playerHitBox.x + playerHitBox.w > bx
+      && playerHitBox.y < by + bh && playerHitBox.y + playerHitBox.h > by;
   }
 
   // ---------- update ----------
@@ -440,18 +450,22 @@ if (canvas) {
 
     // background parallax
     bgScrollX -= dx * 0.5;
-    const bgW = SPRITES.background.img.naturalWidth;
-    if (bgScrollX <= -bgW) bgScrollX += bgW;
+    if (bgScrollX <= -bgNaturalW) bgScrollX += bgNaturalW;
 
-    // collisions
-    playerBox.x = player.x; playerBox.y = player.y;
-    playerBox.w = GROUND_HEIGHT * (player.grounded ? runAspect : jumpAspect);
-    playerBox.h = GROUND_HEIGHT;
-    for (const o of obstacles) {
-      if (hit(playerBox, o)) { playSfx('impact'); endRun(); break; }
+    // collisions -- playerHitBox is the player's box already shrunk by
+    // HIT_PAD, computed once here instead of hit() redoing the same a.x/
+    // a.w math for every obstacle/coin candidate this frame (see hit()).
+    const playerW = GROUND_HEIGHT * (player.grounded ? runAspect : jumpAspect);
+    playerHitBox.x = player.x + playerW * HIT_PAD;
+    playerHitBox.w = playerW * (1 - HIT_PAD * 2);
+    playerHitBox.y = player.y + GROUND_HEIGHT * HIT_PAD;
+    playerHitBox.h = GROUND_HEIGHT * (1 - HIT_PAD * 2);
+    for (let i = 0; i < obstacles.length; i++) {
+      if (hit(obstacles[i])) { playSfx('impact'); endRun(); break; }
     }
-    for (const c of coins) {
-      if (!c.taken && hit(playerBox, c)) {
+    for (let i = 0; i < coins.length; i++) {
+      const c = coins[i];
+      if (!c.taken && hit(c)) {
         c.taken = true;
         score += COIN_SCORE;
         popups.push({ x: c.x + c.w / 2, y: c.y, life: 0, dur: 650, text: '+' + COIN_SCORE });
@@ -463,8 +477,9 @@ if (canvas) {
   // ---------- draw ----------
   function drawFrame(sprite, frameIndex, x, y, w, h) {
     const img = sprite.img;
-    const fw = img.naturalWidth / sprite.frames;
-    ctx.drawImage(img, frameIndex * fw, 0, fw, img.naturalHeight, x, y, w, h);
+    // sprite.frameW/frameH are precomputed once at boot (see below) instead
+    // of redoing the same division here on every single draw call.
+    ctx.drawImage(img, frameIndex * sprite.frameW, 0, sprite.frameW, sprite.frameH, x, y, w, h);
   }
 
   // Player draw box tracks whichever cycle is active -- run frames and jump
@@ -489,33 +504,37 @@ if (canvas) {
   // second, exactly the GC churn the array-compaction pass elsewhere in
   // this file was written to avoid (mobile CPUs feel this kind of thing as
   // stutter much more than desktop does).
+  // No save()/restore() here (each was pushing/popping the whole canvas
+  // state -- transform, clip, every style, not just the two properties
+  // this actually touches) -- fillStyle is set once by the caller before
+  // any of these run since it's always the same color, and draw() resets
+  // globalAlpha back to 1 right after the last shadow of the frame instead
+  // of every call cleaning up after itself individually.
   function drawGroundShadow(cx, w, lift) {
     const t = Math.min(1, Math.max(0, lift) / 140);
     const alpha = 0.24 * (1 - t * 0.75);
     if (alpha < 0.02) return;
     const sw = w * (1 - t * 0.3);
     const sh = 9 * (1 - t * 0.4);
-    ctx.save();
     ctx.globalAlpha = alpha;
-    ctx.fillStyle = '#1a2916';
     ctx.beginPath();
     ctx.ellipse(cx, GROUND_Y + 3, Math.max(1, sw / 2), Math.max(1, sh / 2), 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.restore();
   }
 
   function draw() {
     ctx.clearRect(0, 0, CW, CH);
 
-    // background (two copies for seamless horizontal scroll)
+    // background (two copies for seamless horizontal scroll) -- bgDrawW/
+    // bgScaleRatio are precomputed once at boot instead of redoing the
+    // same natural-dimension division every frame.
     const bg = SPRITES.background.img;
-    const bgH = GROUND_Y;
-    const bgW = bg.naturalWidth * (bgH / bg.naturalHeight);
-    let x = bgScrollX * (bgW / bg.naturalWidth);
+    let x = bgScrollX * bgScaleRatio;
     while (x < CW) {
-      ctx.drawImage(bg, x, 0, bgW, bgH);
-      x += bgW;
+      ctx.drawImage(bg, x, 0, bgDrawW, GROUND_Y);
+      x += bgDrawW;
     }
+    ctx.fillStyle = '#1a2916';
     for (let i = 0; i < coins.length; i++) {
       const c = coins[i];
       if (!c.taken) drawGroundShadow(c.x + c.w / 2, c.w, (GROUND_Y - c.h) - c.y);
@@ -526,6 +545,7 @@ if (canvas) {
     }
     const playerW = GROUND_HEIGHT * (player.grounded ? runAspect : jumpAspect);
     drawGroundShadow(player.x + playerW / 2, playerW * 0.95, (GROUND_Y - GROUND_HEIGHT) - player.y);
+    ctx.globalAlpha = 1; // shadows are the only thing that touches this -- reset once instead of per-call
 
     // coins
     for (let i = 0; i < coins.length; i++) {
@@ -996,6 +1016,14 @@ if (canvas) {
   ).then(() => {
     runAspect = (SPRITES.run.img.naturalWidth / SPRITES.run.frames) / SPRITES.run.img.naturalHeight;
     jumpAspect = (SPRITES.jump.img.naturalWidth / SPRITES.jump.frames) / SPRITES.jump.img.naturalHeight;
+    // Precomputed once here instead of on every drawFrame()/draw() call --
+    // natural image dimensions never change after load.
+    Object.values(SPRITES).forEach((sprite) => {
+      if (sprite.frames) { sprite.frameW = sprite.img.naturalWidth / sprite.frames; sprite.frameH = sprite.img.naturalHeight; }
+    });
+    bgNaturalW = SPRITES.background.img.naturalWidth;
+    bgScaleRatio = GROUND_Y / SPRITES.background.img.naturalHeight;
+    bgDrawW = bgNaturalW * bgScaleRatio;
     // Audio priming (AudioContext creation + decode) happens on the first
     // real user gesture (see primeAudio() in the input section below), not
     // here -- creating the context this early, before any gesture, is
