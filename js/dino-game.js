@@ -768,7 +768,7 @@ if (canvas) {
     muteBtn.addEventListener('click', () => setMuted(!musicMuted));
   }
 
-  // ---------- settings panel (top-right gear: music/SFX volume, version) ----------
+  // ---------- settings panel (top-right "Settings" button, popup centered over the game: music/SFX volume, version) ----------
   if (settingsBtn && settingsPanel) {
     if (musicVolInput) musicVolInput.value = String(Math.round(musicVolume * 100));
     if (sfxVolInput) sfxVolInput.value = String(Math.round(sfxVolume * 100));
