@@ -871,15 +871,20 @@
   }
   .hood-game-settings-btn{
     position:absolute; top:8px; right:8px; z-index:3;
-    padding:5px 12px; border-radius:14px;
+    padding:5px 12px; border-radius:0;
     background:rgba(0,0,0,0.55); border:1px solid rgba(241,234,220,0.35);
     color:#c8f0b8; font-family:'IM Fell English',serif; font-size:14px; letter-spacing:0.03em;
     line-height:1; cursor:pointer; touch-action:manipulation;
-    transition:background 0.15s ease, transform 0.15s ease;
+    /* Faded at rest on purpose -- it's a secondary control that shouldn't
+       compete with the game itself; hovering (or focusing/opening it)
+       brings it to full clarity. */
+    opacity:0.55;
+    transition:opacity 0.15s ease, background 0.15s ease, transform 0.15s ease;
   }
-  .hood-game-settings-btn:hover{background:rgba(0,0,0,0.7);}
+  .hood-game-settings-btn:hover,
+  .hood-game-settings-btn:focus-visible,
+  .hood-game-settings-btn[aria-expanded="true"]{opacity:1; background:rgba(0,0,0,0.7);}
   .hood-game-settings-btn:active{transform:scale(0.92);}
-  .hood-game-settings-btn[aria-expanded="true"]{background:rgba(0,0,0,0.7);}
   .hood-game-settings-panel{
     position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:4;
     width:200px; padding:16px 18px;
@@ -946,6 +951,36 @@
     width:100vw; height:100vh; max-width:none;
     display:flex; align-items:center; justify-content:center;
     background:#000; border-radius:0; border:0; box-shadow:none;
+    /* Rendered width of the letterboxed canvas -- same "tighter of the two
+       axes" expression used for the canvas itself below. The overlay
+       buttons/HUD text scale off of this (as a fraction of their normal
+       800px-design-width pixel sizes) so they grow along with the canvas
+       instead of staying pinned at their small non-fullscreen size. */
+    --hgw-scale-w:min(100vw, 100vh * 800 / 450);
+  }
+  .hood-game-wrap:fullscreen .hood-game-hud,
+  .hood-game-wrap:-webkit-full-screen .hood-game-hud{
+    font-size:calc(var(--hgw-scale-w) * 0.0175);
+  }
+  .hood-game-wrap:fullscreen .hood-game-best,
+  .hood-game-wrap:-webkit-full-screen .hood-game-best{
+    font-size:calc(var(--hgw-scale-w) * 0.0275);
+    top:calc(var(--hgw-scale-w) * 0.0125);
+  }
+  .hood-game-wrap:fullscreen .hood-game-settings-btn,
+  .hood-game-wrap:-webkit-full-screen .hood-game-settings-btn{
+    font-size:calc(var(--hgw-scale-w) * 0.0175);
+    padding:calc(var(--hgw-scale-w) * 0.00625) calc(var(--hgw-scale-w) * 0.015);
+    top:calc(var(--hgw-scale-w) * 0.01);
+    right:calc(var(--hgw-scale-w) * 0.01);
+  }
+  .hood-game-wrap:fullscreen .hood-game-fullscreen-btn,
+  .hood-game-wrap:-webkit-full-screen .hood-game-fullscreen-btn{
+    width:calc(var(--hgw-scale-w) * 0.0475);
+    height:calc(var(--hgw-scale-w) * 0.0475);
+    font-size:calc(var(--hgw-scale-w) * 0.01875);
+    right:calc(var(--hgw-scale-w) * 0.0125);
+    bottom:calc(var(--hgw-scale-w) * 0.0125);
   }
   .hood-game-wrap:fullscreen #hoodGameCanvas,
   .hood-game-wrap:-webkit-full-screen #hoodGameCanvas{
