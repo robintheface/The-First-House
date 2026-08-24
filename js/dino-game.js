@@ -560,9 +560,14 @@ if (canvas) {
 
   // Which sprite sheet/aspect is currently "the player" -- shared by
   // drawPlayer() and the player's ground-shadow sizing in draw() below so
-  // the two never disagree about which cycle is active.
+  // the two never disagree about which cycle is active. OVER is included
+  // alongside HIT here -- endRun() only ever runs at the end of the kneel
+  // sequence now (see updateHitReaction()), so once the overlay text is up
+  // the player should still read as kneeling, not snap back to standing
+  // for the one final frame draw() gets before the loop stops scheduling
+  // itself (see loop() below).
   function currentPlayerAspect() {
-    if (state === STATE.HIT) return kneelAspect;
+    if (state === STATE.HIT || state === STATE.OVER) return kneelAspect;
     return player.grounded ? runAspect : jumpAspect;
   }
 
@@ -571,7 +576,7 @@ if (canvas) {
   // the kneel sheet is its own source image).
   function drawPlayer() {
     const h = GROUND_HEIGHT;
-    if (state === STATE.HIT) {
+    if (state === STATE.HIT || state === STATE.OVER) {
       drawFrame(SPRITES.kneel, kneelFrame, player.x, player.y, h * kneelAspect, h);
     } else if (player.grounded) {
       const w = h * runAspect;
