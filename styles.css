@@ -925,34 +925,55 @@
   .hood-game-settings-row-toggle{
     flex-direction:row; align-items:center; justify-content:space-between;
   }
+  /* Four custom properties are the single source of truth for every other
+     toggle measurement below (thumb size/position, the checked-state slide
+     distance) -- mobile and fullscreen only ever need to redeclare these
+     four on .hood-game-toggle itself (children inherit them), instead of
+     separately-scaled copies of the track/thumb/checked-position rules
+     that had to be kept in sync by hand. That's what let the thumb drift
+     out of alignment at fullscreen scale before: the checked-state
+     translateX was an independently-chosen pixel value with no formal
+     relationship to the track width it needed to stay flush against. */
   .hood-game-toggle{
-    position:relative; display:inline-block; width:34px; height:19px; flex:0 0 auto;
+    --hgt-w:26px; --hgt-h:19px; --hgt-thumb:13px; --hgt-inset:2px;
+    position:relative; display:inline-block; width:var(--hgt-w); height:var(--hgt-h); flex:0 0 auto;
   }
   .hood-game-toggle input{
     position:absolute; inset:0; margin:0; opacity:0; cursor:pointer; touch-action:manipulation;
   }
   .hood-game-toggle-track{
     position:absolute; inset:0;
-    /* A very large px radius (rather than a fixed 10px, or the toggle's
+    /* A very large px radius (rather than a fixed value, or the toggle's
        own height) always clamps to a perfect capsule regardless of the
        box's actual size -- border-radius can never exceed half the
-       shorter side. A flat 10px looked fine at the small non-fullscreen
-       size but read as a broken, barely-rounded rectangle once the
-       fullscreen-scaled toggle grew much taller than that. */
+       shorter side. No border on the track -- keeping the thumb's
+       position math working off the plain border-box at any scale is
+       simpler than also accounting for a border eating into it. */
     border-radius:999px;
     background:rgba(241,234,220,0.2);
-    border:1px solid rgba(241,234,220,0.25);
-    transition:background 0.15s ease, border-color 0.15s ease;
+    transition:background 0.15s ease;
   }
   .hood-game-toggle-track::before{
-    content:''; position:absolute; top:2px; left:2px; width:13px; height:13px; border-radius:50%;
-    background:#c8f0b8; transition:transform 0.15s ease, background 0.15s ease;
+    content:'';
+    position:absolute;
+    /* Vertically centered via top:50%+translateY(-50%) rather than a
+       hand-picked top offset -- exact at any track height with nothing to
+       keep in sync. */
+    top:50%; left:var(--hgt-inset);
+    width:var(--hgt-thumb); height:var(--hgt-thumb); border-radius:50%;
+    transform:translateY(-50%);
+    background:#c8f0b8;
+    transition:transform 0.15s ease, background 0.15s ease;
   }
   .hood-game-toggle input:checked + .hood-game-toggle-track{
-    background:rgba(224,178,58,0.4); border-color:rgba(224,178,58,0.55);
+    background:rgba(224,178,58,0.4);
   }
   .hood-game-toggle input:checked + .hood-game-toggle-track::before{
-    transform:translateX(15px); background:#e0b23a;
+    /* Slides exactly flush with the right inset regardless of scale,
+       since it's computed from the same --hgt-* values the track/thumb
+       themselves use instead of an independent literal pixel value. */
+    transform:translateY(-50%) translateX(calc(var(--hgt-w) - var(--hgt-thumb) - 2 * var(--hgt-inset)));
+    background:#e0b23a;
   }
   .hood-game-toggle input:focus-visible + .hood-game-toggle-track{
     outline:1px solid rgba(224,178,58,0.7); outline-offset:2px;
@@ -987,9 +1008,11 @@
     .hood-game-settings-title{font-size:15px; margin-bottom:10px; padding-bottom:6px;}
     .hood-game-settings-row{font-size:10px; gap:3px;}
     .hood-game-settings-row + .hood-game-settings-row{margin-top:8px;}
-    .hood-game-toggle{width:27px; height:15px;}
-    .hood-game-toggle-track::before{width:10px; height:10px; top:1.5px; left:1.5px;}
-    .hood-game-toggle input:checked + .hood-game-toggle-track::before{transform:translateX(12px);}
+    /* Just the 4 source-of-truth custom properties (0.8x of the base
+       values, same as everything else in this breakpoint) -- the track,
+       thumb, and checked-state slide distance all rederive from these
+       automatically. */
+    .hood-game-toggle{--hgt-w:21px; --hgt-h:15px; --hgt-thumb:10px; --hgt-inset:1.5px;}
     .hood-game-settings-row input[type="range"]::-webkit-slider-thumb{width:10px; height:10px;}
     .hood-game-settings-row input[type="range"]::-moz-range-thumb{width:10px; height:10px;}
     .hood-game-settings-version{margin-top:10px; padding-top:8px; font-size:8px;}
@@ -1129,24 +1152,16 @@
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-settings-row + .hood-game-settings-row{
     margin-top:calc(var(--hgw-menu-scale-w) * 0.0125);
   }
+  /* Same 4-custom-property override as the mobile breakpoint above -- the
+     track, thumb, and checked-state slide distance all rederive from
+     these, so there's nothing else to keep in sync at this scale either. */
   .hood-game-wrap:fullscreen .hood-game-toggle,
   .hood-game-wrap:-webkit-full-screen .hood-game-toggle,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-toggle{
-    width:calc(var(--hgw-menu-scale-w) * 0.0425);
-    height:calc(var(--hgw-menu-scale-w) * 0.02375);
-  }
-  .hood-game-wrap:fullscreen .hood-game-toggle-track::before,
-  .hood-game-wrap:-webkit-full-screen .hood-game-toggle-track::before,
-  .hood-game-wrap.is-pseudo-fullscreen .hood-game-toggle-track::before{
-    width:calc(var(--hgw-menu-scale-w) * 0.01625);
-    height:calc(var(--hgw-menu-scale-w) * 0.01625);
-    top:calc(var(--hgw-menu-scale-w) * 0.0025);
-    left:calc(var(--hgw-menu-scale-w) * 0.0025);
-  }
-  .hood-game-wrap:fullscreen .hood-game-toggle input:checked + .hood-game-toggle-track::before,
-  .hood-game-wrap:-webkit-full-screen .hood-game-toggle input:checked + .hood-game-toggle-track::before,
-  .hood-game-wrap.is-pseudo-fullscreen .hood-game-toggle input:checked + .hood-game-toggle-track::before{
-    transform:translateX(calc(var(--hgw-menu-scale-w) * 0.01875));
+    --hgt-w:calc(var(--hgw-menu-scale-w) * 0.0325);
+    --hgt-h:calc(var(--hgw-menu-scale-w) * 0.02375);
+    --hgt-thumb:calc(var(--hgw-menu-scale-w) * 0.01625);
+    --hgt-inset:calc(var(--hgw-menu-scale-w) * 0.0025);
   }
   .hood-game-wrap:fullscreen .hood-game-settings-row input[type="range"],
   .hood-game-wrap:-webkit-full-screen .hood-game-settings-row input[type="range"],
