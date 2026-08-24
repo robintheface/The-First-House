@@ -872,25 +872,24 @@
   .hood-game-settings-btn{
     position:absolute; top:8px; right:8px; z-index:3;
     padding:5px 12px; border-radius:14px;
-    background:rgba(0,0,0,0.35); border:1px solid rgba(241,234,220,0.2);
+    background:rgba(0,0,0,0.55); border:1px solid rgba(241,234,220,0.35);
     color:#c8f0b8; font-family:'IM Fell English',serif; font-size:14px; letter-spacing:0.03em;
     line-height:1; cursor:pointer; touch-action:manipulation;
     transition:background 0.15s ease, transform 0.15s ease;
   }
-  .hood-game-settings-btn:hover{background:rgba(0,0,0,0.55);}
+  .hood-game-settings-btn:hover{background:rgba(0,0,0,0.7);}
   .hood-game-settings-btn:active{transform:scale(0.92);}
-  .hood-game-settings-btn[aria-expanded="true"]{background:rgba(0,0,0,0.6);}
+  .hood-game-settings-btn[aria-expanded="true"]{background:rgba(0,0,0,0.7);}
   .hood-game-settings-panel{
     position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:4;
     width:200px; padding:16px 18px;
     border-radius:12px;
     background:rgba(8,14,8,0.82);
     -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
-    /* Classic/vintage look to match the IM Fell English font -- a native
-       CSS "double" border renders as two parallel lines with a gap (needs
-       >=3px width to read as two lines rather than one solid one), like
-       the double-rule border on an old book cover or card. */
-    border:3px double #e0b23a;
+    /* Same soft single-hairline border used by the other in-page popups
+       (e.g. .wallet-modal-card) instead of a heavier double-line frame,
+       just tinted with the game's gold accent. */
+    border:1px solid rgba(224,178,58,0.3);
     box-shadow:0 16px 40px -12px rgba(0,0,0,0.7);
     font-family:'IM Fell English',serif;
   }
@@ -901,7 +900,7 @@
   }
   .hood-game-settings-row{
     display:flex; flex-direction:column; gap:4px;
-    font-size:14px; color:#c8f0b8; text-transform:uppercase; letter-spacing:0.06em;
+    font-size:12px; color:#c8f0b8; letter-spacing:0.02em;
   }
   .hood-game-settings-row + .hood-game-settings-row{margin-top:10px;}
   .hood-game-settings-row input[type="range"]{
