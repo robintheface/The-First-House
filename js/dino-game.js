@@ -732,10 +732,30 @@ if (canvas) {
   }
 
   // ---------- input ----------
+  // The AudioContext is created (and, if needed, resumed) here -- as the
+  // very first thing done inside a real user-gesture handler -- rather
+  // than eagerly at boot. Creating it before any gesture leaves it
+  // 'suspended' on mobile browsers, and calling resume() *later* from
+  // inside a gesture isn't reliably enough to unlock it on some of them
+  // (notably iOS Safari): the activation has to be tied to the context's
+  // own creation/first-resume, not just any resume() call downstream.
+  // preloadAudio()'s decode work is safe to kick off from here too --
+  // loadBuffer() dedupes, so this is a no-op on every gesture after the
+  // first.
+  let audioPrimed = false;
+  function primeAudio() {
+    if (audioPrimed) return;
+    audioPrimed = true;
+    const ctx = ensureAudioCtx();
+    if (ctx && ctx.state === 'suspended') ctx.resume();
+    preloadAudio();
+  }
+
   window.addEventListener('keydown', (e) => {
     if (e.code !== 'Space' && e.key !== ' ') return;
     if (!assetsReady) return;
     e.preventDefault();
+    primeAudio();
     jump();
   });
   // Tap target is the whole section, not just the canvas -- on a small
@@ -746,6 +766,7 @@ if (canvas) {
   (gameSection || canvas).addEventListener('pointerdown', (e) => {
     if (!assetsReady) return;
     if (e.target.closest('a, button')) return;
+    primeAudio();
     jump();
   });
 
@@ -758,10 +779,10 @@ if (canvas) {
   ).then(() => {
     runAspect = (SPRITES.run.img.naturalWidth / SPRITES.run.frames) / SPRITES.run.img.naturalHeight;
     jumpAspect = (SPRITES.jump.img.naturalWidth / SPRITES.jump.frames) / SPRITES.jump.img.naturalHeight;
-    // Kick off audio decoding now (fetch+decode happens once, off the
-    // critical path) so the first jump/landing/coin/impact/music/running
-    // in an actual run doesn't pay that cost for the first time mid-play.
-    preloadAudio();
+    // Audio priming (AudioContext creation + decode) happens on the first
+    // real user gesture (see primeAudio() in the input section below), not
+    // here -- creating the context this early, before any gesture, is
+    // exactly what leaves it stuck unable to unlock on some mobile browsers.
     assetsReady = true;
     state = STATE.IDLE;
     showOverlay('HOOD RUN', ['PRESS SPACE TO START']);
