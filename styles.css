@@ -872,18 +872,19 @@
   .hood-game-settings-btn{
     position:absolute; top:8px; right:8px; z-index:3;
     padding:5px 12px; border-radius:0;
-    background:rgba(0,0,0,0.55); border:none;
-    color:#c8f0b8; font-family:'IM Fell English',serif; font-size:14px; letter-spacing:0.03em;
+    background:transparent; border:none;
+    color:#c8f0b8; text-shadow:0 1px 3px rgba(0,0,0,0.7);
+    font-family:'IM Fell English',serif; font-size:14px; letter-spacing:0.03em;
     line-height:1; cursor:pointer; touch-action:manipulation;
     /* Faded at rest on purpose -- it's a secondary control that shouldn't
        compete with the game itself; hovering (or focusing/opening it)
        brings it to full clarity. */
     opacity:0.55;
-    transition:opacity 0.15s ease, background 0.15s ease, transform 0.15s ease;
+    transition:opacity 0.15s ease, transform 0.15s ease;
   }
   .hood-game-settings-btn:hover,
   .hood-game-settings-btn:focus-visible,
-  .hood-game-settings-btn[aria-expanded="true"]{opacity:1; background:rgba(0,0,0,0.7);}
+  .hood-game-settings-btn[aria-expanded="true"]{opacity:1;}
   .hood-game-settings-btn:active{transform:scale(0.92);}
   .hood-game-settings-panel{
     position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:4;
