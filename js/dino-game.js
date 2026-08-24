@@ -130,7 +130,17 @@ if (canvas) {
       // second. Both members of a pair are always short candles (see
       // spawnObstacle), so a tighter gap here still stays fair. Scales
       // down toward the floor as speed rises like the normal gap does.
-      const followBase = Math.max(260, 620 - speed * 550);
+      //
+      // Early in a run (speed still at/near BASE_SPEED) that gap read as
+      // too spread out to clearly land as "one paired obstacle" -- packed
+      // 50% tighter at run start, ramping back up to the untouched
+      // original value by the time speed finishes ramping to MAX_SPEED
+      // (both the floor and the raw formula scale together, so the "which
+      // one wins" relationship -- and therefore late-run behavior -- is
+      // unchanged once fully ramped).
+      const speedProgress = Math.min(1, Math.max(0, (speed - BASE_SPEED) / (MAX_SPEED - BASE_SPEED)));
+      const earlyPairScale = 0.5 + 0.5 * speedProgress;
+      const followBase = Math.max(260 * earlyPairScale, (620 - speed * 550) * earlyPairScale);
       nextObstacleAt = elapsed + followBase + Math.random() * 80;
       return;
     }

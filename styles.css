@@ -935,7 +935,7 @@
      translateX was an independently-chosen pixel value with no formal
      relationship to the track width it needed to stay flush against. */
   .hood-game-toggle{
-    --hgt-w:26px; --hgt-h:19px; --hgt-thumb:13px; --hgt-inset:2px;
+    --hgt-w:28px; --hgt-h:19px; --hgt-thumb:13px; --hgt-inset:2px;
     position:relative; display:inline-block; width:var(--hgt-w); height:var(--hgt-h); flex:0 0 auto;
   }
   .hood-game-toggle input{
@@ -1012,7 +1012,7 @@
        values, same as everything else in this breakpoint) -- the track,
        thumb, and checked-state slide distance all rederive from these
        automatically. */
-    .hood-game-toggle{--hgt-w:21px; --hgt-h:15px; --hgt-thumb:10px; --hgt-inset:1.5px;}
+    .hood-game-toggle{--hgt-w:22px; --hgt-h:15px; --hgt-thumb:10px; --hgt-inset:1.5px;}
     .hood-game-settings-row input[type="range"]::-webkit-slider-thumb{width:10px; height:10px;}
     .hood-game-settings-row input[type="range"]::-moz-range-thumb{width:10px; height:10px;}
     .hood-game-settings-version{margin-top:10px; padding-top:8px; font-size:8px;}
@@ -1158,8 +1158,8 @@
   .hood-game-wrap:fullscreen .hood-game-toggle,
   .hood-game-wrap:-webkit-full-screen .hood-game-toggle,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-toggle{
-    --hgt-w:calc(var(--hgw-menu-scale-w) * 0.0325);
-    --hgt-h:calc(var(--hgw-menu-scale-w) * 0.02375);
+    --hgt-w:calc(var(--hgw-menu-scale-w) * 0.036);
+    --hgt-h:calc(var(--hgw-menu-scale-w) * 0.019);
     --hgt-thumb:calc(var(--hgw-menu-scale-w) * 0.01625);
     --hgt-inset:calc(var(--hgw-menu-scale-w) * 0.0025);
   }
