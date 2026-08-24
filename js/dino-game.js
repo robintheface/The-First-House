@@ -587,22 +587,33 @@ if (canvas) {
     requestAnimationFrame(loop);
   }
 
-  // ---------- audio (Web Audio API, buffer-based) ----------
-  // Every sound used to be a plain HTMLMediaElement (`new Audio()` /
-  // `<audio>`), including two elements looping continuously for the whole
-  // run (music + running footsteps). Each one keeps its own live
-  // demux/decode/network-buffering pipeline running the entire time it
-  // plays -- fine on desktop, but a real source of stutter on mobile with
-  // two of those pipelines active simultaneously (confirmed: muting, which
-  // stops both, made the game smooth again). Web Audio fixes this at the
-  // root: every file is decoded ONCE into an in-memory AudioBuffer, and
-  // "playing" it after that is just scheduling a lightweight buffer-source
-  // node -- no ongoing decode/streaming cost, looping is sample-accurate
-  // with no per-loop re-trigger, and volume/fades are native GainNode
-  // ramps instead of a JS timer stepping .volume by hand.
+  // ---------- audio ----------
+  // Two different engines for two different jobs:
+  //  - Music: a single native HTMLAudioElement, streamed/decoded
+  //    incrementally by the browser's own media pipeline. Profiling under
+  //    CPU throttling (instrumenting decodeAudioData directly) found that
+  //    music files -- the only ones big enough to matter, 0.6-3.2MB
+  //    compressed -- caused a genuine 400ms-to-nearly-2s main-thread stall
+  //    exactly when Web Audio's decodeAudioData resolved, whether that
+  //    landed at startRun() (decoding the track just picked) or later via
+  //    a background preload of the others: decodeAudioData hands back a
+  //    track's ENTIRE decoded PCM in one shot (tens of MB for a
+  //    multi-minute file), and materializing that is expensive regardless
+  //    of when it's triggered. A streaming <audio> element has no such
+  //    one-shot cost.
+  //  - Everything else (jump/land/coin/impact SFX + the looping running
+  //    footstep track) stays on Web Audio buffers: all well under 300KB,
+  //    decoding each in under ~20ms even under heavy throttling in the
+  //    same profiling, so none of them have the large-file problem music
+  //    does -- buffer-source scheduling stays the cheapest option for those.
+  // A single streaming <audio> for music isn't a re-run of the ORIGINAL
+  // mobile-stutter bug either -- that came from TWO continuously-streaming
+  // HTMLMediaElements (music + running) contending for the same decode
+  // pipeline at once. Running now lives on Web Audio, so there's only ever
+  // one streaming pipeline active here, same as before that fix landed.
   const MUSIC_BASE = 'sound-effects/';
   const MUSIC_TRACKS = ['1sound.mp3', '2sound.mp3', '3sound.mp3', '5sound.mp3'];
-  const FADE_IN_S = 2.5;
+  const FADE_IN_MS = 2500;
   const SFX_FILES = { jump: 'jumping.wav', land: 'landing.mp3', coin: 'coin.wav', impact: 'impact.mp3' };
   const RUN_SFX_FILE = 'running.mp3';
 
@@ -624,9 +635,8 @@ if (canvas) {
   try { musicMuted = localStorage.getItem('hoodRunnerMuted') === '1'; } catch (err) { musicMuted = false; }
 
   let actx = null;
-  let musicGain = null, sfxGain = null, runGain = null;
+  let sfxGain = null, runGain = null;
   const audioBuffers = Object.create(null); // filename -> AudioBuffer | Promise<AudioBuffer|null>
-  let musicSource = null;
   let runSource = null;
   let lastTrackIdx = -1;
 
@@ -635,16 +645,43 @@ if (canvas) {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return null;
     actx = new AudioCtx();
-    musicGain = actx.createGain(); musicGain.gain.value = 0; musicGain.connect(actx.destination);
     sfxGain = actx.createGain(); sfxGain.gain.value = sfxVolume; sfxGain.connect(actx.destination);
     runGain = actx.createGain(); runGain.gain.value = sfxVolume; runGain.connect(actx.destination);
     return actx;
   }
 
+  // Music element + its own tiny volume-fade timer. A coarse 60ms-step
+  // setInterval (not a per-frame rAF hook) is plenty smooth for a volume
+  // ramp and, unlike the large-file decode above, costs nothing worth
+  // measuring next to the game loop -- ~40 cheap steps spread across
+  // FADE_IN_MS, not a per-frame cost.
+  let musicEl = null;
+  let musicFadeTimer = null;
+  function ensureMusicEl() {
+    if (musicEl) return musicEl;
+    musicEl = new Audio();
+    musicEl.loop = true;
+    musicEl.volume = 0;
+    return musicEl;
+  }
+  function fadeMusicTo(target, ms) {
+    if (musicFadeTimer) { clearInterval(musicFadeTimer); musicFadeTimer = null; }
+    if (!musicEl) return;
+    const start = musicEl.volume;
+    const startTs = performance.now();
+    musicFadeTimer = setInterval(() => {
+      const t = Math.min(1, (performance.now() - startTs) / ms);
+      musicEl.volume = start + (target - start) * t;
+      if (t >= 1) { clearInterval(musicFadeTimer); musicFadeTimer = null; }
+    }, 60);
+  }
+
   function setMusicVolume(v) {
     musicVolume = Math.min(1, Math.max(0, v));
     try { localStorage.setItem('hoodRunnerMusicVol', String(musicVolume)); } catch (err) { /* private mode etc */ }
-    if (actx && musicGain && !musicMuted) musicGain.gain.setTargetAtTime(musicVolume, actx.currentTime, 0.05);
+    // Leave an in-progress fade-in alone -- it's already ramping toward the
+    // just-updated musicVolume target on its own next tick.
+    if (musicEl && !musicMuted && !musicFadeTimer) musicEl.volume = musicVolume;
   }
   function setSfxVolume(v) {
     sfxVolume = Math.min(1, Math.max(0, v));
@@ -655,8 +692,10 @@ if (canvas) {
     }
   }
 
-  // Decodes a file exactly once regardless of how many times it's
-  // requested -- concurrent callers share the same in-flight promise.
+  // Decodes an SFX/running-loop file exactly once regardless of how many
+  // times it's requested -- concurrent callers share the same in-flight
+  // promise. Music never goes through here -- see the audio section intro
+  // above for why.
   function loadBuffer(file) {
     if (audioBuffers[file]) return audioBuffers[file];
     const ctx = ensureAudioCtx();
@@ -669,34 +708,17 @@ if (canvas) {
     return p;
   }
 
-  // Kicks off decoding everything up front so gameplay never pays a
-  // first-use decode cost -- only cheap buffer scheduling happens during an
-  // actual run. This used to fire all ~9 fetch+decodeAudioData calls at
-  // once, synchronously, from inside primeAudio() -- which runs on the same
-  // gesture (and the same tick) as the very first jump/run start. Profiling
-  // under CPU throttling confirmed that concurrent decode burst landing
-  // right as physics/render kick off was the actual source of the "stutter
-  // on jump/start" -- not the game loop itself.
-  //
-  // Split into two priority tiers instead of one flat list:
-  //  - "critical" (running loop + jump/land/coin/impact SFX): small files,
-  //    needed within the first couple seconds of any run, so they still
-  //    kick off right away -- just chained one-at-a-time instead of fired
-  //    concurrently, which was the actual source of the CPU burst (five
-  //    small decodes serialized is cheaper on the main thread at any given
-  //    instant than the same five racing in parallel).
-  //  - the other three music tracks: not remotely time-critical (the one
-  //    actually playing this run is loaded separately by playRandomMusic()'s
-  //    own direct call), so those are pushed to an idle moment.
+  // Kicks off decoding the running loop + jump/land/coin/impact SFX up
+  // front so gameplay never pays a first-use decode cost -- only cheap
+  // buffer scheduling happens during an actual run. All five are small
+  // (under 300KB) and decode in under ~20ms each even under heavy CPU
+  // throttling, chained one-at-a-time rather than fired concurrently
+  // (profiling showed serialized was cheaper on the main thread at any
+  // given instant than the same five racing in parallel).
   function preloadAudio() {
     if (!ensureAudioCtx()) return;
     const critical = [RUN_SFX_FILE].concat(Object.values(SFX_FILES));
     critical.reduce((p, file) => p.then(() => loadBuffer(file)), Promise.resolve());
-
-    const runIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
-    runIdle(() => {
-      MUSIC_TRACKS.reduce((p, file) => p.then(() => loadBuffer(file)), Promise.resolve());
-    });
   }
 
   function pickTrackIndex() {
@@ -706,29 +728,21 @@ if (canvas) {
     return idx;
   }
 
-  async function playRandomMusic() {
+  function playRandomMusic() {
     if (musicMuted) return;
-    const ctx = ensureAudioCtx();
-    if (!ctx) return;
-    if (ctx.state === 'suspended') ctx.resume(); // must be synchronous-ish with the user gesture that triggered this
+    const el = ensureMusicEl();
     lastTrackIdx = pickTrackIndex();
-    const buf = await loadBuffer(MUSIC_TRACKS[lastTrackIdx]);
-    if (!buf || musicMuted) return; // re-check -- state may have changed while awaiting decode
-    if (musicSource) { try { musicSource.stop(); } catch (err) { /* already stopped */ } }
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.loop = true;
-    src.connect(musicGain);
-    const now = ctx.currentTime;
-    musicGain.gain.cancelScheduledValues(now);
-    musicGain.gain.setValueAtTime(0, now);
-    musicGain.gain.linearRampToValueAtTime(musicVolume, now + FADE_IN_S);
-    src.start(0);
-    musicSource = src;
+    el.src = ASSET_BASE + MUSIC_BASE + MUSIC_TRACKS[lastTrackIdx];
+    el.currentTime = 0;
+    el.volume = 0;
+    const p = el.play();
+    if (p && p.catch) p.catch(() => { /* blocked -- no gesture yet, next call will retry */ });
+    fadeMusicTo(musicVolume, FADE_IN_MS);
   }
 
   function stopMusic() {
-    if (musicSource) { try { musicSource.stop(); } catch (err) { /* already stopped */ } musicSource = null; }
+    if (musicFadeTimer) { clearInterval(musicFadeTimer); musicFadeTimer = null; }
+    if (musicEl) musicEl.pause();
   }
 
   async function playSfx(name) {
@@ -827,12 +841,18 @@ if (canvas) {
   // class (see styles.css). Real fullscreen is always tried first and used
   // whenever the browser actually supports it.
   let pseudoFullscreenActive = false;
+  let scrollYBeforePseudoFullscreen = 0;
   function isFullscreen() {
     return pseudoFullscreenActive || !!(document.fullscreenElement || document.webkitFullscreenElement);
   }
   function enterPseudoFullscreen() {
     if (!wrapEl || pseudoFullscreenActive) return;
     pseudoFullscreenActive = true;
+    // Fixing <body> in place (see the .hood-game-scroll-locked CSS) needs
+    // its own scroll offset undone via `top` or the page visibly jumps to
+    // the top the instant it locks -- restored again on exit below.
+    scrollYBeforePseudoFullscreen = window.scrollY;
+    document.body.style.top = -scrollYBeforePseudoFullscreen + 'px';
     wrapEl.classList.add('is-pseudo-fullscreen');
     document.documentElement.classList.add('hood-game-scroll-locked');
     handleFullscreenChange();
@@ -842,6 +862,16 @@ if (canvas) {
     pseudoFullscreenActive = false;
     if (wrapEl) wrapEl.classList.remove('is-pseudo-fullscreen');
     document.documentElement.classList.remove('hood-game-scroll-locked');
+    document.body.style.top = '';
+    // The site sets html{scroll-behavior:smooth} globally (for the nav's
+    // anchor links) -- that applies to *every* programmatic scrollTo(),
+    // this one included, unless a call explicitly overrides it. Left
+    // smooth, restoring scrollY here animates over several hundred ms, and
+    // that window is exactly when exiting the fixed-position lock is still
+    // settling the rest of the page's layout -- the two fight and it can
+    // land partway to the target instead of fully restoring it. Forcing
+    // behavior:'instant' makes this one jump, no animation to interrupt.
+    window.scrollTo({ top: scrollYBeforePseudoFullscreen, left: 0, behavior: 'instant' });
     handleFullscreenChange();
   }
   function enterFullscreen() {
@@ -856,6 +886,28 @@ if (canvas) {
     const exit = document.exitFullscreen || document.webkitExitFullscreen;
     if (exit) { const r = exit.call(document); if (r && r.catch) r.catch(() => { /* already exited */ }); }
   }
+  // Software fallback for devices where screen.orientation.lock() either
+  // doesn't exist (iOS Safari, always) or is attempted but rejected/
+  // unsupported -- see the .hood-game-force-landscape CSS for how the
+  // actual rotate happens. Only ever applied on a touch device that's
+  // genuinely still in portrait while fullscreen is active; never touches
+  // desktop, where a portrait-shaped window is just how the user sized it.
+  function isPortraitNow() {
+    return !!(window.matchMedia && window.matchMedia('(orientation: portrait)').matches);
+  }
+  function isCoarsePointer() {
+    return !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  }
+  function updateForceLandscape() {
+    if (!wrapEl) return;
+    const shouldForce = isFullscreen() && isCoarsePointer() && isPortraitNow();
+    wrapEl.classList.toggle('hood-game-force-landscape', shouldForce);
+  }
+  window.addEventListener('resize', updateForceLandscape);
+  if (window.screen && window.screen.orientation) {
+    window.screen.orientation.addEventListener('change', updateForceLandscape);
+  }
+
   function handleFullscreenChange() {
     const active = isFullscreen();
     if (fullscreenBtn) {
@@ -863,8 +915,14 @@ if (canvas) {
       fullscreenBtn.setAttribute('aria-label', active ? 'Exit fullscreen' : 'Play fullscreen');
     }
     if (active && screen.orientation && screen.orientation.lock) {
-      screen.orientation.lock('landscape').catch(() => { /* not supported / not allowed -- fine, portrait still works */ });
-    } else if (!active && screen.orientation && screen.orientation.unlock) {
+      // Only let the CSS fallback answer once the real lock has settled --
+      // otherwise it'd flash on for the brief moment before a *successful*
+      // lock's own orientationchange event arrives and clears it again.
+      screen.orientation.lock('landscape').then(updateForceLandscape, updateForceLandscape);
+    } else {
+      updateForceLandscape();
+    }
+    if (!active && screen.orientation && screen.orientation.unlock) {
       try { screen.orientation.unlock(); } catch (err) { /* ignore */ }
     }
   }

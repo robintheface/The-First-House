@@ -975,7 +975,10 @@
      the popup's own padding/type a notch further once the wrap is narrow
      enough to be hitting the min() width's percentage branch above. */
   @media(max-width:479px){
-    .hood-game-settings-panel{padding:12px 14px;}
+    /* 20% narrower than the 85%-of-wrap width used above 480px (0.85 * 0.8
+       = 0.68) -- the percentage branch of that min() is what actually
+       governs width on a real phone, so that's the number to shrink. */
+    .hood-game-settings-panel{width:min(68%, 220px); padding:12px 14px;}
     .hood-game-settings-title{font-size:16px; margin-bottom:8px; padding-bottom:6px;}
     .hood-game-settings-row{font-size:11px;}
     .hood-game-settings-version{font-size:9px;}
@@ -1019,10 +1022,19 @@
   .hood-game-wrap.is-pseudo-fullscreen{
     position:fixed; inset:0; z-index:2000;
   }
-  html.hood-game-scroll-locked,
-  html.hood-game-scroll-locked body{
-    overflow:hidden; height:100%;
-  }
+  /* Locks the background page in place while pseudo-fullscreen is active.
+     A plain overflow:hidden on <html>/<body> was tried first, but Chromium
+     discards the scrolling element's scrollTop as soon as overflow goes to
+     hidden -- exiting fullscreen then always snapped the page back to the
+     very top instead of back to the game section, however far down the
+     user had actually scrolled. Fixing the body in place (with its scroll
+     offset preserved as a negative `top`, set from JS) avoids that: nothing
+     about a position:fixed element's own position depends on the
+     underlying scrollTop, so there's nothing for the browser to discard,
+     and dino-game.js's exitPseudoFullscreen() restores the exact scrollY
+     afterward via window.scrollTo(). */
+  html.hood-game-scroll-locked{ overflow:hidden; }
+  html.hood-game-scroll-locked body{ position:fixed; left:0; right:0; }
   .hood-game-wrap:fullscreen .hood-game-hud,
   .hood-game-wrap:-webkit-full-screen .hood-game-hud,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-hud{
@@ -1131,6 +1143,36 @@
     max-width:calc(100vh * 800 / 450);
     max-height:calc(100vw * 450 / 800);
     aspect-ratio:800/450;
+  }
+  /* Real screen.orientation.lock('landscape') only works on Android
+     Chrome-family browsers, and only while genuinely fullscreen -- iOS
+     Safari has never implemented orientation lock at all (same gap as the
+     Fullscreen API itself), so without this an iPhone would stay
+     letterboxed in portrait fullscreen instead of actually going
+     landscape. This is a software fallback: rotate the wrap 90deg with a
+     matching translate so it visually fills the screen in landscape
+     regardless of the device's real physical orientation. dino-game.js
+     only adds this class when fullscreen is active, the device is still
+     genuinely in portrait (real orientation-lock didn't take), and it's a
+     touch device -- never on desktop, where a portrait-shaped window is
+     just how the user sized it. --hgw-scale-w and the canvas max-width/
+     max-height get vw/vh-swapped overrides here since the rotated box's
+     own width is 100vh and height is 100vw -- every other overlay element
+     (HUD, buttons, settings popup) already scales purely off the
+     --hgw-scale-w variable, so redefining just that one custom property is
+     enough to make all of them rotation-aware with no extra rules. Placed
+     after the base fullscreen rules above so the cascade lets it win on
+     the few properties it overrides. */
+  .hood-game-wrap.hood-game-force-landscape{
+    position:fixed; top:0; left:0;
+    width:100vh; height:100vw;
+    transform-origin:top left;
+    transform:rotate(90deg) translateY(-100%);
+    --hgw-scale-w:min(100vh, 100vw * 800 / 450);
+  }
+  .hood-game-wrap.hood-game-force-landscape #hoodGameCanvas{
+    max-width:calc(100vw * 800 / 450);
+    max-height:calc(100vh * 450 / 800);
   }
   .hood-game-overlay{
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
