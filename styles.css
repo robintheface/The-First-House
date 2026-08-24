@@ -1158,7 +1158,7 @@
   .hood-game-wrap:fullscreen .hood-game-toggle,
   .hood-game-wrap:-webkit-full-screen .hood-game-toggle,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-toggle{
-    --hgt-w:calc(var(--hgw-menu-scale-w) * 0.035);
+    --hgt-w:calc(var(--hgw-menu-scale-w) * 0.03);
     --hgt-h:calc(var(--hgw-menu-scale-w) * 0.02375);
     --hgt-thumb:calc(var(--hgw-menu-scale-w) * 0.01625);
     --hgt-inset:calc(var(--hgw-menu-scale-w) * 0.0025);
