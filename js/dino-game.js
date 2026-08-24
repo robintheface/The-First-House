@@ -52,7 +52,7 @@ if (canvas) {
   // frames aren't the same aspect (arms/cape spread wider mid-jump), so the
   // player's box and draw size both track whichever cycle is currently active.
   let runAspect = 0.89;
-  let jumpAspect = 0.76;
+  let jumpAspect = 0.85;
   // Background draw width + its scroll-scale ratio, computed once the
   // image loads (natural dimensions never change after that) instead of
   // redoing the same division/multiplication in draw() on every single
