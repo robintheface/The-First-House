@@ -872,7 +872,7 @@
   .hood-game-settings-btn{
     position:absolute; top:8px; right:8px; z-index:3;
     padding:5px 12px; border-radius:0;
-    background:rgba(0,0,0,0.55); border:1px solid rgba(241,234,220,0.35);
+    background:rgba(0,0,0,0.55); border:none;
     color:#c8f0b8; font-family:'IM Fell English',serif; font-size:14px; letter-spacing:0.03em;
     line-height:1; cursor:pointer; touch-action:manipulation;
     /* Faded at rest on purpose -- it's a secondary control that shouldn't
