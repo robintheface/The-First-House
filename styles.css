@@ -932,7 +932,14 @@
     position:absolute; inset:0; margin:0; opacity:0; cursor:pointer; touch-action:manipulation;
   }
   .hood-game-toggle-track{
-    position:absolute; inset:0; border-radius:10px;
+    position:absolute; inset:0;
+    /* A very large px radius (rather than a fixed 10px, or the toggle's
+       own height) always clamps to a perfect capsule regardless of the
+       box's actual size -- border-radius can never exceed half the
+       shorter side. A flat 10px looked fine at the small non-fullscreen
+       size but read as a broken, barely-rounded rectangle once the
+       fullscreen-scaled toggle grew much taller than that. */
+    border-radius:999px;
     background:rgba(241,234,220,0.2);
     border:1px solid rgba(241,234,220,0.25);
     transition:background 0.15s ease, border-color 0.15s ease;
