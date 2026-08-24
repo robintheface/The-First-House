@@ -41,7 +41,7 @@ if (canvas) {
   const SPRITES = {
     background: { src: 'background.webp' },
     run: { src: 'character-run.webp', frames: 6 },
-    jump: { src: 'character-jump.webp', frames: 13 },
+    jump: { src: 'character-jump.webp', frames: 24 }, // sliced from the user-supplied jump2_anim.gif (24 frames, 60ms each)
     coin: { src: 'coin-spin.webp', frames: 12 },
     candle: { src: 'obstacle-candle.webp', frames: 1 },
     rugged: { src: 'obstacle-rugged.webp', frames: 1 }
@@ -52,7 +52,7 @@ if (canvas) {
   // frames aren't the same aspect (arms/cape spread wider mid-jump), so the
   // player's box and draw size both track whichever cycle is currently active.
   let runAspect = 0.89;
-  let jumpAspect = 1.05;
+  let jumpAspect = 0.85;
   // Background draw width + its scroll-scale ratio, computed once the
   // image loads (natural dimensions never change after that) instead of
   // redoing the same division/multiplication in draw() on every single
@@ -107,6 +107,7 @@ if (canvas) {
   updateBestLabel();
 
   function resetRun() {
+    if (overlayDelayTimer) { clearTimeout(overlayDelayTimer); overlayDelayTimer = null; }
     player.y = GROUND_Y - GROUND_HEIGHT;
     player.vy = 0;
     player.grounded = true;
@@ -276,30 +277,44 @@ if (canvas) {
     startRunSfx();
   }
 
-  const RESTART_COOLDOWN = 2000; // ms -- avoids an accidental restart from the same tap/key that just lost the run
+  const OVERLAY_DELAY_MS = 500; // ms after a run ends before the result text appears -- a beat to register the hit
+  const RESTART_COOLDOWN = 1000; // ms after the overlay text appears -- avoids an accidental restart from the same tap/key that just lost the run
+
+  let overlayDelayTimer = null;
+  let resultShown = false; // true only once the delayed overlay text has actually appeared -- blocks restart input during OVERLAY_DELAY_MS too, not just RESTART_COOLDOWN after
 
   function endRun() {
     state = STATE.OVER;
-    overSince = performance.now();
+    resultShown = false;
     stopMusic();
     stopRunSfx();
     const formatted = Math.floor(score).toLocaleString('en-US');
-    if (score > best) {
+    const isHighScore = score > best;
+    if (isHighScore) {
       best = score;
       try { localStorage.setItem('hoodRunnerBest', String(Math.floor(best))); } catch (err) { /* private mode etc -- best just won't persist */ }
       updateBestLabel();
-      showOverlay('NEW HIGH SCORE!', [
-        { text: formatted, cls: 'hood-game-overlay-score' },
-        'PRESS SPACE TO RUN AGAIN'
-      ]);
-    } else {
-      showOverlay('RUGGED!', ['You scored ' + formatted + ' points', 'Click or press SPACE to continue']);
     }
+    if (overlayDelayTimer) clearTimeout(overlayDelayTimer);
+    overlayDelayTimer = setTimeout(() => {
+      overlayDelayTimer = null;
+      resultShown = true;
+      overSince = performance.now();
+      if (isHighScore) {
+        showOverlay('NEW HIGH SCORE!', [
+          { text: formatted, cls: 'hood-game-overlay-score' },
+          'PRESS SPACE TO RUN AGAIN'
+        ]);
+      } else {
+        showOverlay('RUGGED!', ['You scored ' + formatted + ' points', 'Click or press SPACE to continue']);
+      }
+    }, OVERLAY_DELAY_MS);
   }
 
   function jump() {
     if (state === STATE.IDLE) { startRun(); return; }
     if (state === STATE.OVER) {
+      if (!resultShown) return; // still in the pre-text beat -- ignore input entirely
       if (performance.now() - overSince < RESTART_COOLDOWN) return;
       startRun();
       return;
