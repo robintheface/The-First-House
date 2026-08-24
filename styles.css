@@ -1013,6 +1013,21 @@
        instead of staying pinned at their small non-fullscreen size. */
     --hgw-scale-w:min(100vw, 100vh * 800 / 450);
   }
+  /* iOS Safari's 100vw/100vh report the *largest* possible viewport (as if
+     the address/toolbar were fully collapsed), not the actually-visible
+     one -- sized off plain vh/vw, the wrap and its --hgw-scale-w-derived
+     canvas/HUD came out too big for the real visible area, leaving a black
+     gap on one edge with the fullscreen button pushed out of view behind
+     it. dvh/dvw ("dynamic viewport") track the real visible viewport
+     instead. A browser that doesn't understand the dvh/dvw unit treats the
+     whole declaration as invalid and ignores just that one line, so this
+     is safe as a plain override placed after the vw/vh version above. */
+  .hood-game-wrap:fullscreen,
+  .hood-game-wrap:-webkit-full-screen,
+  .hood-game-wrap.is-pseudo-fullscreen{
+    width:100dvw; height:100dvh;
+    --hgw-scale-w:min(100dvw, 100dvh * 800 / 450);
+  }
   /* .is-pseudo-fullscreen is the JS fallback for browsers with no real
      Fullscreen API on arbitrary elements (iOS Safari never implemented
      one -- see enterFullscreen() in dino-game.js). The real :fullscreen
@@ -1067,74 +1082,84 @@
      approach as the HUD/buttons above, just applied to every sub-part of
      the panel (title, rows, toggle switch, sliders, version line) so the
      whole modal grows together instead of staying pinned at its small
-     non-fullscreen size while the canvas around it gets much bigger. */
+     non-fullscreen size while the canvas around it gets much bigger --
+     scaled down an extra 25% off of --hgw-scale-w (via this dedicated
+     --hgw-menu-scale-w derived from it) since scaling it at the exact
+     same rate as the canvas made the popup read as oversized once the
+     canvas itself got very large in fullscreen. */
+  .hood-game-wrap:fullscreen,
+  .hood-game-wrap:-webkit-full-screen,
+  .hood-game-wrap.is-pseudo-fullscreen,
+  .hood-game-wrap.hood-game-force-landscape{
+    --hgw-menu-scale-w:calc(var(--hgw-scale-w) * 0.75);
+  }
   .hood-game-wrap:fullscreen .hood-game-settings-panel,
   .hood-game-wrap:-webkit-full-screen .hood-game-settings-panel,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-settings-panel{
-    width:calc(var(--hgw-scale-w) * 0.25);
-    padding:calc(var(--hgw-scale-w) * 0.02) calc(var(--hgw-scale-w) * 0.0225);
-    border-radius:calc(var(--hgw-scale-w) * 0.015);
+    width:calc(var(--hgw-menu-scale-w) * 0.25);
+    padding:calc(var(--hgw-menu-scale-w) * 0.02) calc(var(--hgw-menu-scale-w) * 0.0225);
+    border-radius:calc(var(--hgw-menu-scale-w) * 0.015);
   }
   .hood-game-wrap:fullscreen .hood-game-settings-title,
   .hood-game-wrap:-webkit-full-screen .hood-game-settings-title,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-settings-title{
-    font-size:calc(var(--hgw-scale-w) * 0.02375);
-    margin-bottom:calc(var(--hgw-scale-w) * 0.015);
-    padding-bottom:calc(var(--hgw-scale-w) * 0.01);
+    font-size:calc(var(--hgw-menu-scale-w) * 0.02375);
+    margin-bottom:calc(var(--hgw-menu-scale-w) * 0.015);
+    padding-bottom:calc(var(--hgw-menu-scale-w) * 0.01);
   }
   .hood-game-wrap:fullscreen .hood-game-settings-row,
   .hood-game-wrap:-webkit-full-screen .hood-game-settings-row,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-settings-row{
-    font-size:calc(var(--hgw-scale-w) * 0.015);
-    gap:calc(var(--hgw-scale-w) * 0.005);
+    font-size:calc(var(--hgw-menu-scale-w) * 0.015);
+    gap:calc(var(--hgw-menu-scale-w) * 0.005);
   }
   .hood-game-wrap:fullscreen .hood-game-settings-row + .hood-game-settings-row,
   .hood-game-wrap:-webkit-full-screen .hood-game-settings-row + .hood-game-settings-row,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-settings-row + .hood-game-settings-row{
-    margin-top:calc(var(--hgw-scale-w) * 0.0125);
+    margin-top:calc(var(--hgw-menu-scale-w) * 0.0125);
   }
   .hood-game-wrap:fullscreen .hood-game-toggle,
   .hood-game-wrap:-webkit-full-screen .hood-game-toggle,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-toggle{
-    width:calc(var(--hgw-scale-w) * 0.0425);
-    height:calc(var(--hgw-scale-w) * 0.02375);
+    width:calc(var(--hgw-menu-scale-w) * 0.0425);
+    height:calc(var(--hgw-menu-scale-w) * 0.02375);
   }
   .hood-game-wrap:fullscreen .hood-game-toggle-track::before,
   .hood-game-wrap:-webkit-full-screen .hood-game-toggle-track::before,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-toggle-track::before{
-    width:calc(var(--hgw-scale-w) * 0.01625);
-    height:calc(var(--hgw-scale-w) * 0.01625);
-    top:calc(var(--hgw-scale-w) * 0.0025);
-    left:calc(var(--hgw-scale-w) * 0.0025);
+    width:calc(var(--hgw-menu-scale-w) * 0.01625);
+    height:calc(var(--hgw-menu-scale-w) * 0.01625);
+    top:calc(var(--hgw-menu-scale-w) * 0.0025);
+    left:calc(var(--hgw-menu-scale-w) * 0.0025);
   }
   .hood-game-wrap:fullscreen .hood-game-toggle input:checked + .hood-game-toggle-track::before,
   .hood-game-wrap:-webkit-full-screen .hood-game-toggle input:checked + .hood-game-toggle-track::before,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-toggle input:checked + .hood-game-toggle-track::before{
-    transform:translateX(calc(var(--hgw-scale-w) * 0.01875));
+    transform:translateX(calc(var(--hgw-menu-scale-w) * 0.01875));
   }
   .hood-game-wrap:fullscreen .hood-game-settings-row input[type="range"],
   .hood-game-wrap:-webkit-full-screen .hood-game-settings-row input[type="range"],
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-settings-row input[type="range"]{
-    height:calc(var(--hgw-scale-w) * 0.00375);
+    height:calc(var(--hgw-menu-scale-w) * 0.00375);
   }
   .hood-game-wrap:fullscreen .hood-game-settings-row input[type="range"]::-webkit-slider-thumb,
   .hood-game-wrap:-webkit-full-screen .hood-game-settings-row input[type="range"]::-webkit-slider-thumb,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-settings-row input[type="range"]::-webkit-slider-thumb{
-    width:calc(var(--hgw-scale-w) * 0.01625);
-    height:calc(var(--hgw-scale-w) * 0.01625);
+    width:calc(var(--hgw-menu-scale-w) * 0.01625);
+    height:calc(var(--hgw-menu-scale-w) * 0.01625);
   }
   .hood-game-wrap:fullscreen .hood-game-settings-row input[type="range"]::-moz-range-thumb,
   .hood-game-wrap:-webkit-full-screen .hood-game-settings-row input[type="range"]::-moz-range-thumb,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-settings-row input[type="range"]::-moz-range-thumb{
-    width:calc(var(--hgw-scale-w) * 0.01625);
-    height:calc(var(--hgw-scale-w) * 0.01625);
+    width:calc(var(--hgw-menu-scale-w) * 0.01625);
+    height:calc(var(--hgw-menu-scale-w) * 0.01625);
   }
   .hood-game-wrap:fullscreen .hood-game-settings-version,
   .hood-game-wrap:-webkit-full-screen .hood-game-settings-version,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-settings-version{
-    margin-top:calc(var(--hgw-scale-w) * 0.015);
-    padding-top:calc(var(--hgw-scale-w) * 0.0125);
-    font-size:calc(var(--hgw-scale-w) * 0.0125);
+    margin-top:calc(var(--hgw-menu-scale-w) * 0.015);
+    padding-top:calc(var(--hgw-menu-scale-w) * 0.0125);
+    font-size:calc(var(--hgw-menu-scale-w) * 0.0125);
   }
   .hood-game-wrap:fullscreen #hoodGameCanvas,
   .hood-game-wrap:-webkit-full-screen #hoodGameCanvas,
@@ -1143,6 +1168,16 @@
     max-width:calc(100vh * 800 / 450);
     max-height:calc(100vw * 450 / 800);
     aspect-ratio:800/450;
+  }
+  /* Same dvh/dvw override as the wrap itself above, for the same iOS
+     Safari "100vh is the largest possible viewport, not the real one"
+     reason -- keeps the canvas's own letterbox math matching the wrap's
+     actual visible size instead of a slightly-too-big phantom one. */
+  .hood-game-wrap:fullscreen #hoodGameCanvas,
+  .hood-game-wrap:-webkit-full-screen #hoodGameCanvas,
+  .hood-game-wrap.is-pseudo-fullscreen #hoodGameCanvas{
+    max-width:calc(100dvh * 800 / 450);
+    max-height:calc(100dvw * 450 / 800);
   }
   /* Real screen.orientation.lock('landscape') only works on Android
      Chrome-family browsers, and only while genuinely fullscreen -- iOS
@@ -1173,6 +1208,18 @@
   .hood-game-wrap.hood-game-force-landscape #hoodGameCanvas{
     max-width:calc(100vw * 800 / 450);
     max-height:calc(100vh * 450 / 800);
+  }
+  /* Same dvh/dvw override as the non-rotated fullscreen rules above, same
+     iOS Safari reason -- translateY(-100%) still lands correctly since a
+     percentage transform is resolved against the box's final computed
+     height, whichever unit set it. */
+  .hood-game-wrap.hood-game-force-landscape{
+    width:100dvh; height:100dvw;
+    --hgw-scale-w:min(100dvh, 100dvw * 800 / 450);
+  }
+  .hood-game-wrap.hood-game-force-landscape #hoodGameCanvas{
+    max-width:calc(100dvw * 800 / 450);
+    max-height:calc(100dvh * 450 / 800);
   }
   .hood-game-overlay{
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
