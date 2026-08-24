@@ -20,6 +20,7 @@ if (canvas) {
   const soundToggle = document.getElementById('hoodGameSoundToggle');
   const musicVolInput = document.getElementById('hoodGameMusicVol');
   const sfxVolInput = document.getElementById('hoodGameSfxVol');
+  const saveSettingsBtn = document.getElementById('hoodGameSettingsSaveBtn');
   const versionEl = document.getElementById('hoodGameVersion');
   const versionBadgeEl = document.getElementById('hoodGameVersionBadge');
   const GAME_VERSION = '1.0.0';
@@ -289,8 +290,12 @@ if (canvas) {
     spawnBlinkOn = true;
     hideOverlay();
     ensureLoopRunning();
-    // Music/run-sfx and obstacle spawning all wait for updateSpawn() to
-    // hand off to STATE.PLAYING -- the world sits still through the flicker.
+    // Starts playback (silently) right here, synchronously inside the
+    // gesture that called jump() -> startRun() -- see startMusicPlayback().
+    // Run-sfx + obstacle spawning still wait for updateSpawn() to hand off
+    // to STATE.PLAYING -- the world sits still through the flicker; music
+    // is already playing under it by then, just silent until faded in.
+    startMusicPlayback();
   }
 
   function updateSpawn(dt) {
@@ -298,7 +303,7 @@ if (canvas) {
     spawnBlinkOn = Math.floor(spawnTimer / BLINK_TOGGLE_MS) % 2 === 0;
     if (spawnTimer >= SPAWN_DURATION_MS) {
       state = STATE.PLAYING;
-      playRandomMusic();
+      fadeMusicIn(FADE_IN_MS);
       startRunSfx();
     }
   }
@@ -743,6 +748,15 @@ if (canvas) {
   let musicMuted = false;
   try { musicMuted = localStorage.getItem('hoodRunnerMuted') === '1'; } catch (err) { musicMuted = false; }
 
+  // The settings panel previews Sound/Music/SFX changes live (so dragging a
+  // slider is audible right away) but only actually persists them when the
+  // Save button is clicked -- these three track whatever was last really
+  // saved, so the panel can revert a live-but-unsaved preview back to it if
+  // closed any other way (outside tap, hitting the Settings button again).
+  let savedMusicVolume = musicVolume;
+  let savedSfxVolume = sfxVolume;
+  let savedMuted = musicMuted;
+
   let actx = null;
   let sfxGain = null, runGain = null;
   const audioBuffers = Object.create(null); // filename -> AudioBuffer | Promise<AudioBuffer|null>
@@ -773,28 +787,35 @@ if (canvas) {
     musicEl.volume = 0;
     return musicEl;
   }
-  function fadeMusicTo(target, ms) {
+  // Always fades toward the *current* musicVolume, re-read on every tick --
+  // not a target frozen at the moment the fade started. Bug fix: it used to
+  // take a fixed `target` snapshot, so dragging the Music slider mid-fade
+  // (the first FADE_IN_MS after a run starts) had no visible effect until
+  // the fade finished snapping back to that stale pre-drag value, silently
+  // discarding the adjustment.
+  function fadeMusicIn(ms) {
     if (musicFadeTimer) { clearInterval(musicFadeTimer); musicFadeTimer = null; }
     if (!musicEl) return;
     const start = musicEl.volume;
     const startTs = performance.now();
     musicFadeTimer = setInterval(() => {
       const t = Math.min(1, (performance.now() - startTs) / ms);
-      musicEl.volume = start + (target - start) * t;
+      musicEl.volume = start + (musicVolume - start) * t;
       if (t >= 1) { clearInterval(musicFadeTimer); musicFadeTimer = null; }
     }, 60);
   }
 
+  // Live preview only -- does not persist. See persistSettings()/
+  // revertSettings() below for the Save-button-gated commit step.
   function setMusicVolume(v) {
     musicVolume = Math.min(1, Math.max(0, v));
-    try { localStorage.setItem('hoodRunnerMusicVol', String(musicVolume)); } catch (err) { /* private mode etc */ }
-    // Leave an in-progress fade-in alone -- it's already ramping toward the
-    // just-updated musicVolume target on its own next tick.
+    // Leave an in-progress fade-in alone -- it re-reads musicVolume on its
+    // own next tick (see fadeMusicIn()), so it's already heading toward the
+    // just-updated value instead of needing a jump-cut here.
     if (musicEl && !musicMuted && !musicFadeTimer) musicEl.volume = musicVolume;
   }
   function setSfxVolume(v) {
     sfxVolume = Math.min(1, Math.max(0, v));
-    try { localStorage.setItem('hoodRunnerSfxVol', String(sfxVolume)); } catch (err) { /* private mode etc */ }
     if (actx && sfxGain && !musicMuted) {
       sfxGain.gain.setTargetAtTime(sfxVolume, actx.currentTime, 0.05);
       runGain.gain.setTargetAtTime(sfxVolume, actx.currentTime, 0.05);
@@ -837,7 +858,17 @@ if (canvas) {
     return idx;
   }
 
-  function playRandomMusic() {
+  // Starts playback (silent, volume 0) without fading it in -- split out of
+  // playRandomMusic() so startRun() can call this part *synchronously*
+  // inside the user gesture that starts a run, before the SPAWN flicker.
+  // Mobile browsers' autoplay policy ties HTMLMediaElement.play()'s
+  // permission to the gesture that (directly or very closely) triggered it;
+  // calling it from inside updateSpawn() -- fired a full second later via
+  // requestAnimationFrame, well outside the original gesture -- silently
+  // lost that activation on strict mobile browsers, so music never started
+  // on the first run and only began after some unrelated later gesture
+  // (e.g. opening/closing the settings panel) happened to unlock it.
+  function startMusicPlayback() {
     if (musicMuted) return;
     const el = ensureMusicEl();
     lastTrackIdx = pickTrackIndex();
@@ -846,7 +877,14 @@ if (canvas) {
     el.volume = 0;
     const p = el.play();
     if (p && p.catch) p.catch(() => { /* blocked -- no gesture yet, next call will retry */ });
-    fadeMusicTo(musicVolume, FADE_IN_MS);
+  }
+
+  // Used where playback doesn't need to be split from its fade-in -- e.g.
+  // un-muting mid-run, itself already a direct user gesture (the Sound
+  // toggle's own change event).
+  function playRandomMusic() {
+    startMusicPlayback();
+    fadeMusicIn(FADE_IN_MS);
   }
 
   function stopMusic() {
@@ -885,16 +923,27 @@ if (canvas) {
     if (runSource) { try { runSource.stop(); } catch (err) { /* already stopped */ } runSource = null; }
   }
 
+  // Live preview only -- does not persist. See persistSettings()/
+  // revertSettings() below for the Save-button-gated commit step.
   function setMuted(muted) {
     musicMuted = muted;
-    try { localStorage.setItem('hoodRunnerMuted', muted ? '1' : '0'); } catch (err) { /* private mode etc */ }
     if (soundToggle) soundToggle.checked = !muted;
     if (muted) {
       stopMusic();
       stopRunSfx();
-    } else if (state === STATE.PLAYING) {
-      playRandomMusic();
-      if (player.grounded) startRunSfx();
+    } else {
+      // setSfxVolume() no-ops on the actual gain nodes while musicMuted is
+      // true, so a slider drag during mute only updated the stored
+      // sfxVolume -- refresh both gains now that musicMuted is false again,
+      // or the next SFX plays at whatever stale level they were left at.
+      if (actx && sfxGain && runGain) {
+        sfxGain.gain.setTargetAtTime(sfxVolume, actx.currentTime, 0.05);
+        runGain.gain.setTargetAtTime(sfxVolume, actx.currentTime, 0.05);
+      }
+      if (state === STATE.PLAYING) {
+        playRandomMusic();
+        if (player.grounded) startRunSfx();
+      }
     }
   }
 
@@ -905,21 +954,54 @@ if (canvas) {
     if (sfxVolInput) sfxVolInput.value = String(Math.round(sfxVolume * 100));
     if (versionEl) versionEl.textContent = 'Hood Runner v' + GAME_VERSION;
 
+    // Writes the live (already-previewed) Sound/Music/SFX values to
+    // localStorage and moves the saved snapshot up to match -- only called
+    // by the Save button. Anything currently playing already sounds like
+    // this; committing just makes it stick past this session.
+    function persistSettings() {
+      try {
+        localStorage.setItem('hoodRunnerMusicVol', String(musicVolume));
+        localStorage.setItem('hoodRunnerSfxVol', String(sfxVolume));
+        localStorage.setItem('hoodRunnerMuted', musicMuted ? '1' : '0');
+      } catch (err) { /* private mode etc */ }
+      savedMusicVolume = musicVolume;
+      savedSfxVolume = sfxVolume;
+      savedMuted = musicMuted;
+    }
+    // Undoes a live-but-unsaved preview -- reapplies the last saved values
+    // (audio + slider/toggle controls) and drops whatever was being
+    // auditioned. Called whenever the panel closes any way other than Save.
+    function revertSettings() {
+      setMusicVolume(savedMusicVolume);
+      setSfxVolume(savedSfxVolume);
+      setMuted(savedMuted); // also syncs soundToggle.checked
+      if (musicVolInput) musicVolInput.value = String(Math.round(savedMusicVolume * 100));
+      if (sfxVolInput) sfxVolInput.value = String(Math.round(savedSfxVolume * 100));
+    }
+
     function closeSettings() {
       settingsPanel.hidden = true;
       settingsBtn.setAttribute('aria-expanded', 'false');
     }
+    function closeSettingsDiscarding() {
+      revertSettings();
+      closeSettings();
+    }
     settingsBtn.addEventListener('click', () => {
       const willOpen = settingsPanel.hidden;
-      settingsPanel.hidden = !willOpen;
-      settingsBtn.setAttribute('aria-expanded', String(willOpen));
+      if (willOpen) {
+        settingsPanel.hidden = false;
+        settingsBtn.setAttribute('aria-expanded', 'true');
+      } else {
+        closeSettingsDiscarding();
+      }
     });
     // Close on any click/tap outside the button+panel -- pointerdown so it
     // doesn't fight with the game's own pointerdown-to-jump listener below.
     document.addEventListener('pointerdown', (e) => {
       if (settingsPanel.hidden) return;
       if (e.target === settingsBtn || settingsBtn.contains(e.target) || settingsPanel.contains(e.target)) return;
-      closeSettings();
+      closeSettingsDiscarding();
     });
     if (soundToggle) {
       soundToggle.addEventListener('change', () => setMuted(!soundToggle.checked));
@@ -929,6 +1011,25 @@ if (canvas) {
     }
     if (sfxVolInput) {
       sfxVolInput.addEventListener('input', () => setSfxVolume(sfxVolInput.valueAsNumber / 100));
+    }
+    if (saveSettingsBtn) {
+      let saveFeedbackTimer = null;
+      saveSettingsBtn.addEventListener('click', () => {
+        persistSettings();
+        // Brief "Saved!" confirmation on the button itself before the panel
+        // closes -- the whole point of a Save button is confirming the
+        // change actually took, so closing instantly with no acknowledgement
+        // at all would defeat that.
+        if (saveFeedbackTimer) clearTimeout(saveFeedbackTimer);
+        saveSettingsBtn.textContent = 'Saved!';
+        saveSettingsBtn.disabled = true;
+        saveFeedbackTimer = setTimeout(() => {
+          saveFeedbackTimer = null;
+          saveSettingsBtn.textContent = 'Save';
+          saveSettingsBtn.disabled = false;
+          closeSettings();
+        }, 450);
+      });
     }
   }
 
