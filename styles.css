@@ -1006,6 +1006,22 @@
     width:13px; height:13px; border-radius:50%;
     background:#e0b23a; cursor:pointer; border:1px solid rgba(8,14,8,0.6);
   }
+  .hood-game-settings-save{
+    display:block; width:100%; margin-top:14px;
+    padding:8px 0; border-radius:8px; border:none;
+    background:rgba(224,178,58,0.16); color:#e0b23a;
+    font-family:'IM Fell English',serif; font-size:14px; letter-spacing:0.06em; text-transform:uppercase;
+    cursor:pointer; touch-action:manipulation;
+    transition:background 0.15s ease, transform 0.15s ease;
+  }
+  .hood-game-settings-save:hover{background:rgba(224,178,58,0.28);}
+  .hood-game-settings-save:active{transform:scale(0.97);}
+  /* Briefly shown disabled/"Saved!" right after a click (see the click
+     handler) -- still fully legible, just reads as settled rather than
+     interactive for that short window. */
+  .hood-game-settings-save:disabled{
+    background:rgba(224,178,58,0.3); color:#f1ead2; cursor:default;
+  }
   .hood-game-settings-version{
     margin-top:12px; padding-top:10px;
     border-top:1px solid rgba(241,234,220,0.14);
@@ -1027,6 +1043,7 @@
     .hood-game-toggle{--hgt-w:23px; --hgt-h:12px; --hgt-thumb:10px; --hgt-inset:1.5px;}
     .hood-game-settings-row input[type="range"]::-webkit-slider-thumb{width:10px; height:10px;}
     .hood-game-settings-row input[type="range"]::-moz-range-thumb{width:10px; height:10px;}
+    .hood-game-settings-save{margin-top:11px; padding:6px 0; border-radius:6px; font-size:11px;}
     .hood-game-settings-version{margin-top:10px; padding-top:8px; font-size:8px;}
   }
   .hood-game-fullscreen-btn{
@@ -1198,6 +1215,14 @@
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-settings-row input[type="range"]::-moz-range-thumb{
     width:calc(var(--hgw-menu-scale-w) * 0.01625);
     height:calc(var(--hgw-menu-scale-w) * 0.01625);
+  }
+  .hood-game-wrap:fullscreen .hood-game-settings-save,
+  .hood-game-wrap:-webkit-full-screen .hood-game-settings-save,
+  .hood-game-wrap.is-pseudo-fullscreen .hood-game-settings-save{
+    margin-top:calc(var(--hgw-menu-scale-w) * 0.0175);
+    padding:calc(var(--hgw-menu-scale-w) * 0.01) 0;
+    border-radius:calc(var(--hgw-menu-scale-w) * 0.01);
+    font-size:calc(var(--hgw-menu-scale-w) * 0.0175);
   }
   .hood-game-wrap:fullscreen .hood-game-settings-version,
   .hood-game-wrap:-webkit-full-screen .hood-game-settings-version,
