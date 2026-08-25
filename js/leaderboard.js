@@ -11,7 +11,6 @@
 // showing one that cannot work.
 
 const API = '/api';
-const NICK_KEY = 'hoodRunnerNick';
 
 let runToken = null;
 let available = null;       // null = not probed yet
@@ -89,11 +88,4 @@ export async function submit(nickname, score) {
   } catch (err) {
     return { ok: false, error: (err.body && err.body.error) || err.message };
   }
-}
-
-export function rememberedNick() {
-  try { return localStorage.getItem(NICK_KEY) || ''; } catch (e) { return ''; }
-}
-export function rememberNick(n) {
-  try { localStorage.setItem(NICK_KEY, n); } catch (e) { /* private mode */ }
 }

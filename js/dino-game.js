@@ -1180,7 +1180,9 @@ if (canvas) {
     const entries = await lb.getBoard('all');
     if (!lb.qualifies(finalScore, entries)) return;
     if (saveMsg) { saveMsg.hidden = true; saveMsg.classList.remove('is-error'); }
-    if (nickInput) { nickInput.value = lb.rememberedNick(); nickInput.disabled = false; }
+    // Deliberately blank: prefilling last run's name means clearing it by
+    // hand every single time, which is worse than typing it again.
+    if (nickInput) { nickInput.value = ''; nickInput.disabled = false; }
     if (nickSaveBtn) nickSaveBtn.disabled = false;
     if (nickSkipBtn) nickSkipBtn.hidden = false;
     saveScoreForm.hidden = false;
@@ -1201,43 +1203,54 @@ if (canvas) {
     if (cont) cont.hidden = false;
   }
 
-  if (nickSkipBtn) {
-    nickSkipBtn.addEventListener('click', () => {
-      if (saveScoreForm) saveScoreForm.hidden = true;
+  // Skip does not throw the place away -- it claims it under a shared
+  // Anonymous name, so a player who would rather not be named still keeps
+  // their score on the board.
+  const ANON_NICK = 'Anonymous';
+
+  async function submitScore(nick) {
+    if (!saveScoreForm) return;
+    if (nickSaveBtn) nickSaveBtn.disabled = true;
+    if (nickSkipBtn) nickSkipBtn.disabled = true;
+    const res = await lb.submit(nick, Number(saveScoreForm.dataset.score || 0));
+    if (!saveMsg) return;
+    saveMsg.hidden = false;
+    if (res.ok) {
+      lastSavedNick = res.nickname || nick;
+      saveMsg.classList.remove('is-error');
+      saveMsg.textContent = res.rank ? 'Saved — you are #' + res.rank : 'Saved';
+      if (nickInput) nickInput.disabled = true;
       finishSave();
-    });
+    } else {
+      saveMsg.classList.add('is-error');
+      // Server-side rules are the authority; surface why rather than
+      // silently doing nothing.
+      saveMsg.textContent = res.error === 'rate_limited' ? 'Too many saves — try later'
+        : res.error === 'bad_nickname' ? 'Pick another name'
+        : res.error === 'store_not_configured' ? 'Leaderboard is offline'
+        : res.error === 'store_unavailable' ? 'Leaderboard is unreachable'
+        : res.error === 'no_token' ? 'No finished run to save'
+        : res.error === 'token_unknown_or_used' ? 'This run was already saved'
+        : res.error === 'score_implausible' || res.error === 'run_too_short' ? 'Run could not be verified'
+        : 'Could not save';
+      // A failed attempt has already spent the run token, so a retry cannot
+      // succeed -- hand the run back rather than stranding the player.
+      if (nickSaveBtn) nickSaveBtn.disabled = false;
+      if (nickSkipBtn) nickSkipBtn.disabled = false;
+      finishSave();
+    }
+  }
+
+  if (nickSkipBtn) {
+    nickSkipBtn.addEventListener('click', () => { submitScore(ANON_NICK); });
   }
 
   if (saveScoreForm) {
-    saveScoreForm.addEventListener('submit', async (e) => {
+    saveScoreForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const nick = (nickInput && nickInput.value || '').trim();
       if (!nick) return;
-      if (nickSaveBtn) nickSaveBtn.disabled = true;
-      const res = await lb.submit(nick, Number(saveScoreForm.dataset.score || 0));
-      if (!saveMsg) return;
-      saveMsg.hidden = false;
-      if (res.ok) {
-        lastSavedNick = res.nickname || nick;
-        lb.rememberNick(lastSavedNick);
-        saveMsg.classList.remove('is-error');
-        saveMsg.textContent = res.rank ? 'Saved — you are #' + res.rank : 'Saved';
-        if (nickInput) nickInput.disabled = true;
-        finishSave();
-      } else {
-        saveMsg.classList.add('is-error');
-        // Server-side rules are the authority; surface why rather than
-        // silently doing nothing.
-        saveMsg.textContent = res.error === 'rate_limited' ? 'Too many saves — try later'
-          : res.error === 'bad_nickname' ? 'Pick another name'
-          : res.error === 'store_not_configured' ? 'Leaderboard is offline'
-          : res.error === 'store_unavailable' ? 'Leaderboard is unreachable'
-          : res.error === 'no_token' ? 'No finished run to save'
-          : res.error === 'token_unknown_or_used' ? 'This run was already saved'
-          : res.error === 'score_implausible' || res.error === 'run_too_short' ? 'Run could not be verified'
-          : 'Could not save';
-        if (nickSaveBtn) nickSaveBtn.disabled = false;
-      }
+      submitScore(nick);
     });
   }
 
