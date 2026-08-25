@@ -1124,7 +1124,14 @@
   .hood-game-wrap:fullscreen .hood-game-hud,
   .hood-game-wrap:-webkit-full-screen .hood-game-hud,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-hud{
+    /* Same 800px-design-width fractions as every other overlay here
+       (12/800, 16/800). Only font-size used to scale, so the score kept its
+       flat 12px/16px inset while Best, Settings and the corner buttons all
+       moved proportionally -- on a big screen it ended up hugging the
+       corner, out of step with the rest of the HUD. */
     font-size:calc(var(--hgw-scale-w) * 0.0175);
+    top:calc(var(--hgw-scale-w) * 0.015);
+    padding:0 calc(var(--hgw-scale-w) * 0.02);
   }
   .hood-game-wrap:fullscreen .hood-game-best,
   .hood-game-wrap:-webkit-full-screen .hood-game-best,
