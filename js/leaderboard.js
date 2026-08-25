@@ -73,19 +73,39 @@ export function qualifies(score, entries) {
 
 export function canSubmit() { return Boolean(runToken); }
 
+// Is this name still free? Advisory only -- /api/score checks again and
+// decides. A failure answers "don't know" so a flaky network never talks a
+// player out of a name that would have worked.
+export async function checkName(name) {
+  try {
+    const d = await req('/name-check?name=' + encodeURIComponent(name));
+    return { known: true, nickname: d.nickname, valid: d.valid, taken: d.taken };
+  } catch (e) {
+    return { known: false };
+  }
+}
+
+// A null nickname means "let the server name this one" -- it answers with
+// any#1, any#2, and so on, so skipping is one click and still keeps the row.
 export async function submit(nickname, score) {
   if (!runToken) return { ok: false, error: 'no_token' };
   const token = runToken;
-  runToken = null; // one run, one submission -- mirrors the server's own rule
+  const named = nickname === null ? { anonymous: true } : { nickname };
   try {
     const d = await req('/score', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, score, nickname })
+      body: JSON.stringify(Object.assign({ token, score }, named))
     });
+    runToken = null; // one run, one submission -- mirrors the server's own rule
     boardCache.clear(); // the board just changed
     return { ok: true, rank: d.rank, nickname: d.nickname };
   } catch (err) {
-    return { ok: false, error: (err.body && err.body.error) || err.message };
+    const error = (err.body && err.body.error) || err.message;
+    // A taken name is refused before the server spends the token, so the run
+    // survives and the player can try another. Every other rejection spent
+    // it, and a network failure might have -- both give the token up.
+    if (error !== 'name_taken') runToken = null;
+    return { ok: false, error, retry: error === 'name_taken' };
   }
 }

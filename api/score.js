@@ -1,7 +1,7 @@
 // Accepts a finished run and writes it to the boards if it earns a place.
 const { cmd, isConfigured } = require('./_store.js');
 const {
-  TOP_N, MIN_RUN_MS, MAX_SUBMITS_PER_HOUR,
+  TOP_N, MIN_RUN_MS, MAX_SUBMITS_PER_HOUR, ANON_PREFIX, ANON_COUNTER, BOARD_KEY,
   clientIp, sanitizeNickname, maxPlausibleScore, dayKey, readBody, json
 } = require('./_util.js');
 
@@ -16,10 +16,13 @@ module.exports = async (req, res) => {
   try {
     const body = await readBody(req);
     const score = Math.floor(Number(body.score));
-    const nickname = sanitizeNickname(body.nickname);
+    // An anonymous save asks the server for a name instead of supplying one,
+    // so two players skipping at the same moment cannot land on the same row.
+    const anonymous = body.anonymous === true;
+    const nickname = anonymous ? '' : sanitizeNickname(body.nickname);
     const token = typeof body.token === 'string' ? body.token : '';
 
-    if (!nickname) return json(res, 400, { error: 'bad_nickname' });
+    if (!anonymous && !nickname) return json(res, 400, { error: 'bad_nickname' });
     if (!Number.isFinite(score) || score <= 0) return json(res, 400, { error: 'bad_score' });
     if (!/^[a-f0-9]{32}$/.test(token)) return json(res, 400, { error: 'bad_token' });
 
@@ -30,6 +33,14 @@ module.exports = async (req, res) => {
     const hits = Number(await cmd(['INCR', rlKey]));
     if (hits === 1) await cmd(['EXPIRE', rlKey, '3600']);
     if (hits > MAX_SUBMITS_PER_HOUR) return json(res, 429, { error: 'rate_limited' });
+
+    // Checked before the token is spent, and only for a typed name: a name
+    // someone already has is the one rejection a player can actually fix, so
+    // it must not cost them the run. Every rule below this line is about the
+    // run itself, where a retry would only be a second guess at the limits.
+    if (!anonymous && (await cmd(['ZSCORE', BOARD_KEY, nickname])) !== null) {
+      return json(res, 409, { error: 'name_taken' });
+    }
 
     const runKey = 'run:' + token;
     const issuedAt = Number(await cmd(['GET', runKey]));
@@ -42,20 +53,29 @@ module.exports = async (req, res) => {
     if (runMs < MIN_RUN_MS) return json(res, 400, { error: 'run_too_short' });
     if (score > maxPlausibleScore(runMs)) return json(res, 400, { error: 'score_implausible' });
 
-    // GT keeps a player's best rather than their latest, and keying by
-    // nickname means one row per name instead of one person filling the
-    // whole board with ten runs.
+    // Numbered only once the run has passed every check, so a rejected
+    // attempt cannot burn a number. INCR is atomic, so concurrent skips get
+    // distinct names rather than racing for one.
+    const name = anonymous ? ANON_PREFIX + (await cmd(['INCR', ANON_COUNTER])) : nickname;
+
+    // NX, not GT: names are claimed once. The check above already turned away
+    // a taken name; NX is what closes the gap between that check and this
+    // write, so two players submitting the same name at the same instant
+    // cannot both land on it.
+    if (!(await cmd(['ZADD', BOARD_KEY, 'NX', String(score), name]))) {
+      return json(res, 409, { error: 'name_taken' });
+    }
+
     const today = 'lb:day:' + dayKey();
-    await cmd(['ZADD', 'lb:all', 'GT', String(score), nickname]);
-    await cmd(['ZADD', today, 'GT', String(score), nickname]);
+    await cmd(['ZADD', today, 'NX', String(score), name]);
     await cmd(['EXPIRE', today, String(60 * 60 * 48)]);
 
     const board = await cmd(['ZREVRANGE', 'lb:all', '0', String(TOP_N - 1), 'WITHSCORES']);
     const names = [];
     for (let i = 0; i < board.length; i += 2) names.push(board[i]);
-    const rank = names.indexOf(nickname);
+    const rank = names.indexOf(name);
 
-    return json(res, 200, { ok: true, nickname, score, rank: rank === -1 ? null : rank + 1 });
+    return json(res, 200, { ok: true, nickname: name, score, rank: rank === -1 ? null : rank + 1 });
   } catch (err) {
     console.error('score submit failed', err);
     return json(res, 503, { error: 'store_unavailable' });

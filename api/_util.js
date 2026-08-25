@@ -25,7 +25,15 @@ const MAX_SUBMITS_PER_HOUR = 20;
 // 450px canvas on a phone held upright (see .hood-game-ranks-list).
 const TOP_N = 10;
 
-const NICK_MAX = 16;
+const NICK_MAX = 12;
+// Skipping the name prompt still keeps the place, under a numbered name the
+// server hands out: Anonymous#1, Anonymous#2, and so on.
+const ANON_PREFIX = 'Anonymous#';
+const ANON_COUNTER = 'lb:anon';
+// Names are first come, first served. A taken one is reported back so the
+// player can pick another -- see api/name-check.js, which answers the same
+// question while they are still typing.
+const BOARD_KEY = 'lb:all';
 // Kept intentionally small and obvious: a blocklist can never be complete,
 // and an aggressive one mangles innocent names. This catches the lazy case;
 // anything past it is a moderation problem, not a regex problem.
@@ -78,5 +86,6 @@ function json(res, status, payload) {
 
 module.exports = {
   TOP_N, MIN_RUN_MS, TOKEN_TTL_SEC, MAX_SUBMITS_PER_HOUR, NICK_MAX,
+  ANON_PREFIX, ANON_COUNTER, BOARD_KEY,
   clientIp, sanitizeNickname, maxPlausibleScore, dayKey, readBody, json
 };

@@ -27,13 +27,16 @@ function memCmd(args) {
     case 'INCR': { const v = Number(mem.get(key) || 0) + 1; mem.set(key, String(v)); return v; }
     case 'EXPIRE': return 1;
     case 'ZADD': {
-      // args: ZADD key GT score member
-      const m = z(); const gt = String(rest[0]).toUpperCase() === 'GT';
-      const score = Number(gt ? rest[1] : rest[0]);
-      const member = String(gt ? rest[2] : rest[1]);
-      const prev = m.has(member) ? m.get(member) : -Infinity;
-      if (!gt || score > prev) { m.set(member, score); return 1; }
-      return 0;
+      // args: ZADD key [GT|NX] score member
+      const m = z();
+      const flag = String(rest[0]).toUpperCase();
+      const hasFlag = flag === 'GT' || flag === 'NX';
+      const score = Number(hasFlag ? rest[1] : rest[0]);
+      const member = String(hasFlag ? rest[2] : rest[1]);
+      if (flag === 'NX' && m.has(member)) return 0;
+      if (flag === 'GT' && m.has(member) && score <= m.get(member)) return 0;
+      m.set(member, score);
+      return 1;
     }
     case 'ZSCORE': { const m = z(); return m.has(String(rest[0])) ? String(m.get(String(rest[0]))) : null; }
     case 'ZREVRANGE': {

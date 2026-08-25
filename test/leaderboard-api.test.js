@@ -39,10 +39,16 @@ function startMock() {
       else if (op === "INCR") { const v = Number(store.kv.get(key) || 0) + 1; store.kv.set(key, String(v)); result = v; }
       else if (op === "EXPIRE") { store.ttl.set(key, Number(a[2])); result = 1; }
       else if (op === "ZADD") {
-        const m = zs(), sc = Number(a[3]), mem = a[4];
-        const prev = m.has(mem) ? m.get(mem) : -Infinity;
-        if (sc > prev) { m.set(mem, sc); result = 1; } else result = 0;
-      } else if (op === "ZREVRANGE") {
+        // ZADD key [GT|NX] score member
+        const m = zs(), flag = String(a[2]).toUpperCase();
+        const has = flag === "GT" || flag === "NX";
+        const sc = Number(has ? a[3] : a[2]), mem = has ? a[4] : a[3];
+        if (flag === "NX" && m.has(mem)) result = 0;
+        else if (flag === "GT" && m.has(mem) && sc <= m.get(mem)) result = 0;
+        else { m.set(mem, sc); result = 1; }
+      }
+      else if (op === "ZSCORE") { const m = zs(); result = m.has(a[2]) ? String(m.get(a[2])) : null; }
+      else if (op === "ZREVRANGE") {
         const m = zs();
         const s = [...m.entries()].sort((x, y) => y[1] - x[1]).slice(Number(a[2]), Number(a[3]) + 1);
         result = s.flatMap(([mm, sc]) => [mm, String(sc)]);
@@ -59,15 +65,17 @@ beforeAll(async () => {
   process.env.KV_REST_API_URL = "http://127.0.0.1:" + mock.address().port;
   process.env.KV_REST_API_TOKEN = "test-token";
   // Imported only once the env is set -- api/_store.js reads it at load time.
-  const [runStart, score, leaderboard] = await Promise.all([
+  const [runStart, score, leaderboard, nameCheck] = await Promise.all([
     import("../api/run-start.js"),
     import("../api/score.js"),
-    import("../api/leaderboard.js")
+    import("../api/leaderboard.js"),
+    import("../api/name-check.js")
   ]);
   const routes = {
     "/api/run-start": runStart.default,
     "/api/score": score.default,
-    "/api/leaderboard": leaderboard.default
+    "/api/leaderboard": leaderboard.default,
+    "/api/name-check": nameCheck.default
   };
   api = http.createServer((req, res) => {
     const h = routes[req.url.split("?")[0]];
@@ -127,17 +135,6 @@ describe("score submission", () => {
     expect(today.body.board).toBe("today");
     expect(today.body.entries.some((e) => e.name === "Robin Hood")).toBe(true);
   });
-
-  it("keeps a player's best, not their latest", async () => {
-    await post("/api/score", { token: await aged(), score: 40, nickname: "Robin Hood" });
-    const all = await get("/api/leaderboard");
-    expect(all.body.entries.find((e) => e.name === "Robin Hood").score).toBe(120);
-  });
-
-  it("gives one row per nickname so nobody can flood the board", async () => {
-    const all = await get("/api/leaderboard");
-    expect(all.body.entries.filter((e) => e.name === "Robin Hood")).toHaveLength(1);
-  });
 });
 
 // The deployment state that actually bit us: the functions are live but no
@@ -187,11 +184,77 @@ describe("board size", () => {
   }, 30000);
 });
 
+describe("anonymous saves", () => {
+  it("numbers each skipped run so two of them never share a row", async () => {
+    const a = await post("/api/score", { token: await aged(), score: 40, anonymous: true });
+    const b = await post("/api/score", { token: await aged(), score: 41, anonymous: true });
+    expect(a.body.nickname).toMatch(/^Anonymous#\d+$/);
+    expect(b.body.nickname).toMatch(/^Anonymous#\d+$/);
+    expect(a.body.nickname).not.toBe(b.body.nickname);
+  });
+  it("ignores any nickname sent alongside the anonymous flag", async () => {
+    const { body } = await post("/api/score",
+      { token: await aged(), score: 42, anonymous: true, nickname: "Impostor" });
+    expect(body.nickname).toMatch(/^Anonymous#\d+$/);
+  });
+  it("spends no number on a run it rejects", async () => {
+    const before = Number(store.kv.get("lb:anon"));
+    const bad = await post("/api/score", { token: "0".repeat(32), score: 40, anonymous: true });
+    expect(bad.status).toBe(400);
+    expect(Number(store.kv.get("lb:anon"))).toBe(before);
+  });
+});
+
+describe("name collisions", () => {
+  it("refuses a name already on the board", async () => {
+    const res = await post("/api/score", { token: await aged(), score: 40, nickname: "Robin Hood" });
+    expect(res.status).toBe(409);
+    expect(res.body.error).toBe("name_taken");
+  });
+
+  // The point of checking the name before the token: a taken name is the one
+  // rejection the player can fix, so it must not cost them the run.
+  it("leaves the run token unspent so the player can try another name", async () => {
+    const token = await aged();
+    expect((await post("/api/score", { token, score: 40, nickname: "Robin Hood" })).status).toBe(409);
+    const second = await post("/api/score", { token, score: 40, nickname: "Marian" });
+    expect(second.status).toBe(200);
+    expect(second.body.nickname).toBe("Marian");
+  });
+
+  it("does not merge a repeated name into the existing row", async () => {
+    const all = await get("/api/leaderboard");
+    expect(all.body.entries.filter((e) => e.name === "Robin Hood")).toHaveLength(1);
+    expect(all.body.entries.find((e) => e.name === "Robin Hood").score).toBe(120);
+  });
+});
+
+describe("name-check", () => {
+  it("reports a taken name as taken", async () => {
+    const { body } = await get("/api/name-check?name=Robin%20Hood");
+    expect(body).toMatchObject({ nickname: "Robin Hood", valid: true, taken: true });
+  });
+  it("reports a free name as free", async () => {
+    const { body } = await get("/api/name-check?name=Little%20John");
+    expect(body).toMatchObject({ nickname: "Little John", valid: true, taken: false });
+  });
+  it("answers for the sanitized name, which is the one that would be saved", async () => {
+    const { body } = await get("/api/name-check?name=" + encodeURIComponent("  Robin <b>Hood</b>  "));
+    expect(body.nickname).toBe("Robin bHoodb");
+  });
+  it("marks a name that sanitizes away as invalid", async () => {
+    const { body } = await get("/api/name-check?name=" + encodeURIComponent("<<>>"));
+    expect(body).toMatchObject({ valid: false, taken: false });
+  });
+});
+
 describe("anti-cheat", () => {
   it("refuses to spend the same token twice", async () => {
     const token = await aged();
     expect((await post("/api/score", { token, score: 100, nickname: "A" })).status).toBe(200);
-    const again = await post("/api/score", { token, score: 100, nickname: "A" });
+    // A different name on the retry, so the name check waves it through and
+    // the spent token is what refuses it.
+    const again = await post("/api/score", { token, score: 100, nickname: "B" });
     expect(again.status).toBe(400);
     expect(again.body.error).toBe("token_unknown_or_used");
   });

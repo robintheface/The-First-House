@@ -1151,6 +1151,32 @@
     color:var(--green-bright);
   }
   .hood-game-save-row{ display:flex; gap:6px; }
+  /* The tick sits inside the field, so the row keeps its width whether or
+     not the name has been checked yet -- nothing shifts as you type. */
+  .hood-game-save-field{ position:relative; display:inline-flex; }
+  .hood-game-save-tick{
+    position:absolute; right:8px; top:50%; transform:translateY(-50%);
+    font-size:13px; line-height:1; color:#6fcf3a;
+    /* visibility, not opacity alone: an opacity:0 tick is still a visible
+       element to assistive tech and to anything asking the DOM. */
+    visibility:hidden; opacity:0; transition:opacity 0.12s ease; pointer-events:none;
+  }
+  .hood-game-save-field.is-free .hood-game-save-tick{ visibility:visible; opacity:1; }
+  .hood-game-save-field.is-free .hood-game-save-input{
+    border-color:rgba(111,207,58,0.75); padding-right:24px;
+  }
+  .hood-game-save-field.is-taken .hood-game-save-input{ border-color:rgba(232,139,106,0.85); }
+  .hood-game-save-state{
+    margin:0; font-family:'IM Fell English',serif; font-size:11px; letter-spacing:0.03em;
+    color:#6fcf3a;
+  }
+  .hood-game-save-state[hidden]{ display:none; }
+  .hood-game-save-state.is-error{ color:#e88b6a; }
+  /* The attempt spends the run token, so there is no second try to offer:
+     once it settles, the prompt retires and leaves only its verdict. */
+  .hood-game-save-score.is-done .hood-game-save-label,
+  .hood-game-save-score.is-done .hood-game-save-row,
+  .hood-game-save-score.is-done .hood-game-save-skip{ display:none; }
   .hood-game-save-input{
     width:150px; padding:6px 9px; border-radius:7px;
     background:rgba(8,14,8,0.75); border:1px solid rgba(224,178,58,0.4);

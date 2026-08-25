@@ -35,6 +35,8 @@ if (canvas) {
   const nickSaveBtn = document.getElementById('hoodGameNickSave');
   const saveMsg = document.getElementById('hoodGameSaveMsg');
   const nickSkipBtn = document.getElementById('hoodGameNickSkip');
+  const nickField = document.querySelector('.hood-game-save-field');
+  const nickState = document.getElementById('hoodGameNickState');
   const GAME_VERSION = '1.0.0';
   if (versionBadgeEl) versionBadgeEl.textContent = 'v' + GAME_VERSION;
 
@@ -753,7 +755,7 @@ if (canvas) {
   const MUSIC_BASE = 'sound-effects/';
   const MUSIC_TRACKS = ['1sound.mp3', '2sound.mp3', '3sound.mp3', '5sound.mp3'];
   const FADE_IN_MS = 2500;
-  const SFX_FILES = { jump: 'jumping.wav', land: 'landing.mp3', coin: 'coin.wav', impact: 'impact.mp3' };
+  const SFX_FILES = { jump: 'jumping.mp3', land: 'landing.mp3', coin: 'coin.mp3', impact: 'impact.mp3' };
   const RUN_SFX_FILE = 'running.mp3';
   // setTargetAtTime time constant -- rounds off slider jumps and the fade's
   // 60ms steps so neither zippers, without audibly lagging behind either.
@@ -1120,10 +1122,6 @@ if (canvas) {
   // or Skip settles it. jump() honours this so the run cannot be restarted
   // out from under an unsaved place.
   let awaitingSave = false;
-  // Skip does not throw the place away -- it claims it under a shared
-  // Anonymous name, so a player who would rather not be named still keeps
-  // their score on the board.
-  const ANON_NICK = 'Anonymous';
   // The server's rules are the authority on what a save may do; this only
   // puts a readable sentence on whichever one it enforced.
   const SAVE_ERRORS = {
@@ -1132,11 +1130,52 @@ if (canvas) {
     store_not_configured: 'Leaderboard is offline',
     store_unavailable: 'Leaderboard is unreachable',
     no_token: 'No finished run to save',
+    name_taken: 'That name is taken',
     token_unknown_or_used: 'This run was already saved',
     score_implausible: 'Run could not be verified',
     run_too_short: 'Run could not be verified'
   };
   const ranksTabs = document.querySelectorAll('.hood-game-ranks-tab');
+  // Long enough that a normal typist is not checked on every keystroke,
+  // short enough that the verdict is there before they reach for Save.
+  const NAME_CHECK_DEBOUNCE_MS = 300;
+  let nameCheckTimer = null;
+  let nameCheckSeq = 0;
+
+  // Shows whether the typed name is still free. Advisory: /api/score checks
+  // again on submit, so a stale "free" costs nothing but a second try.
+  function setNameState(kind, text) {
+    if (nickField) {
+      nickField.classList.toggle('is-free', kind === 'free');
+      nickField.classList.toggle('is-taken', kind === 'taken');
+    }
+    if (nickState) {
+      nickState.hidden = !text;
+      nickState.classList.toggle('is-error', kind === 'taken');
+      nickState.textContent = text || '';
+    }
+    // Only a name known to be taken blocks Save. An unchecked or unknown one
+    // goes through and lets the server answer -- a flaky check must never be
+    // the reason a player cannot save.
+    if (nickSaveBtn) nickSaveBtn.disabled = kind === 'taken';
+  }
+
+  function scheduleNameCheck() {
+    if (nameCheckTimer) clearTimeout(nameCheckTimer);
+    const typed = (nickInput && nickInput.value || '').trim();
+    const seq = ++nameCheckSeq;       // stale replies are dropped
+    if (!typed) { setNameState('none', ''); return; }
+    setNameState('none', '');
+    nameCheckTimer = setTimeout(async () => {
+      const r = await lb.checkName(typed);
+      if (seq !== nameCheckSeq) return;
+      if (!r.known || !r.valid) return setNameState('none', '');
+      setNameState(r.taken ? 'taken' : 'free', r.taken ? 'Already used' : 'Available');
+    }, NAME_CHECK_DEBOUNCE_MS);
+  }
+
+  if (nickInput) nickInput.addEventListener('input', scheduleNameCheck);
+
 
   // The overlay is rebuilt on every game over, so the continue line has to
   // be found again each time rather than held onto.
@@ -1208,7 +1247,10 @@ if (canvas) {
     // hand every single time, which is worse than typing it again.
     if (nickInput) { nickInput.value = ''; nickInput.disabled = false; }
     if (nickSaveBtn) nickSaveBtn.disabled = false;
-    if (nickSkipBtn) nickSkipBtn.hidden = false;
+    if (nickSkipBtn) { nickSkipBtn.hidden = false; nickSkipBtn.disabled = false; }
+    saveScoreForm.classList.remove('is-done');
+    nameCheckSeq++;                   // abandon any check from the last run
+    setNameState('none', '');
     saveScoreForm.hidden = false;
     saveScoreForm.dataset.score = String(finalScore);
     // Hold back the "press space" invite: showing it next to a name field
@@ -1225,32 +1267,40 @@ if (canvas) {
     showContinueLine(true);
   }
 
-  // Save and Skip differ only in the name they send. Either way the run
-  // token is spent by the attempt, so the run is handed back whatever the
-  // answer was -- a retry could never succeed anyway.
+  // Save and Skip differ only in the name they send: Skip passes null and
+  // lets the server number it (any#1, any#2...). Either way the attempt
+  // spends the run token, so there is nothing left to retry -- the whole
+  // prompt is retired and only its verdict stays on screen.
   async function submitScore(nick) {
     if (!saveScoreForm) return;
     if (nickSaveBtn) nickSaveBtn.disabled = true;
     if (nickSkipBtn) nickSkipBtn.disabled = true;
     const res = await lb.submit(nick, Number(saveScoreForm.dataset.score || 0));
-    if (res.ok) {
-      lastSavedNick = res.nickname || nick;
-      if (nickInput) nickInput.disabled = true;
-    } else {
-      if (nickSaveBtn) nickSaveBtn.disabled = false;
+    if (res.retry) {
+      // The name was refused before the run token was spent, so the run is
+      // still there to save -- reopen the prompt instead of retiring it.
+      setNameState('taken', 'Already used');
       if (nickSkipBtn) nickSkipBtn.disabled = false;
+      return;
     }
-    if (saveMsg) {
+    if (res.ok) {
+      // Nothing left to say: the row is on the board, so the prompt gets out
+      // of the way and leaves the game-over screen as it would have been.
+      lastSavedNick = res.nickname || '';
+      saveScoreForm.hidden = true;
+      if (saveMsg) saveMsg.hidden = true;
+    } else if (saveMsg) {
+      // A failure is worth a word -- the run token is spent either way, so
+      // the prompt still retires, but the reason stays on screen.
+      saveScoreForm.classList.add('is-done');
       saveMsg.hidden = false;
-      saveMsg.classList.toggle('is-error', !res.ok);
-      saveMsg.textContent = res.ok
-        ? (res.rank ? 'Saved — you are #' + res.rank : 'Saved')
-        : (SAVE_ERRORS[res.error] || 'Could not save');
+      saveMsg.classList.add('is-error');
+      saveMsg.textContent = SAVE_ERRORS[res.error] || 'Could not save';
     }
     finishSave();
   }
 
-  if (nickSkipBtn) nickSkipBtn.addEventListener('click', () => submitScore(ANON_NICK));
+  if (nickSkipBtn) nickSkipBtn.addEventListener('click', () => submitScore(null));
 
   if (saveScoreForm) {
     saveScoreForm.addEventListener('submit', (e) => {
