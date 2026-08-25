@@ -539,24 +539,17 @@
     font-family:'IM Fell English',serif; font-size:12px; letter-spacing:0.06em;
     text-transform:uppercase; color:var(--green-bright); white-space:nowrap;
   }
+  /* Doubles as the Buy $HOODFACE link. Deliberately keeps the plain badge
+     look -- no underline -- so the row still reads as status rather than a
+     button; the aria-label carries the destination, since "Token live" on
+     its own would not tell a screen reader where the link goes. Worth
+     having here because .topbar-cta, the site's other Buy button, is
+     display:none under 720px, so on a phone this page had no way to buy. */
   .rank-live-badge{
     display:inline-flex; align-items:center; gap:7px;
     font-family:'IM Fell English',serif; font-size:12px; letter-spacing:0.06em;
     text-transform:uppercase; color:var(--green-bright); padding:6px 2px;
-  }
-  /* Sits in .rank-badge-row next to the Token live badge. Same type ramp as
-     the two badges beside it so the row reads as one line, but gold rather
-     than green, and underlined, so it reads as the action among two pieces
-     of status. Worth having here specifically because .topbar-cta -- the
-     other Buy button -- is display:none under 720px, so on a phone this
-     page had no way to buy at all. */
-  .rank-buy-link{
-    display:inline-flex; align-items:center;
-    font-family:'IM Fell English',serif; font-size:12px; letter-spacing:0.06em;
-    text-transform:uppercase; color:var(--gold);
-    padding:6px 0 5px;
-    border-bottom:1px solid rgba(232,212,77,0.35);
-    transition:color 0.15s ease, border-color 0.15s ease;
+    text-decoration:none; transition:color 0.15s ease;
   }
   .rank-live-dot{
     width:8px; height:8px; border-radius:50%; flex:none;
@@ -1390,7 +1383,7 @@
     .nav-more-item:not(.is-locked):hover{background:rgba(111,207,58,0.08); color:var(--cream2);}
     .copy-btn:hover{border-color:var(--green-bright); color:var(--green-bright);}
     .contract-address:hover{color:var(--green-bright); border-color:var(--green-bright);}
-    .rank-buy-link:hover{color:#f3e58a; border-color:rgba(232,212,77,0.85);}
+    .rank-live-badge:hover{color:#8ade56;}
     .topbar-cta:hover{
       box-shadow:0 0 20px 2px rgba(232,212,77,0.55), 0 0 40px 4px rgba(232,212,77,0.25);
       transform:translateY(-1px);
