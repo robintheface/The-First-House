@@ -19,6 +19,12 @@ const TOKEN_TTL_SEC = 30 * 60;
 
 const MAX_SUBMITS_PER_HOUR = 20;
 
+// How many places the board keeps. Ten, so a decent run still earns a
+// spot -- the popup does not try to show them all at once: its list is
+// capped at five rows and scrolls, which is what kept the panel inside the
+// 450px canvas on a phone held upright (see .hood-game-ranks-list).
+const TOP_N = 10;
+
 const NICK_MAX = 16;
 // Kept intentionally small and obvious: a blocklist can never be complete,
 // and an aggressive one mangles innocent names. This catches the lazy case;
@@ -71,6 +77,6 @@ function json(res, status, payload) {
 }
 
 module.exports = {
-  MIN_RUN_MS, TOKEN_TTL_SEC, MAX_SUBMITS_PER_HOUR, NICK_MAX,
+  TOP_N, MIN_RUN_MS, TOKEN_TTL_SEC, MAX_SUBMITS_PER_HOUR, NICK_MAX,
   clientIp, sanitizeNickname, maxPlausibleScore, dayKey, readBody, json
 };

@@ -6,6 +6,8 @@
 // Kept as an external module (not inline) for the same CSP reason as
 // wallet-connect.js: no 'unsafe-inline' script-src.
 
+import * as lb from './leaderboard.js';
+
 const canvas = document.getElementById('hoodGameCanvas');
 if (canvas) {
   const ctx = canvas.getContext('2d');
@@ -23,6 +25,15 @@ if (canvas) {
   const saveSettingsBtn = document.getElementById('hoodGameSettingsSaveBtn');
   const versionEl = document.getElementById('hoodGameVersion');
   const versionBadgeEl = document.getElementById('hoodGameVersionBadge');
+  const ranksBtn = document.getElementById('hoodGameRanksBtn');
+  const ranksPanel = document.getElementById('hoodGameRanksPanel');
+  const ranksList = document.getElementById('hoodGameRanksList');
+  const ranksEmpty = document.getElementById('hoodGameRanksEmpty');
+  const ranksClose = document.getElementById('hoodGameRanksClose');
+  const saveScoreForm = document.getElementById('hoodGameSaveScore');
+  const nickInput = document.getElementById('hoodGameNick');
+  const nickSaveBtn = document.getElementById('hoodGameNickSave');
+  const saveMsg = document.getElementById('hoodGameSaveMsg');
   const GAME_VERSION = '1.0.0';
   if (versionBadgeEl) versionBadgeEl.textContent = 'v' + GAME_VERSION;
 
@@ -290,6 +301,7 @@ if (canvas) {
     spawnBlinkOn = true;
     hideOverlay();
     ensureLoopRunning();
+    lb.startRun(); // fire-and-forget: the run plays the same either way
     // Starts playback (silently) right here, synchronously inside the
     // gesture that called jump() -> startRun() -- see startMusicPlayback().
     // Run-sfx + obstacle spawning still wait for updateSpawn() to hand off
@@ -341,6 +353,7 @@ if (canvas) {
       } else {
         showOverlay('RUGGED!', ['You scored ' + formatted + ' points', 'Click or press SPACE to continue']);
       }
+      offerScoreSave(Math.floor(score));
     };
   }
 
@@ -397,6 +410,7 @@ if (canvas) {
         overlayLines.appendChild(p);
       });
     }
+    if (saveScoreForm) saveScoreForm.hidden = true;
     overlay.hidden = false;
     // Force a reflow so the opacity transition below actually animates
     // from 0 instead of snapping straight to 1 in the same paint.
@@ -1087,6 +1101,111 @@ if (canvas) {
       });
     }
   }
+  // ---------- leaderboard ----------
+  // Every part of this is optional at runtime. Until the store is
+  // provisioned the endpoints answer {configured:false}, lb.isAvailable()
+  // stays false, and none of this UI is ever shown -- the game plays
+  // exactly as it did before rather than offering a board that cannot work.
+  let ranksBoard = 'all';
+  let lastSavedNick = '';
+
+  function renderRanks(entries) {
+    if (!ranksList) return;
+    ranksList.replaceChildren();
+    if (ranksEmpty) ranksEmpty.hidden = entries.length > 0;
+    entries.forEach((e) => {
+      const li = document.createElement('li');
+      li.className = 'hood-game-ranks-row' + (e.name === lastSavedNick ? ' is-you' : '');
+      const num = document.createElement('span');
+      num.className = 'hood-game-ranks-num';
+      num.textContent = String(e.rank).padStart(2, '0');
+      const name = document.createElement('span');
+      name.className = 'hood-game-ranks-name';
+      // Names are written by other players: inserted as text, never markup.
+      name.textContent = e.name;
+      const sc = document.createElement('span');
+      sc.className = 'hood-game-ranks-score';
+      sc.textContent = e.score.toLocaleString('en-US');
+      li.append(num, name, sc);
+      ranksList.appendChild(li);
+    });
+  }
+
+  async function showRanks(which) {
+    ranksBoard = which;
+    document.querySelectorAll('.hood-game-ranks-tab').forEach((t) => {
+      const on = t.dataset.board === which;
+      t.classList.toggle('is-active', on);
+      t.setAttribute('aria-selected', String(on));
+    });
+    renderRanks(await lb.getBoard(which));
+  }
+
+  function openRanks() {
+    if (!ranksPanel) return;
+    if (settingsPanel) settingsPanel.hidden = true;
+    if (settingsBtn) settingsBtn.setAttribute('aria-expanded', 'false');
+    ranksPanel.hidden = false;
+    showRanks(ranksBoard);
+  }
+  function closeRanks() { if (ranksPanel) ranksPanel.hidden = true; }
+
+  if (ranksBtn) ranksBtn.addEventListener('click', openRanks);
+  if (ranksClose) ranksClose.addEventListener('click', closeRanks);
+  document.querySelectorAll('.hood-game-ranks-tab').forEach((t) => {
+    t.addEventListener('click', () => showRanks(t.dataset.board));
+  });
+  document.addEventListener('pointerdown', (e) => {
+    if (!ranksPanel || ranksPanel.hidden) return;
+    if (ranksPanel.contains(e.target) || (ranksBtn && ranksBtn.contains(e.target))) return;
+    closeRanks();
+  });
+
+  // Called once the game-over text is on screen. Only prompts when the run
+  // actually stands a chance, so an ordinary run ends as quietly as before.
+  async function offerScoreSave(finalScore) {
+    if (!saveScoreForm || !lb.isAvailable() || !lb.canSubmit()) return;
+    const entries = await lb.getBoard('all');
+    if (!lb.qualifies(finalScore, entries)) return;
+    if (saveMsg) { saveMsg.hidden = true; saveMsg.classList.remove('is-error'); }
+    if (nickInput) nickInput.value = lb.rememberedNick();
+    if (nickSaveBtn) nickSaveBtn.disabled = false;
+    saveScoreForm.hidden = false;
+    saveScoreForm.dataset.score = String(finalScore);
+  }
+
+  if (saveScoreForm) {
+    saveScoreForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nick = (nickInput && nickInput.value || '').trim();
+      if (!nick) return;
+      if (nickSaveBtn) nickSaveBtn.disabled = true;
+      const res = await lb.submit(nick, Number(saveScoreForm.dataset.score || 0));
+      if (!saveMsg) return;
+      saveMsg.hidden = false;
+      if (res.ok) {
+        lastSavedNick = res.nickname || nick;
+        lb.rememberNick(lastSavedNick);
+        saveMsg.classList.remove('is-error');
+        saveMsg.textContent = res.rank ? 'Saved — you are #' + res.rank : 'Saved';
+        if (nickInput) nickInput.disabled = true;
+      } else {
+        saveMsg.classList.add('is-error');
+        // Server-side rules are the authority; surface why rather than
+        // silently doing nothing.
+        saveMsg.textContent = res.error === 'rate_limited' ? 'Too many saves — try later'
+          : res.error === 'bad_nickname' ? 'Pick another name'
+          : 'Could not save';
+        if (nickSaveBtn) nickSaveBtn.disabled = false;
+      }
+    });
+  }
+
+  // One probe at boot decides whether the board exists in this deployment.
+  lb.getBoard('all').then(() => {
+    if (lb.isAvailable() && ranksBtn) ranksBtn.hidden = false;
+  });
+
   // ---------- fullscreen ----------
   // The wrap element itself goes fullscreen (not the whole page) -- see the
   // :fullscreen CSS for how the canvas letterboxes to fill the screen at
@@ -1236,7 +1355,7 @@ if (canvas) {
   const gameSection = document.getElementById('game');
   (gameSection || canvas).addEventListener('pointerdown', (e) => {
     if (!assetsReady) return;
-    if (e.target.closest('a, button, input, #hoodGameSettingsPanel')) return;
+    if (e.target.closest('a, button, input, #hoodGameSettingsPanel, #hoodGameRanksPanel, #hoodGameSaveScore')) return;
     primeAudio();
     jump();
   });

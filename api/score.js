@@ -1,11 +1,10 @@
 // Accepts a finished run and writes it to the boards if it earns a place.
 const { cmd, isConfigured } = require('./_store.js');
 const {
-  MIN_RUN_MS, MAX_SUBMITS_PER_HOUR,
+  TOP_N, MIN_RUN_MS, MAX_SUBMITS_PER_HOUR,
   clientIp, sanitizeNickname, maxPlausibleScore, dayKey, readBody, json
 } = require('./_util.js');
 
-const TOP_N = 10;
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return json(res, 405, { error: 'method_not_allowed' });

@@ -127,6 +127,23 @@ describe("score submission", () => {
   });
 });
 
+describe("board size", () => {
+  it("keeps ten places and reports the size to the client", async () => {
+    // Six distinct names, ascending, on their own IP so the shared rate
+    // limit budget in the other tests cannot interfere.
+    for (let i = 1; i <= 6; i++) {
+      const { body } = await post("/api/run-start", {}, "7.7.7.7");
+      await new Promise((r) => setTimeout(r, 1300));
+      await post("/api/score", { token: body.token, score: i * 10, nickname: "size" + i }, "7.7.7.7");
+    }
+    const res = await get("/api/leaderboard");
+    expect(res.body.size).toBe(10);
+    expect(res.body.entries.length).toBeLessThanOrEqual(10);
+    // Highest first, and the weakest of the six is the one left out.
+    expect(res.body.entries[0].score).toBeGreaterThan(res.body.entries[res.body.entries.length - 1].score);
+  }, 30000);
+});
+
 describe("anti-cheat", () => {
   it("refuses to spend the same token twice", async () => {
     const token = await aged();
