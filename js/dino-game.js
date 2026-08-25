@@ -1195,6 +1195,9 @@ if (canvas) {
         // silently doing nothing.
         saveMsg.textContent = res.error === 'rate_limited' ? 'Too many saves — try later'
           : res.error === 'bad_nickname' ? 'Pick another name'
+          : res.error === 'store_not_configured' ? 'Leaderboard is offline'
+          : res.error === 'token_unknown_or_used' ? 'This run was already saved'
+          : res.error === 'score_implausible' || res.error === 'run_too_short' ? 'Run could not be verified'
           : 'Could not save';
         if (nickSaveBtn) nickSaveBtn.disabled = false;
       }

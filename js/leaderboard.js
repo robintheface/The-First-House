@@ -38,8 +38,12 @@ export function isAvailable() { return available === true; }
 export function startRun() {
   runToken = null;
   return req('/run-start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
-    .then((d) => { runToken = d && d.token ? d.token : null; available = true; })
-    .catch(() => { runToken = null; if (available === null) available = false; });
+    // Deliberately does not touch `available`: only /api/leaderboard reports
+    // whether the store is configured, and a run-start that succeeded for
+    // some other reason must not be able to advertise a board that cannot
+    // accept a score.
+    .then((d) => { runToken = d && d.token ? d.token : null; })
+    .catch(() => { runToken = null; });
 }
 
 export async function getBoard(which = 'all') {

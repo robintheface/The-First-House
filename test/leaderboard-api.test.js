@@ -5,7 +5,7 @@
 // The point of these is the anti-cheat rules: the game runs entirely in the
 // browser, so the score arriving at /api/score is whatever the client says
 // it is. Every rule that makes that safe is pinned here.
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import http from "node:http";
 
 let mock, api, base;
@@ -124,6 +124,36 @@ describe("score submission", () => {
   it("gives one row per nickname so nobody can flood the board", async () => {
     const all = await get("/api/leaderboard");
     expect(all.body.entries.filter((e) => e.name === "Robin Hood")).toHaveLength(1);
+  });
+});
+
+// The deployment state that actually bit us: the functions are live but no
+// store is attached. Before this fix /api/run-start was the one endpoint
+// that did not check, so it issued a token backed by per-instance memory,
+// the client took that as proof a board existed, offered the player a name
+// prompt, and /api/score then refused the very token it had just handed out.
+//
+// Run in a separate process with the store variables stripped: api/_store.js
+// reads them through require() at load time, which vi.resetModules() cannot
+// reach, so a child process is the only way to actually observe the
+// unconfigured path.
+describe("no store attached", () => {
+  it("refuses to issue a run token instead of handing out an unusable one", async () => {
+    const script = `
+      const h = require('${process.cwd()}/api/run-start.js');
+      h({ method: 'POST', headers: {}, url: '/api/run-start' },
+        { statusCode: 0, setHeader() {}, end(b) { console.log(this.statusCode + ' ' + b); } });
+    `;
+    const env = { ...process.env };
+    delete env.KV_REST_API_URL;
+    delete env.KV_REST_API_TOKEN;
+    delete env.UPSTASH_REDIS_REST_URL;
+    delete env.UPSTASH_REDIS_REST_TOKEN;
+    const { execFileSync } = await import("node:child_process");
+    const out = execFileSync(process.execPath, ["-e", script], { env, encoding: "utf8" }).trim();
+    const [status, ...rest] = out.split(" ");
+    expect(Number(status)).toBe(503);
+    expect(JSON.parse(rest.join(" ")).error).toBe("store_not_configured");
   });
 });
 
