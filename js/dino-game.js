@@ -34,6 +34,7 @@ if (canvas) {
   const nickInput = document.getElementById('hoodGameNick');
   const nickSaveBtn = document.getElementById('hoodGameNickSave');
   const saveMsg = document.getElementById('hoodGameSaveMsg');
+  const nickSkipBtn = document.getElementById('hoodGameNickSkip');
   const GAME_VERSION = '1.0.0';
   if (versionBadgeEl) versionBadgeEl.textContent = 'v' + GAME_VERSION;
 
@@ -348,10 +349,13 @@ if (canvas) {
       if (isHighScore) {
         showOverlay('NEW HIGH SCORE!', [
           { text: formatted, cls: 'hood-game-overlay-score' },
-          'PRESS SPACE TO RUN AGAIN'
+          { text: 'PRESS SPACE TO RUN AGAIN', cls: 'hood-game-overlay-continue' }
         ]);
       } else {
-        showOverlay('RUGGED!', ['You scored ' + formatted + ' points', 'Click or press SPACE to continue']);
+        showOverlay('RUGGED!', [
+          'You scored ' + formatted + ' points',
+          { text: 'Click or press SPACE to continue', cls: 'hood-game-overlay-continue' }
+        ]);
       }
       offerScoreSave(Math.floor(score));
     };
@@ -375,6 +379,10 @@ if (canvas) {
     if (state === STATE.IDLE) { startRun(); return; }
     if (state === STATE.OVER) {
       if (!resultShown) return; // still in the pre-text beat -- ignore input entirely
+      // A qualifying run is holding the name prompt open. Restarting now
+      // would throw the place away, and the prompt invites a keypress, so
+      // Space belongs to the name field until Save or Skip settles it.
+      if (awaitingSave) return;
       if (performance.now() - overSince < RESTART_COOLDOWN) return;
       startRun();
       return;
@@ -1108,6 +1116,10 @@ if (canvas) {
   // exactly as it did before rather than offering a board that cannot work.
   let ranksBoard = 'all';
   let lastSavedNick = '';
+  // True from the moment a qualifying run opens the name prompt until Save
+  // or Skip settles it. jump() honours this so the run cannot be restarted
+  // out from under an unsaved place.
+  let awaitingSave = false;
 
   function renderRanks(entries) {
     if (!ranksList) return;
@@ -1168,10 +1180,32 @@ if (canvas) {
     const entries = await lb.getBoard('all');
     if (!lb.qualifies(finalScore, entries)) return;
     if (saveMsg) { saveMsg.hidden = true; saveMsg.classList.remove('is-error'); }
-    if (nickInput) nickInput.value = lb.rememberedNick();
+    if (nickInput) { nickInput.value = lb.rememberedNick(); nickInput.disabled = false; }
     if (nickSaveBtn) nickSaveBtn.disabled = false;
+    if (nickSkipBtn) nickSkipBtn.hidden = false;
     saveScoreForm.hidden = false;
     saveScoreForm.dataset.score = String(finalScore);
+    // Hold back the "press space" invite: showing it next to a name field
+    // is what made a qualifying run one stray keypress away from being lost.
+    awaitingSave = true;
+    const cont = overlay && overlay.querySelector('.hood-game-overlay-continue');
+    if (cont) cont.hidden = true;
+  }
+
+  // Hands the run back: the prompt closes, the continue line returns, and
+  // Space means restart again.
+  function finishSave() {
+    awaitingSave = false;
+    if (nickSkipBtn) nickSkipBtn.hidden = true;
+    const cont = overlay && overlay.querySelector('.hood-game-overlay-continue');
+    if (cont) cont.hidden = false;
+  }
+
+  if (nickSkipBtn) {
+    nickSkipBtn.addEventListener('click', () => {
+      if (saveScoreForm) saveScoreForm.hidden = true;
+      finishSave();
+    });
   }
 
   if (saveScoreForm) {
@@ -1189,6 +1223,7 @@ if (canvas) {
         saveMsg.classList.remove('is-error');
         saveMsg.textContent = res.rank ? 'Saved — you are #' + res.rank : 'Saved';
         if (nickInput) nickInput.disabled = true;
+        finishSave();
       } else {
         saveMsg.classList.add('is-error');
         // Server-side rules are the authority; surface why rather than
@@ -1197,6 +1232,7 @@ if (canvas) {
           : res.error === 'bad_nickname' ? 'Pick another name'
           : res.error === 'store_not_configured' ? 'Leaderboard is offline'
           : res.error === 'store_unavailable' ? 'Leaderboard is unreachable'
+          : res.error === 'no_token' ? 'No finished run to save'
           : res.error === 'token_unknown_or_used' ? 'This run was already saved'
           : res.error === 'score_implausible' || res.error === 'run_too_short' ? 'Run could not be verified'
           : 'Could not save';

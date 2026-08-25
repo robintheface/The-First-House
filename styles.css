@@ -1021,6 +1021,10 @@
     cursor:pointer; touch-action:manipulation;
     transition:background 0.15s ease, transform 0.15s ease;
   }
+  /* Same guard, same reason: #hoodGameRanksBtn ships hidden and is only
+     revealed once the leaderboard API answers, which display:block above
+     would otherwise override. */
+  .hood-game-settings-save[hidden]{ display:none; }
   .hood-game-settings-save:hover{background:rgba(224,178,58,0.28);}
   .hood-game-settings-save:active{transform:scale(0.97);}
   /* Unsaved changes are sitting in the panel. Closing it any other way
@@ -1135,6 +1139,13 @@
     margin-top:14px; pointer-events:auto;
     display:flex; flex-direction:column; align-items:center; gap:6px;
   }
+  /* Any display value set on a class outranks the browser's own
+     [hidden]{display:none}, so every element the game toggles through the
+     hidden attribute has to opt back in explicitly. Without this the prompt
+     stayed on screen permanently -- including over the idle "PRESS SPACE TO
+     START" overlay, where there is no run to save and pressing Save could
+     only ever fail. */
+  .hood-game-save-score[hidden]{ display:none; }
   .hood-game-save-label{
     font-family:'IM Fell English',serif; font-size:12px; letter-spacing:0.04em;
     color:var(--green-bright);
@@ -1153,6 +1164,13 @@
     transition:background 0.15s ease;
   }
   .hood-game-save-btn:disabled{ opacity:0.55; cursor:default; }
+  /* Quiet on purpose: saving is the point, skipping is the way out. */
+  .hood-game-save-skip{
+    background:none; border:0; cursor:pointer; padding:2px 6px;
+    font-family:'IM Fell English',serif; font-size:11px; letter-spacing:0.04em;
+    color:rgba(200,240,184,0.55); text-decoration:underline;
+  }
+  .hood-game-save-skip[hidden]{ display:none; }
   .hood-game-save-msg{
     margin:0; font-family:'IM Fell English',serif; font-size:12px; color:var(--green-bright);
   }
@@ -1498,6 +1516,7 @@
     .rank-live-badge:hover{color:#8ade56;}
     .hood-game-ranks-tab:not(.is-active):hover{color:var(--cream2); border-color:rgba(241,234,220,0.35);}
     .hood-game-save-btn:not(:disabled):hover{background:rgba(224,178,58,0.38);}
+    .hood-game-save-skip:hover{color:var(--cream2);}
     .topbar-cta:hover{
       box-shadow:0 0 20px 2px rgba(232,212,77,0.55), 0 0 40px 4px rgba(232,212,77,0.25);
       transform:translateY(-1px);
