@@ -96,14 +96,38 @@
         <span>SFX</span>
         <input type="range" id="hoodGameSfxVol" min="0" max="100" step="1">
       </label>
+      <button id="hoodGameRanksBtn" class="hood-game-settings-save hood-game-ranks-btn" type="button" hidden>Leaderboard</button>
       <button id="hoodGameSettingsSaveBtn" class="hood-game-settings-save" type="button">Save</button>
       <div id="hoodGameVersion" class="hood-game-settings-version"></div>
+    </div>
+    <div id="hoodGameRanksPanel" class="hood-game-settings-panel hood-game-ranks-panel" hidden>
+      <p class="hood-game-settings-title">Leaderboard</p>
+      <div class="hood-game-ranks-tabs" role="tablist">
+        <button type="button" class="hood-game-ranks-tab is-active" data-board="all" role="tab" aria-selected="true">All time</button>
+        <button type="button" class="hood-game-ranks-tab" data-board="today" role="tab" aria-selected="false">Today</button>
+      </div>
+      <ol id="hoodGameRanksList" class="hood-game-ranks-list"></ol>
+      <p id="hoodGameRanksEmpty" class="hood-game-ranks-empty" hidden>No runs yet. Be the first.</p>
+      <button id="hoodGameRanksClose" class="hood-game-settings-save" type="button">Close</button>
     </div>
     <button id="hoodGameFullscreenBtn" class="hood-game-fullscreen-btn" type="button" aria-label="Play fullscreen">⛶</button>
     <div id="hoodGameOverlay" class="hood-game-overlay">
       <div class="hood-game-overlay-inner">
         <p id="hoodGameOverlayTitle" class="hood-game-overlay-title">HOOD RUN</p>
         <div id="hoodGameOverlayLines" class="hood-game-overlay-lines"></div>
+        <form id="hoodGameSaveScore" class="hood-game-save-score" hidden>
+          <label class="hood-game-save-label" for="hoodGameNick">You made the top 10 — name it (max 12)</label>
+          <div class="hood-game-save-row">
+            <span class="hood-game-save-field">
+              <input id="hoodGameNick" class="hood-game-save-input" type="text" maxlength="12" autocomplete="off" spellcheck="false" placeholder="Your name" aria-describedby="hoodGameNickState">
+              <span id="hoodGameNickTick" class="hood-game-save-tick" aria-hidden="true">&#10003;</span>
+            </span>
+            <button id="hoodGameNickSave" class="hood-game-save-btn" type="submit">Save</button>
+          </div>
+          <p id="hoodGameNickState" class="hood-game-save-state" role="status" hidden></p>
+          <button id="hoodGameNickSkip" class="hood-game-save-skip" type="button">Skip</button>
+          <p id="hoodGameSaveMsg" class="hood-game-save-msg" hidden></p>
+        </form>
       </div>
     </div>
   </div>

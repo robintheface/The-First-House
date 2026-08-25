@@ -6,6 +6,8 @@
 // Kept as an external module (not inline) for the same CSP reason as
 // wallet-connect.js: no 'unsafe-inline' script-src.
 
+import * as lb from './leaderboard.js';
+
 const canvas = document.getElementById('hoodGameCanvas');
 if (canvas) {
   const ctx = canvas.getContext('2d');
@@ -23,6 +25,18 @@ if (canvas) {
   const saveSettingsBtn = document.getElementById('hoodGameSettingsSaveBtn');
   const versionEl = document.getElementById('hoodGameVersion');
   const versionBadgeEl = document.getElementById('hoodGameVersionBadge');
+  const ranksBtn = document.getElementById('hoodGameRanksBtn');
+  const ranksPanel = document.getElementById('hoodGameRanksPanel');
+  const ranksList = document.getElementById('hoodGameRanksList');
+  const ranksEmpty = document.getElementById('hoodGameRanksEmpty');
+  const ranksClose = document.getElementById('hoodGameRanksClose');
+  const saveScoreForm = document.getElementById('hoodGameSaveScore');
+  const nickInput = document.getElementById('hoodGameNick');
+  const nickSaveBtn = document.getElementById('hoodGameNickSave');
+  const saveMsg = document.getElementById('hoodGameSaveMsg');
+  const nickSkipBtn = document.getElementById('hoodGameNickSkip');
+  const nickField = document.querySelector('.hood-game-save-field');
+  const nickState = document.getElementById('hoodGameNickState');
   const GAME_VERSION = '1.0.0';
   if (versionBadgeEl) versionBadgeEl.textContent = 'v' + GAME_VERSION;
 
@@ -290,6 +304,7 @@ if (canvas) {
     spawnBlinkOn = true;
     hideOverlay();
     ensureLoopRunning();
+    lb.startRun(); // fire-and-forget: the run plays the same either way
     // Starts playback (silently) right here, synchronously inside the
     // gesture that called jump() -> startRun() -- see startMusicPlayback().
     // Run-sfx + obstacle spawning still wait for updateSpawn() to hand off
@@ -336,11 +351,15 @@ if (canvas) {
       if (isHighScore) {
         showOverlay('NEW HIGH SCORE!', [
           { text: formatted, cls: 'hood-game-overlay-score' },
-          'PRESS SPACE TO RUN AGAIN'
+          { text: 'PRESS SPACE TO RUN AGAIN', cls: 'hood-game-overlay-continue' }
         ]);
       } else {
-        showOverlay('RUGGED!', ['You scored ' + formatted + ' points', 'Click or press SPACE to continue']);
+        showOverlay('RUGGED!', [
+          'You scored ' + formatted + ' points',
+          { text: 'Click or press SPACE to continue', cls: 'hood-game-overlay-continue' }
+        ]);
       }
+      offerScoreSave(Math.floor(score));
     };
   }
 
@@ -362,6 +381,10 @@ if (canvas) {
     if (state === STATE.IDLE) { startRun(); return; }
     if (state === STATE.OVER) {
       if (!resultShown) return; // still in the pre-text beat -- ignore input entirely
+      // A qualifying run is holding the name prompt open. Restarting now
+      // would throw the place away, and the prompt invites a keypress, so
+      // Space belongs to the name field until Save or Skip settles it.
+      if (awaitingSave) return;
       if (performance.now() - overSince < RESTART_COOLDOWN) return;
       startRun();
       return;
@@ -397,6 +420,7 @@ if (canvas) {
         overlayLines.appendChild(p);
       });
     }
+    if (saveScoreForm) saveScoreForm.hidden = true;
     overlay.hidden = false;
     // Force a reflow so the opacity transition below actually animates
     // from 0 instead of snapping straight to 1 in the same paint.
@@ -731,7 +755,7 @@ if (canvas) {
   const MUSIC_BASE = 'sound-effects/';
   const MUSIC_TRACKS = ['1sound.mp3', '2sound.mp3', '3sound.mp3', '5sound.mp3'];
   const FADE_IN_MS = 2500;
-  const SFX_FILES = { jump: 'jumping.wav', land: 'landing.mp3', coin: 'coin.wav', impact: 'impact.mp3' };
+  const SFX_FILES = { jump: 'jumping.mp3', land: 'landing.mp3', coin: 'coin.mp3', impact: 'impact.mp3' };
   const RUN_SFX_FILE = 'running.mp3';
   // setTargetAtTime time constant -- rounds off slider jumps and the fade's
   // 60ms steps so neither zippers, without audibly lagging behind either.
@@ -1087,6 +1111,211 @@ if (canvas) {
       });
     }
   }
+  // ---------- leaderboard ----------
+  // Every part of this is optional at runtime. Until the store is
+  // provisioned the endpoints answer {configured:false}, lb.isAvailable()
+  // stays false, and none of this UI is ever shown -- the game plays
+  // exactly as it did before rather than offering a board that cannot work.
+  let ranksBoard = 'all';
+  let lastSavedNick = '';
+  // True from the moment a qualifying run opens the name prompt until Save
+  // or Skip settles it. jump() honours this so the run cannot be restarted
+  // out from under an unsaved place.
+  let awaitingSave = false;
+  // The server's rules are the authority on what a save may do; this only
+  // puts a readable sentence on whichever one it enforced.
+  const SAVE_ERRORS = {
+    rate_limited: 'Too many saves — try later',
+    bad_nickname: 'Pick another name',
+    store_not_configured: 'Leaderboard is offline',
+    store_unavailable: 'Leaderboard is unreachable',
+    no_token: 'No finished run to save',
+    name_taken: 'That name is taken',
+    token_unknown_or_used: 'This run was already saved',
+    score_implausible: 'Run could not be verified',
+    run_too_short: 'Run could not be verified'
+  };
+  const ranksTabs = document.querySelectorAll('.hood-game-ranks-tab');
+  // Long enough that a normal typist is not checked on every keystroke,
+  // short enough that the verdict is there before they reach for Save.
+  const NAME_CHECK_DEBOUNCE_MS = 300;
+  let nameCheckTimer = null;
+  let nameCheckSeq = 0;
+
+  // Shows whether the typed name is still free. Advisory: /api/score checks
+  // again on submit, so a stale "free" costs nothing but a second try.
+  function setNameState(kind, text) {
+    if (nickField) {
+      nickField.classList.toggle('is-free', kind === 'free');
+      nickField.classList.toggle('is-taken', kind === 'taken');
+    }
+    if (nickState) {
+      nickState.hidden = !text;
+      nickState.classList.toggle('is-error', kind === 'taken');
+      nickState.textContent = text || '';
+    }
+    // Only a name known to be taken blocks Save. An unchecked or unknown one
+    // goes through and lets the server answer -- a flaky check must never be
+    // the reason a player cannot save.
+    if (nickSaveBtn) nickSaveBtn.disabled = kind === 'taken';
+  }
+
+  function scheduleNameCheck() {
+    if (nameCheckTimer) clearTimeout(nameCheckTimer);
+    const typed = (nickInput && nickInput.value || '').trim();
+    const seq = ++nameCheckSeq;       // stale replies are dropped
+    if (!typed) { setNameState('none', ''); return; }
+    setNameState('none', '');
+    nameCheckTimer = setTimeout(async () => {
+      const r = await lb.checkName(typed);
+      if (seq !== nameCheckSeq) return;
+      if (!r.known || !r.valid) return setNameState('none', '');
+      setNameState(r.taken ? 'taken' : 'free', r.taken ? 'Already used' : 'Available');
+    }, NAME_CHECK_DEBOUNCE_MS);
+  }
+
+  if (nickInput) nickInput.addEventListener('input', scheduleNameCheck);
+
+
+  // The overlay is rebuilt on every game over, so the continue line has to
+  // be found again each time rather than held onto.
+  function showContinueLine(on) {
+    const cont = overlay && overlay.querySelector('.hood-game-overlay-continue');
+    if (cont) cont.hidden = !on;
+  }
+
+  function renderRanks(entries) {
+    if (!ranksList) return;
+    ranksList.replaceChildren();
+    if (ranksEmpty) ranksEmpty.hidden = entries.length > 0;
+    entries.forEach((e) => {
+      const li = document.createElement('li');
+      li.className = 'hood-game-ranks-row' + (e.name === lastSavedNick ? ' is-you' : '');
+      const num = document.createElement('span');
+      num.className = 'hood-game-ranks-num';
+      num.textContent = String(e.rank).padStart(2, '0');
+      const name = document.createElement('span');
+      name.className = 'hood-game-ranks-name';
+      // Names are written by other players: inserted as text, never markup.
+      name.textContent = e.name;
+      const sc = document.createElement('span');
+      sc.className = 'hood-game-ranks-score';
+      sc.textContent = e.score.toLocaleString('en-US');
+      li.append(num, name, sc);
+      ranksList.appendChild(li);
+    });
+  }
+
+  async function showRanks(which) {
+    ranksBoard = which;
+    ranksTabs.forEach((t) => {
+      const on = t.dataset.board === which;
+      t.classList.toggle('is-active', on);
+      t.setAttribute('aria-selected', String(on));
+    });
+    renderRanks(await lb.getBoard(which));
+  }
+
+  function openRanks() {
+    if (!ranksPanel) return;
+    if (settingsPanel) settingsPanel.hidden = true;
+    if (settingsBtn) settingsBtn.setAttribute('aria-expanded', 'false');
+    ranksPanel.hidden = false;
+    showRanks(ranksBoard);
+  }
+  function closeRanks() { if (ranksPanel) ranksPanel.hidden = true; }
+
+  if (ranksBtn) ranksBtn.addEventListener('click', openRanks);
+  if (ranksClose) ranksClose.addEventListener('click', closeRanks);
+  ranksTabs.forEach((t) => {
+    t.addEventListener('click', () => showRanks(t.dataset.board));
+  });
+  document.addEventListener('pointerdown', (e) => {
+    if (!ranksPanel || ranksPanel.hidden) return;
+    if (ranksPanel.contains(e.target) || (ranksBtn && ranksBtn.contains(e.target))) return;
+    closeRanks();
+  });
+
+  // Called once the game-over text is on screen. Only prompts when the run
+  // actually stands a chance, so an ordinary run ends as quietly as before.
+  async function offerScoreSave(finalScore) {
+    if (!saveScoreForm || !lb.isAvailable() || !lb.canSubmit()) return;
+    const entries = await lb.getBoard('all');
+    if (!lb.qualifies(finalScore, entries)) return;
+    if (saveMsg) { saveMsg.hidden = true; saveMsg.classList.remove('is-error'); }
+    // Deliberately blank: prefilling last run's name means clearing it by
+    // hand every single time, which is worse than typing it again.
+    if (nickInput) { nickInput.value = ''; nickInput.disabled = false; }
+    if (nickSaveBtn) nickSaveBtn.disabled = false;
+    if (nickSkipBtn) { nickSkipBtn.hidden = false; nickSkipBtn.disabled = false; }
+    saveScoreForm.classList.remove('is-done');
+    nameCheckSeq++;                   // abandon any check from the last run
+    setNameState('none', '');
+    saveScoreForm.hidden = false;
+    saveScoreForm.dataset.score = String(finalScore);
+    // Hold back the "press space" invite: showing it next to a name field
+    // is what made a qualifying run one stray keypress away from being lost.
+    awaitingSave = true;
+    showContinueLine(false);
+  }
+
+  // Hands the run back: the prompt closes, the continue line returns, and
+  // Space means restart again.
+  function finishSave() {
+    awaitingSave = false;
+    if (nickSkipBtn) nickSkipBtn.hidden = true;
+    showContinueLine(true);
+  }
+
+  // Save and Skip differ only in the name they send: Skip passes null and
+  // lets the server number it (any#1, any#2...). Either way the attempt
+  // spends the run token, so there is nothing left to retry -- the whole
+  // prompt is retired and only its verdict stays on screen.
+  async function submitScore(nick) {
+    if (!saveScoreForm) return;
+    if (nickSaveBtn) nickSaveBtn.disabled = true;
+    if (nickSkipBtn) nickSkipBtn.disabled = true;
+    const res = await lb.submit(nick, Number(saveScoreForm.dataset.score || 0));
+    if (res.retry) {
+      // The name was refused before the run token was spent, so the run is
+      // still there to save -- reopen the prompt instead of retiring it.
+      setNameState('taken', 'Already used');
+      if (nickSkipBtn) nickSkipBtn.disabled = false;
+      return;
+    }
+    if (res.ok) {
+      // Nothing left to say: the row is on the board, so the prompt gets out
+      // of the way and leaves the game-over screen as it would have been.
+      lastSavedNick = res.nickname || '';
+      saveScoreForm.hidden = true;
+      if (saveMsg) saveMsg.hidden = true;
+    } else if (saveMsg) {
+      // A failure is worth a word -- the run token is spent either way, so
+      // the prompt still retires, but the reason stays on screen.
+      saveScoreForm.classList.add('is-done');
+      saveMsg.hidden = false;
+      saveMsg.classList.add('is-error');
+      saveMsg.textContent = SAVE_ERRORS[res.error] || 'Could not save';
+    }
+    finishSave();
+  }
+
+  if (nickSkipBtn) nickSkipBtn.addEventListener('click', () => submitScore(null));
+
+  if (saveScoreForm) {
+    saveScoreForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const nick = (nickInput && nickInput.value || '').trim();
+      if (!nick) return;
+      submitScore(nick);
+    });
+  }
+
+  // One probe at boot decides whether the board exists in this deployment.
+  lb.getBoard('all').then(() => {
+    if (lb.isAvailable() && ranksBtn) ranksBtn.hidden = false;
+  });
+
   // ---------- fullscreen ----------
   // The wrap element itself goes fullscreen (not the whole page) -- see the
   // :fullscreen CSS for how the canvas letterboxes to fill the screen at
@@ -1236,7 +1465,7 @@ if (canvas) {
   const gameSection = document.getElementById('game');
   (gameSection || canvas).addEventListener('pointerdown', (e) => {
     if (!assetsReady) return;
-    if (e.target.closest('a, button, input, #hoodGameSettingsPanel')) return;
+    if (e.target.closest('a, button, input, #hoodGameSettingsPanel, #hoodGameRanksPanel, #hoodGameSaveScore')) return;
     primeAudio();
     jump();
   });

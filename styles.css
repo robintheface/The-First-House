@@ -539,10 +539,17 @@
     font-family:'IM Fell English',serif; font-size:12px; letter-spacing:0.06em;
     text-transform:uppercase; color:var(--green-bright); white-space:nowrap;
   }
+  /* Doubles as the Buy $HOODFACE link. Deliberately keeps the plain badge
+     look -- no underline -- so the row still reads as status rather than a
+     button; the aria-label carries the destination, since "Token live" on
+     its own would not tell a screen reader where the link goes. Worth
+     having here because .topbar-cta, the site's other Buy button, is
+     display:none under 720px, so on a phone this page had no way to buy. */
   .rank-live-badge{
     display:inline-flex; align-items:center; gap:7px;
     font-family:'IM Fell English',serif; font-size:12px; letter-spacing:0.06em;
     text-transform:uppercase; color:var(--green-bright); padding:6px 2px;
+    text-decoration:none; transition:color 0.15s ease;
   }
   .rank-live-dot{
     width:8px; height:8px; border-radius:50%; flex:none;
@@ -1014,6 +1021,10 @@
     cursor:pointer; touch-action:manipulation;
     transition:background 0.15s ease, transform 0.15s ease;
   }
+  /* Same guard, same reason: #hoodGameRanksBtn ships hidden and is only
+     revealed once the leaderboard API answers, which display:block above
+     would otherwise override. */
+  .hood-game-settings-save[hidden]{ display:none; }
   .hood-game-settings-save:hover{background:rgba(224,178,58,0.28);}
   .hood-game-settings-save:active{transform:scale(0.97);}
   /* Unsaved changes are sitting in the panel. Closing it any other way
@@ -1054,6 +1065,142 @@
     .hood-game-settings-save{margin-top:11px; padding:6px 0; border-radius:6px; font-size:11px;}
     .hood-game-settings-version{margin-top:10px; padding-top:8px; font-size:8px;}
   }
+  /* ---- leaderboard ---- */
+  /* Reuses .hood-game-settings-panel wholesale, so the board inherits the
+     popup's frame, blur and its fullscreen scaling for free; only the parts
+     the settings popup has no equivalent for are defined here. */
+  /* The panel is a column that never scrolls itself -- only the standings
+     inside it do. That is what keeps the title, tabs and Close pinned. The
+     list is the flexible row (min-height:0 so it is allowed to shrink below
+     its content), capped at five rows on a roomy canvas but free to give
+     ground on a short one -- which is the case that matters, since the
+     popup lives inside a 450px canvas that is barely 200px tall on a phone
+     held upright. Sizing it this way means no per-breakpoint guesses. */
+  .hood-game-ranks-panel{
+    z-index:5;
+    display:flex; flex-direction:column;
+    overflow:hidden;
+  }
+  /* display:flex above outranks the browser's own [hidden]{display:none},
+     so the panel has to opt back in explicitly -- without this it stays
+     laid out and keeps swallowing clicks meant for the menu behind it.
+     Same guard .hood-game-overlay already carries for the same reason. */
+  .hood-game-ranks-panel[hidden]{ display:none; }
+  .hood-game-ranks-tabs{
+    display:flex; gap:6px; margin-bottom:10px;
+  }
+  .hood-game-ranks-tab{
+    flex:1; padding:5px 0; border-radius:7px; cursor:pointer;
+    background:transparent; border:1px solid rgba(241,234,220,0.16);
+    color:rgba(200,240,184,0.7);
+    font-family:'IM Fell English',serif; font-size:11px; letter-spacing:0.05em; text-transform:uppercase;
+    transition:background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .hood-game-ranks-tab.is-active{
+    background:rgba(111,207,58,0.16); border-color:rgba(111,207,58,0.5); color:var(--green-bright);
+  }
+  /* Five rows tall, then it scrolls. The panel as a whole must not be what
+     scrolls: it lives inside the 450px canvas, and on a phone held upright
+     that left ten rows pushing the Close button out of reach. Capping the
+     list instead keeps the title, tabs and Close pinned while the standings
+     move. The height deliberately lands mid-row so a partial sixth line
+     shows, which is what tells you there is more below. */
+  .hood-game-ranks-list{
+    list-style:none; margin:0 0 10px; padding:0;
+    display:flex; flex-direction:column; gap:3px;
+    flex:1 1 auto; min-height:0;
+    max-height:118px; overflow-y:auto; overscroll-behavior:contain;
+    scrollbar-width:thin;
+  }
+  .hood-game-ranks-row{
+    display:grid; grid-template-columns:auto 1fr auto; align-items:baseline; gap:8px;
+    font-family:'IM Fell English',serif; font-size:13px; color:var(--ink);
+    padding:3px 0; border-bottom:1px solid rgba(241,234,220,0.07);
+  }
+  .hood-game-ranks-num{ color:rgba(200,240,184,0.5); min-width:1.9em; letter-spacing:0.12em; }
+  /* Names come from other players, so they are inserted as text and clamped
+     here rather than trusted to be short or well behaved. */
+  .hood-game-ranks-name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hood-game-ranks-score{ color:var(--gold); font-weight:600; text-align:right; font-variant-numeric:tabular-nums; }
+  .hood-game-ranks-row.is-you .hood-game-ranks-name{ color:var(--green-bright); }
+  .hood-game-ranks-empty{
+    margin:0 0 10px; font-family:'IM Fell English',serif; font-size:11px;
+    color:rgba(200,240,184,0.55); text-align:center;
+  }
+  /* Top three get the medal treatment the ladder page uses for its tiers. */
+  .hood-game-ranks-row:nth-child(1) .hood-game-ranks-num{ color:var(--gold); }
+  .hood-game-ranks-row:nth-child(2) .hood-game-ranks-num{ color:#cfd6cc; }
+  .hood-game-ranks-row:nth-child(3) .hood-game-ranks-num{ color:var(--bronze); }
+
+  /* ---- name prompt, shown inside the game-over overlay ---- */
+  /* .hood-game-overlay is pointer-events:none so it never eats a tap meant
+     for the canvas; this is the one part of it that must take input back. */
+  .hood-game-save-score{
+    margin-top:14px; pointer-events:auto;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  /* Any display value set on a class outranks the browser's own
+     [hidden]{display:none}, so every element the game toggles through the
+     hidden attribute has to opt back in explicitly. Without this the prompt
+     stayed on screen permanently -- including over the idle "PRESS SPACE TO
+     START" overlay, where there is no run to save and pressing Save could
+     only ever fail. */
+  .hood-game-save-score[hidden]{ display:none; }
+  .hood-game-save-label{
+    font-family:'IM Fell English',serif; font-size:12px; letter-spacing:0.04em;
+    color:var(--green-bright);
+  }
+  .hood-game-save-row{ display:flex; gap:6px; }
+  /* The tick sits inside the field, so the row keeps its width whether or
+     not the name has been checked yet -- nothing shifts as you type. */
+  .hood-game-save-field{ position:relative; display:inline-flex; }
+  .hood-game-save-tick{
+    position:absolute; right:8px; top:50%; transform:translateY(-50%);
+    font-size:13px; line-height:1; color:#6fcf3a;
+    /* visibility, not opacity alone: an opacity:0 tick is still a visible
+       element to assistive tech and to anything asking the DOM. */
+    visibility:hidden; opacity:0; transition:opacity 0.12s ease; pointer-events:none;
+  }
+  .hood-game-save-field.is-free .hood-game-save-tick{ visibility:visible; opacity:1; }
+  .hood-game-save-field.is-free .hood-game-save-input{
+    border-color:rgba(111,207,58,0.75); padding-right:24px;
+  }
+  .hood-game-save-field.is-taken .hood-game-save-input{ border-color:rgba(232,139,106,0.85); }
+  .hood-game-save-state{
+    margin:0; font-family:'IM Fell English',serif; font-size:11px; letter-spacing:0.03em;
+    color:#6fcf3a;
+  }
+  .hood-game-save-state[hidden]{ display:none; }
+  .hood-game-save-state.is-error{ color:#e88b6a; }
+  /* The attempt spends the run token, so there is no second try to offer:
+     once it settles, the prompt retires and leaves only its verdict. */
+  .hood-game-save-score.is-done .hood-game-save-label,
+  .hood-game-save-score.is-done .hood-game-save-row,
+  .hood-game-save-score.is-done .hood-game-save-skip{ display:none; }
+  .hood-game-save-input{
+    width:150px; padding:6px 9px; border-radius:7px;
+    background:rgba(8,14,8,0.75); border:1px solid rgba(224,178,58,0.4);
+    color:var(--cream2); font-family:'IM Fell English',serif; font-size:14px;
+  }
+  .hood-game-save-input:focus{ outline:none; border-color:var(--gold); }
+  .hood-game-save-btn{
+    padding:6px 14px; border-radius:7px; cursor:pointer;
+    background:rgba(224,178,58,0.24); border:1px solid rgba(224,178,58,0.6); color:var(--gold);
+    font-family:'IM Fell English',serif; font-size:12px; letter-spacing:0.05em; text-transform:uppercase;
+    transition:background 0.15s ease;
+  }
+  .hood-game-save-btn:disabled{ opacity:0.55; cursor:default; }
+  /* Quiet on purpose: saving is the point, skipping is the way out. */
+  .hood-game-save-skip{
+    background:none; border:0; cursor:pointer; padding:2px 6px;
+    font-family:'IM Fell English',serif; font-size:11px; letter-spacing:0.04em;
+    color:rgba(200,240,184,0.55); text-decoration:underline;
+  }
+  .hood-game-save-skip[hidden]{ display:none; }
+  .hood-game-save-msg{
+    margin:0; font-family:'IM Fell English',serif; font-size:12px; color:var(--green-bright);
+  }
+  .hood-game-save-msg.is-error{ color:#e88b6a; }
   .hood-game-fullscreen-btn{
     position:absolute; right:10px; bottom:10px; z-index:2;
     width:38px; height:38px; border-radius:50%;
@@ -1264,6 +1411,22 @@
     border-radius:calc(var(--hgw-menu-scale-w) * 0.01);
     font-size:calc(var(--hgw-menu-scale-w) * 0.0175);
   }
+  .hood-game-wrap:fullscreen .hood-game-ranks-tab,
+  .hood-game-wrap:-webkit-full-screen .hood-game-ranks-tab,
+  .hood-game-wrap.is-pseudo-fullscreen .hood-game-ranks-tab{
+    font-size:calc(var(--hgw-menu-scale-w) * 0.01375);
+    padding:calc(var(--hgw-menu-scale-w) * 0.00625) 0;
+  }
+  .hood-game-wrap:fullscreen .hood-game-ranks-row,
+  .hood-game-wrap:-webkit-full-screen .hood-game-ranks-row,
+  .hood-game-wrap.is-pseudo-fullscreen .hood-game-ranks-row{
+    font-size:calc(var(--hgw-menu-scale-w) * 0.01375);
+  }
+  .hood-game-wrap:fullscreen .hood-game-ranks-list,
+  .hood-game-wrap:-webkit-full-screen .hood-game-ranks-list,
+  .hood-game-wrap.is-pseudo-fullscreen .hood-game-ranks-list{
+    max-height:calc(var(--hgw-menu-scale-w) * 0.1475);
+  }
   .hood-game-wrap:fullscreen .hood-game-settings-version,
   .hood-game-wrap:-webkit-full-screen .hood-game-settings-version,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-settings-version{
@@ -1376,6 +1539,10 @@
     .nav-more-item:not(.is-locked):hover{background:rgba(111,207,58,0.08); color:var(--cream2);}
     .copy-btn:hover{border-color:var(--green-bright); color:var(--green-bright);}
     .contract-address:hover{color:var(--green-bright); border-color:var(--green-bright);}
+    .rank-live-badge:hover{color:#8ade56;}
+    .hood-game-ranks-tab:not(.is-active):hover{color:var(--cream2); border-color:rgba(241,234,220,0.35);}
+    .hood-game-save-btn:not(:disabled):hover{background:rgba(224,178,58,0.38);}
+    .hood-game-save-skip:hover{color:var(--cream2);}
     .topbar-cta:hover{
       box-shadow:0 0 20px 2px rgba(232,212,77,0.55), 0 0 40px 4px rgba(232,212,77,0.25);
       transform:translateY(-1px);
