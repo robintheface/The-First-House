@@ -7,9 +7,12 @@
 // it is. Every rule that makes that safe is pinned here.
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import http from "node:http";
+import util from "../api/_util.js";
+
+const { TOKEN_TTL_SEC } = util;
 
 let mock, api, base;
-const store = { kv: new Map(), z: new Map() };
+const store = { kv: new Map(), z: new Map(), ttl: new Map() };
 
 function startMock() {
   mock = http.createServer((req, res) => {
@@ -24,11 +27,17 @@ function startMock() {
         return store.z.get(key);
       };
       let result = null;
-      if (op === "SET") { store.kv.set(key, a[2]); result = "OK"; }
+      if (op === "SET") {
+        store.kv.set(key, a[2]);
+        // Honour an inline TTL so a key written with EX is distinguishable
+        // from one written without -- see the token expiry test below.
+        if (String(a[3] || "").toUpperCase() === "EX") store.ttl.set(key, Number(a[4]));
+        result = "OK";
+      }
       else if (op === "GET") result = store.kv.has(key) ? store.kv.get(key) : null;
-      else if (op === "DEL") result = store.kv.delete(key) ? 1 : 0;
+      else if (op === "DEL") { store.ttl.delete(key); result = store.kv.delete(key) ? 1 : 0; }
       else if (op === "INCR") { const v = Number(store.kv.get(key) || 0) + 1; store.kv.set(key, String(v)); result = v; }
-      else if (op === "EXPIRE") result = 1;
+      else if (op === "EXPIRE") { store.ttl.set(key, Number(a[2])); result = 1; }
       else if (op === "ZADD") {
         const m = zs(), sc = Number(a[3]), mem = a[4];
         const prev = m.has(mem) ? m.get(mem) : -Infinity;
@@ -93,6 +102,10 @@ describe("run-start", () => {
   it("issues a 32-hex single-use token", async () => {
     const { body } = await post("/api/run-start", {});
     expect(body.token).toMatch(/^[a-f0-9]{32}$/);
+  });
+  it("gives the token an expiry, so an unspent one cannot linger", async () => {
+    const { body } = await post("/api/run-start", {});
+    expect(store.ttl.get("run:" + body.token)).toBe(TOKEN_TTL_SEC);
   });
   it("rejects a GET", async () => {
     expect((await get("/api/run-start")).status).toBe(405);

@@ -14,7 +14,7 @@ const API = '/api';
 
 let runToken = null;
 let available = null;       // null = not probed yet
-let boardCache = new Map(); // which -> { at, entries }
+const boardCache = new Map(); // which -> { at, entries }
 let boardSize = 5;          // replaced by whatever /api/leaderboard reports
 const CACHE_MS = 15000;
 
@@ -55,7 +55,7 @@ export async function getBoard(which = 'all') {
     const entries = Array.isArray(d.entries) ? d.entries : [];
     boardCache.set(which, { at: Date.now(), entries });
     return entries;
-  } catch (err) {
+  } catch (e) {
     if (available === null) available = false;
     return hit ? hit.entries : [];
   }
@@ -63,8 +63,8 @@ export async function getBoard(which = 'all') {
 
 // A run is worth offering to save if the board has room or the score beats
 // the last place on it. The size comes from the server, so the two can
-// never disagree about how many places there are. The server is still the authority -- this only
-// decides whether to bother the player with a name prompt.
+// never disagree about how many places there are. The server remains the
+// authority; this only decides whether to bother the player with a prompt.
 export function qualifies(score, entries) {
   if (!Number.isFinite(score) || score <= 0) return false;
   if (entries.length < boardSize) return true;

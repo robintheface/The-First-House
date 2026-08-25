@@ -1120,6 +1120,30 @@ if (canvas) {
   // or Skip settles it. jump() honours this so the run cannot be restarted
   // out from under an unsaved place.
   let awaitingSave = false;
+  // Skip does not throw the place away -- it claims it under a shared
+  // Anonymous name, so a player who would rather not be named still keeps
+  // their score on the board.
+  const ANON_NICK = 'Anonymous';
+  // The server's rules are the authority on what a save may do; this only
+  // puts a readable sentence on whichever one it enforced.
+  const SAVE_ERRORS = {
+    rate_limited: 'Too many saves — try later',
+    bad_nickname: 'Pick another name',
+    store_not_configured: 'Leaderboard is offline',
+    store_unavailable: 'Leaderboard is unreachable',
+    no_token: 'No finished run to save',
+    token_unknown_or_used: 'This run was already saved',
+    score_implausible: 'Run could not be verified',
+    run_too_short: 'Run could not be verified'
+  };
+  const ranksTabs = document.querySelectorAll('.hood-game-ranks-tab');
+
+  // The overlay is rebuilt on every game over, so the continue line has to
+  // be found again each time rather than held onto.
+  function showContinueLine(on) {
+    const cont = overlay && overlay.querySelector('.hood-game-overlay-continue');
+    if (cont) cont.hidden = !on;
+  }
 
   function renderRanks(entries) {
     if (!ranksList) return;
@@ -1145,7 +1169,7 @@ if (canvas) {
 
   async function showRanks(which) {
     ranksBoard = which;
-    document.querySelectorAll('.hood-game-ranks-tab').forEach((t) => {
+    ranksTabs.forEach((t) => {
       const on = t.dataset.board === which;
       t.classList.toggle('is-active', on);
       t.setAttribute('aria-selected', String(on));
@@ -1164,7 +1188,7 @@ if (canvas) {
 
   if (ranksBtn) ranksBtn.addEventListener('click', openRanks);
   if (ranksClose) ranksClose.addEventListener('click', closeRanks);
-  document.querySelectorAll('.hood-game-ranks-tab').forEach((t) => {
+  ranksTabs.forEach((t) => {
     t.addEventListener('click', () => showRanks(t.dataset.board));
   });
   document.addEventListener('pointerdown', (e) => {
@@ -1190,8 +1214,7 @@ if (canvas) {
     // Hold back the "press space" invite: showing it next to a name field
     // is what made a qualifying run one stray keypress away from being lost.
     awaitingSave = true;
-    const cont = overlay && overlay.querySelector('.hood-game-overlay-continue');
-    if (cont) cont.hidden = true;
+    showContinueLine(false);
   }
 
   // Hands the run back: the prompt closes, the continue line returns, and
@@ -1199,51 +1222,35 @@ if (canvas) {
   function finishSave() {
     awaitingSave = false;
     if (nickSkipBtn) nickSkipBtn.hidden = true;
-    const cont = overlay && overlay.querySelector('.hood-game-overlay-continue');
-    if (cont) cont.hidden = false;
+    showContinueLine(true);
   }
 
-  // Skip does not throw the place away -- it claims it under a shared
-  // Anonymous name, so a player who would rather not be named still keeps
-  // their score on the board.
-  const ANON_NICK = 'Anonymous';
-
+  // Save and Skip differ only in the name they send. Either way the run
+  // token is spent by the attempt, so the run is handed back whatever the
+  // answer was -- a retry could never succeed anyway.
   async function submitScore(nick) {
     if (!saveScoreForm) return;
     if (nickSaveBtn) nickSaveBtn.disabled = true;
     if (nickSkipBtn) nickSkipBtn.disabled = true;
     const res = await lb.submit(nick, Number(saveScoreForm.dataset.score || 0));
-    if (!saveMsg) return;
-    saveMsg.hidden = false;
     if (res.ok) {
       lastSavedNick = res.nickname || nick;
-      saveMsg.classList.remove('is-error');
-      saveMsg.textContent = res.rank ? 'Saved — you are #' + res.rank : 'Saved';
       if (nickInput) nickInput.disabled = true;
-      finishSave();
     } else {
-      saveMsg.classList.add('is-error');
-      // Server-side rules are the authority; surface why rather than
-      // silently doing nothing.
-      saveMsg.textContent = res.error === 'rate_limited' ? 'Too many saves — try later'
-        : res.error === 'bad_nickname' ? 'Pick another name'
-        : res.error === 'store_not_configured' ? 'Leaderboard is offline'
-        : res.error === 'store_unavailable' ? 'Leaderboard is unreachable'
-        : res.error === 'no_token' ? 'No finished run to save'
-        : res.error === 'token_unknown_or_used' ? 'This run was already saved'
-        : res.error === 'score_implausible' || res.error === 'run_too_short' ? 'Run could not be verified'
-        : 'Could not save';
-      // A failed attempt has already spent the run token, so a retry cannot
-      // succeed -- hand the run back rather than stranding the player.
       if (nickSaveBtn) nickSaveBtn.disabled = false;
       if (nickSkipBtn) nickSkipBtn.disabled = false;
-      finishSave();
     }
+    if (saveMsg) {
+      saveMsg.hidden = false;
+      saveMsg.classList.toggle('is-error', !res.ok);
+      saveMsg.textContent = res.ok
+        ? (res.rank ? 'Saved — you are #' + res.rank : 'Saved')
+        : (SAVE_ERRORS[res.error] || 'Could not save');
+    }
+    finishSave();
   }
 
-  if (nickSkipBtn) {
-    nickSkipBtn.addEventListener('click', () => { submitScore(ANON_NICK); });
-  }
+  if (nickSkipBtn) nickSkipBtn.addEventListener('click', () => submitScore(ANON_NICK));
 
   if (saveScoreForm) {
     saveScoreForm.addEventListener('submit', (e) => {

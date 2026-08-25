@@ -17,8 +17,9 @@ module.exports = async (req, res) => {
   if (!isConfigured()) return json(res, 503, { error: 'store_not_configured' });
   try {
     const token = crypto.randomBytes(16).toString('hex');
-    await cmd(['SET', 'run:' + token, String(Date.now())]);
-    await cmd(['EXPIRE', 'run:' + token, String(TOKEN_TTL_SEC)]);
+    // One round trip, not two: this sits at the start of every run, so the
+    // TTL rides along with the write rather than costing a second call.
+    await cmd(['SET', 'run:' + token, String(Date.now()), 'EX', String(TOKEN_TTL_SEC)]);
     return json(res, 200, { token });
   } catch (err) {
     console.error('run-start failed', err);
