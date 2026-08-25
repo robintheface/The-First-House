@@ -1121,40 +1121,72 @@
      afterward via window.scrollTo(). */
   html.hood-game-scroll-locked{ overflow:hidden; }
   html.hood-game-scroll-locked body{ position:fixed; left:0; right:0; }
+  /* Basis the HUD overlay scales off. Normally just the rendered canvas
+     width, so the HUD keeps the proportions it has at the 800px design
+     width. On a phone the fullscreen canvas is far narrower than 800px, so
+     those same fractions came out SMALLER than the fixed pixel sizes used
+     when not zoomed: entering fullscreen shrank the score, Best, Settings
+     and the version badge to x0.92 even though the playfield itself
+     roughly tripled in area. Doubling the basis below 900px puts them back
+     at about the proportion of the canvas they have in the normal,
+     un-zoomed view, so zooming in now enlarges the HUD along with
+     everything else. Desktop, where the fullscreen canvas is already at or
+     above the design width, is left exactly as it was. */
+  .hood-game-wrap:fullscreen,
+  .hood-game-wrap:-webkit-full-screen,
+  .hood-game-wrap.is-pseudo-fullscreen,
+  .hood-game-wrap.hood-game-force-landscape{
+    --hgw-hud-scale:var(--hgw-scale-w);
+  }
+  @media(max-width:900px){
+    .hood-game-wrap:fullscreen,
+    .hood-game-wrap:-webkit-full-screen,
+    .hood-game-wrap.is-pseudo-fullscreen,
+    .hood-game-wrap.hood-game-force-landscape{
+      --hgw-hud-scale:calc(var(--hgw-scale-w) * 1.44);
+    }
+  }
   .hood-game-wrap:fullscreen .hood-game-hud,
   .hood-game-wrap:-webkit-full-screen .hood-game-hud,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-hud{
-    font-size:calc(var(--hgw-scale-w) * 0.0175);
+    /* Same 800px-design-width fractions as every other overlay here
+       (12/800, 16/800). Only font-size used to scale, so the score kept its
+       flat 12px/16px inset while Best, Settings and the corner buttons all
+       moved proportionally -- on a big screen it ended up hugging the
+       corner, out of step with the rest of the HUD. */
+    font-size:calc(var(--hgw-hud-scale) * 0.0175);
+    top:calc(var(--hgw-hud-scale) * 0.015);
+    padding:0 calc(var(--hgw-hud-scale) * 0.02);
   }
   .hood-game-wrap:fullscreen .hood-game-best,
   .hood-game-wrap:-webkit-full-screen .hood-game-best,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-best{
-    font-size:calc(var(--hgw-scale-w) * 0.0275);
-    top:calc(var(--hgw-scale-w) * 0.0125);
+    font-size:calc(var(--hgw-hud-scale) * 0.0275);
+    top:calc(var(--hgw-hud-scale) * 0.0125);
   }
   .hood-game-wrap:fullscreen .hood-game-settings-btn,
   .hood-game-wrap:-webkit-full-screen .hood-game-settings-btn,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-settings-btn{
-    font-size:calc(var(--hgw-scale-w) * 0.0175);
-    padding:calc(var(--hgw-scale-w) * 0.00625) calc(var(--hgw-scale-w) * 0.015);
-    top:calc(var(--hgw-scale-w) * 0.01);
-    right:calc(var(--hgw-scale-w) * 0.01);
+    font-size:calc(var(--hgw-hud-scale) * 0.0175);
+    padding:calc(var(--hgw-hud-scale) * 0.00625) calc(var(--hgw-hud-scale) * 0.015);
+    top:calc(var(--hgw-hud-scale) * 0.01);
+    right:calc(var(--hgw-hud-scale) * 0.01);
   }
   .hood-game-wrap:fullscreen .hood-game-fullscreen-btn,
   .hood-game-wrap:-webkit-full-screen .hood-game-fullscreen-btn,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-fullscreen-btn{
-    width:calc(var(--hgw-scale-w) * 0.0475);
-    height:calc(var(--hgw-scale-w) * 0.0475);
-    font-size:calc(var(--hgw-scale-w) * 0.01875);
-    right:calc(var(--hgw-scale-w) * 0.0125);
-    bottom:calc(var(--hgw-scale-w) * 0.0125);
+    width:calc(var(--hgw-hud-scale) * 0.0475);
+    height:calc(var(--hgw-hud-scale) * 0.0475);
+    font-size:calc(var(--hgw-hud-scale) * 0.01875);
+    right:calc(var(--hgw-hud-scale) * 0.0125);
+    bottom:calc(var(--hgw-hud-scale) * 0.0125);
   }
   .hood-game-wrap:fullscreen .hood-game-version-badge,
   .hood-game-wrap:-webkit-full-screen .hood-game-version-badge,
   .hood-game-wrap.is-pseudo-fullscreen .hood-game-version-badge{
-    font-size:calc(var(--hgw-scale-w) * 0.01375);
-    left:calc(var(--hgw-scale-w) * 0.0125);
-    bottom:calc(var(--hgw-scale-w) * 0.0125);
+    font-size:calc(var(--hgw-hud-scale) * 0.01375);
+    left:calc(var(--hgw-hud-scale) * 0.0125);
+    bottom:calc(var(--hgw-hud-scale) * 0.0125);
   }
   /* Settings popup: same 800px-design-width fraction * --hgw-scale-w
      approach as the HUD/buttons above, just applied to every sub-part of
