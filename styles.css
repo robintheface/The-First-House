@@ -1016,6 +1016,14 @@
   }
   .hood-game-settings-save:hover{background:rgba(224,178,58,0.28);}
   .hood-game-settings-save:active{transform:scale(0.97);}
+  /* Unsaved changes are sitting in the panel. Closing it any other way
+     discards them by design, so the button has to read as "there is
+     something here to lose" rather than looking inert. */
+  .hood-game-settings-save.is-dirty{
+    background:rgba(224,178,58,0.34); border-color:rgba(224,178,58,0.85); color:#f1ead2;
+    box-shadow:0 0 0 1px rgba(224,178,58,0.25), 0 2px 10px -4px rgba(224,178,58,0.6);
+  }
+  .hood-game-settings-save.is-dirty:hover{background:rgba(224,178,58,0.44);}
   /* Briefly shown disabled/"Saved!" right after a click (see the click
      handler) -- still fully legible, just reads as settled rather than
      interactive for that short window. */

@@ -702,38 +702,42 @@ if (canvas) {
   }
 
   // ---------- audio ----------
-  // Two different engines for two different jobs:
-  //  - Music: a single native HTMLAudioElement, streamed/decoded
-  //    incrementally by the browser's own media pipeline. Profiling under
-  //    CPU throttling (instrumenting decodeAudioData directly) found that
-  //    music files -- the only ones big enough to matter, 0.6-3.2MB
-  //    compressed -- caused a genuine 400ms-to-nearly-2s main-thread stall
-  //    exactly when Web Audio's decodeAudioData resolved, whether that
-  //    landed at startRun() (decoding the track just picked) or later via
-  //    a background preload of the others: decodeAudioData hands back a
-  //    track's ENTIRE decoded PCM in one shot (tens of MB for a
-  //    multi-minute file), and materializing that is expensive regardless
-  //    of when it's triggered. A streaming <audio> element has no such
-  //    one-shot cost.
-  //  - Everything else (jump/land/coin/impact SFX + the looping running
-  //    footstep track) stays on Web Audio buffers: all well under 300KB,
-  //    decoding each in under ~20ms even under heavy throttling in the
-  //    same profiling, so none of them have the large-file problem music
-  //    does -- buffer-source scheduling stays the cheapest option for those.
-  // A single streaming <audio> for music isn't a re-run of the ORIGINAL
-  // mobile-stutter bug either -- that came from TWO continuously-streaming
-  // HTMLMediaElements (music + running) contending for the same decode
-  // pipeline at once. Running now lives on Web Audio, so there's only ever
-  // one streaming pipeline active here, same as before that fix landed.
+  // One signal path, identical on every platform:
+  //
+  //   <audio> (streamed music) ---> musicGain --+
+  //   one-shot SFX buffers ------> sfxGain -----+--> masterGain --> destination
+  //   looping footstep buffer ---> runGain -----+
+  //
+  // Music stays on a streaming HTMLAudioElement rather than a decoded Web
+  // Audio buffer: decodeAudioData hands back a whole multi-minute track's
+  // PCM in one shot, which profiling under CPU throttling measured as a
+  // 400ms-to-nearly-2s main-thread stall. The small SFX files (all under
+  // 300KB, ~20ms each) have no such problem, so those stay on buffers.
+  //
+  // What changed in this rewrite: music VOLUME no longer lives on the
+  // element. HTMLMediaElement.volume is permanently read-only on iOS --
+  // assignments are silently dropped and it always reads back 1 -- which is
+  // what killed both the Music slider and the fade-in there while desktop
+  // looked fine. Everything now rides GainNodes, whose .gain is scriptable
+  // everywhere, so mobile and desktop run the same code instead of two
+  // paths that drift apart. The element's own .volume is set once and never
+  // touched again (except on the no-Web-Audio fallback below).
+  //
+  // masterGain carries the Sound switch, so muting is an instant, click-free
+  // gain change instead of tearing playback down: unmuting resumes the same
+  // track where it left off rather than restarting on a fresh random one.
+  // It also means the Music and SFX gains stay meaningful while muted, so a
+  // slider dragged during mute is already correct when sound comes back.
   const MUSIC_BASE = 'sound-effects/';
   const MUSIC_TRACKS = ['1sound.mp3', '2sound.mp3', '3sound.mp3', '5sound.mp3'];
   const FADE_IN_MS = 2500;
   const SFX_FILES = { jump: 'jumping.wav', land: 'landing.mp3', coin: 'coin.wav', impact: 'impact.mp3' };
   const RUN_SFX_FILE = 'running.mp3';
+  // setTargetAtTime time constant -- rounds off slider jumps and the fade's
+  // 60ms steps so neither zippers, without audibly lagging behind either.
+  const GAIN_SMOOTH = 0.03;
 
-  // User-adjustable via the settings panel (0-1), persisted like the mute
-  // flag. SFX default is 30% quieter than music's so it sits underneath it
-  // rather than competing, but the two are independent sliders from here.
+  const STORE = { music: 'hoodRunnerMusicVol', sfx: 'hoodRunnerSfxVol', muted: 'hoodRunnerMuted' };
   function loadStoredVolume(key, fallback) {
     try {
       const raw = localStorage.getItem(key);
@@ -742,23 +746,24 @@ if (canvas) {
       return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : fallback;
     } catch (err) { return fallback; }
   }
-  let musicVolume = loadStoredVolume('hoodRunnerMusicVol', 0.5);
-  let sfxVolume = loadStoredVolume('hoodRunnerSfxVol', 0.35);
+  function clamp01(v) { return Math.min(1, Math.max(0, v)); }
 
-  let musicMuted = false;
-  try { musicMuted = localStorage.getItem('hoodRunnerMuted') === '1'; } catch (err) { musicMuted = false; }
-
-  // The settings panel previews Sound/Music/SFX changes live (so dragging a
-  // slider is audible right away) but only actually persists them when the
-  // Save button is clicked -- these three track whatever was last really
-  // saved, so the panel can revert a live-but-unsaved preview back to it if
-  // closed any other way (outside tap, hitting the Settings button again).
-  let savedMusicVolume = musicVolume;
-  let savedSfxVolume = sfxVolume;
-  let savedMuted = musicMuted;
+  // `live` is what you are hearing right now -- slider drags write straight
+  // here so a preview is audible immediately. `saved` is the last committed
+  // state, which is what a close-without-Save falls back to. Two plain
+  // objects rather than six parallel variables, so preview / commit / revert
+  // are each a one-line copy and cannot fall out of step.
+  // SFX defaults 30% under music so it sits beneath the track rather than
+  // competing; from there the two sliders are independent.
+  const live = {
+    music: loadStoredVolume(STORE.music, 0.5),
+    sfx: loadStoredVolume(STORE.sfx, 0.35),
+    muted: (() => { try { return localStorage.getItem(STORE.muted) === '1'; } catch (err) { return false; } })()
+  };
+  const saved = { music: live.music, sfx: live.sfx, muted: live.muted };
 
   let actx = null;
-  let sfxGain = null, runGain = null, musicGain = null;
+  let masterGain = null, musicGain = null, sfxGain = null, runGain = null;
   const audioBuffers = Object.create(null); // filename -> AudioBuffer | Promise<AudioBuffer|null>
   let runSource = null;
   let lastTrackIdx = -1;
@@ -768,164 +773,137 @@ if (canvas) {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return null;
     actx = new AudioCtx();
-    sfxGain = actx.createGain(); sfxGain.gain.value = sfxVolume; sfxGain.connect(actx.destination);
-    runGain = actx.createGain(); runGain.gain.value = sfxVolume; runGain.connect(actx.destination);
-    // Only actually used on platforms where HTMLMediaElement.volume is
-    // read-only (see routeMusicThroughWebAudio) -- created unconditionally
-    // so the routing decision can be made lazily without re-checking ctx.
-    musicGain = actx.createGain(); musicGain.gain.value = 0; musicGain.connect(actx.destination);
+    masterGain = actx.createGain(); masterGain.connect(actx.destination);
+    musicGain = actx.createGain(); musicGain.connect(masterGain);
+    sfxGain = actx.createGain(); sfxGain.connect(masterGain);
+    runGain = actx.createGain(); runGain.connect(masterGain);
+    musicGain.gain.value = 0; // every run fades up from silence
+    sfxGain.gain.value = live.sfx;
+    runGain.gain.value = live.sfx;
+    masterGain.gain.value = live.muted ? 0 : 1;
     return actx;
   }
+  // Mobile browsers hand out an already-suspended context unless it is
+  // resumed from inside a user gesture; nothing routed through the graph
+  // (music included, now that it is) makes a sound while it is suspended.
+  function resumeCtx() { if (actx && actx.state === 'suspended') actx.resume(); }
 
-  // Music element + its own tiny volume-fade timer. A coarse 60ms-step
-  // setInterval (not a per-frame rAF hook) is plenty smooth for a volume
-  // ramp and, unlike the large-file decode above, costs nothing worth
-  // measuring next to the game loop -- ~40 cheap steps spread across
-  // FADE_IN_MS, not a per-frame cost.
+  function rampGain(param, value, immediate) {
+    if (!param || !actx) return;
+    if (immediate) {
+      param.cancelScheduledValues(actx.currentTime);
+      param.setValueAtTime(value, actx.currentTime);
+    } else {
+      param.setTargetAtTime(value, actx.currentTime, GAIN_SMOOTH);
+    }
+  }
+
   let musicEl = null;
+  let musicRouted = false;  // false only where Web Audio is missing entirely
   let musicFadeTimer = null;
-  let musicUsesWebAudio = false;
-  let musicSourceNode = null;
-
-  // iOS (Safari/WebKit on iPhone+iPad) makes HTMLMediaElement.volume
-  // permanently read-only -- assignments are silently ignored and the
-  // property stays 1, with playback level owned entirely by the hardware
-  // volume buttons. That single quirk broke BOTH reported audio bugs on
-  // mobile at once: the Music slider did nothing at all (every
-  // musicEl.volume write was dropped), and the fade-in never happened
-  // (its per-step writes were dropped too, so a track that should have
-  // eased in over FADE_IN_MS instead slammed in at full level the instant
-  // it started). Feature-detected by writing a value and reading it back
-  // rather than sniffing the user agent.
-  function musicElVolumeIsWritable(el) {
-    try {
-      const orig = el.volume;
-      el.volume = 0.123;
-      const writable = Math.abs(el.volume - 0.123) < 0.001;
-      el.volume = orig;
-      return writable;
-    } catch (err) { return false; }
-  }
-
-  // Fallback path for those platforms: pipe the <audio> element through a
-  // Web Audio GainNode, whose gain IS scriptable everywhere, and drive
-  // volume/fades from that instead. The element still streams the file
-  // itself, so this keeps the streaming-decode architecture (and avoids
-  // decodeAudioData's big main-thread stall) exactly as documented above --
-  // only the volume stage moves. Desktop keeps the plain element-volume
-  // path untouched, since it works there and needs no extra graph.
-  function routeMusicThroughWebAudio() {
-    if (musicUsesWebAudio || !musicEl) return;
-    const ctx = ensureAudioCtx();
-    if (!ctx || !ctx.createMediaElementSource || !musicGain) return;
-    try {
-      musicSourceNode = ctx.createMediaElementSource(musicEl);
-      musicSourceNode.connect(musicGain);
-      musicEl.volume = 1; // ignored on these platforms anyway -- musicGain is the real control now
-      musicUsesWebAudio = true;
-    } catch (err) {
-      // createMediaElementSource throws if the element was already routed;
-      // nothing to undo, just stay on the element-volume path.
-      musicUsesWebAudio = false;
-    }
-  }
-
-  // Single funnel for "make the music this loud", so every caller (fade
-  // steps, slider drags, the silent pre-roll) works the same on both paths.
-  function applyMusicLevel(v, immediate) {
-    const level = Math.min(1, Math.max(0, v));
-    if (musicUsesWebAudio && musicGain && actx) {
-      const g = musicGain.gain;
-      if (immediate) {
-        g.cancelScheduledValues(actx.currentTime);
-        g.setValueAtTime(level, actx.currentTime);
-      } else {
-        // Short smoothing constant -- rounds off the 60ms fade steps and
-        // slider jumps so neither zippers, without lagging behind either.
-        g.setTargetAtTime(level, actx.currentTime, 0.03);
-      }
-    } else if (musicEl) {
-      musicEl.volume = level;
-    }
-  }
-  function currentMusicLevel() {
-    if (musicUsesWebAudio && musicGain) return musicGain.gain.value;
-    return musicEl ? musicEl.volume : 0;
-  }
+  let musicAudible = false; // element is actually emitting sound, not just buffering
+  let pendingFadeMs = 0;
 
   function ensureMusicEl() {
     if (musicEl) return musicEl;
     musicEl = new Audio();
     musicEl.loop = true;
-    musicEl.volume = 0;
-    if (!musicElVolumeIsWritable(musicEl)) routeMusicThroughWebAudio();
+    musicEl.preload = 'auto';
+    musicEl.volume = 1; // musicGain owns the level from here
+    const ctx = ensureAudioCtx();
+    if (ctx && ctx.createMediaElementSource) {
+      try {
+        ctx.createMediaElementSource(musicEl).connect(musicGain);
+        musicRouted = true;
+      } catch (err) {
+        musicRouted = false; // element already routed, or the call is unsupported
+      }
+    }
+    // Last-resort path for a browser with no Web Audio at all. Not the iOS
+    // case -- iOS has Web Audio, it just has a read-only element volume --
+    // so this is a genuine fallback rather than a second maintained path.
+    if (!musicRouted) musicEl.volume = 0;
+    musicEl.addEventListener('playing', onMusicPlaying);
     return musicEl;
   }
-  // Always fades toward the *current* musicVolume, re-read on every tick --
-  // not a target frozen at the moment the fade started. Bug fix: it used to
-  // take a fixed `target` snapshot, so dragging the Music slider mid-fade
-  // (the first FADE_IN_MS after a run starts) had no visible effect until
-  // the fade finished snapping back to that stale pre-drag value, silently
-  // discarding the adjustment.
-  function beginMusicFade(ms) {
+
+  // Every "make the music this loud" goes through here, so the fade, the
+  // slider and the silent pre-roll can never disagree about the level.
+  function setMusicLevel(v, immediate) {
+    const level = clamp01(v);
+    if (musicRouted) rampGain(musicGain && musicGain.gain, level, immediate);
+    else if (musicEl) musicEl.volume = level;
+  }
+  function musicLevel() {
+    if (musicRouted) return musicGain ? musicGain.gain.value : 0;
+    return musicEl ? musicEl.volume : 0;
+  }
+
+  // The ramp is measured from when the track is genuinely AUDIBLE, not from
+  // a wall clock. play() resolves long before a 0.2-1.2MB track has buffered
+  // on mobile data, so a timer started at play() would spend its whole
+  // FADE_IN_MS ramping silence and already sit at full level by the first
+  // note -- exactly the reported "no fade-in on mobile", which desktop never
+  // showed because it loads instantly. Each tick re-reads live.music, so
+  // dragging the slider mid-fade retargets the ramp instead of being
+  // overwritten when it lands.
+  function beginFade(ms) {
     if (musicFadeTimer) { clearInterval(musicFadeTimer); musicFadeTimer = null; }
-    if (!musicEl) return;
-    const start = currentMusicLevel();
+    const from = musicLevel();
     const startTs = performance.now();
     musicFadeTimer = setInterval(() => {
       const t = Math.min(1, (performance.now() - startTs) / ms);
-      applyMusicLevel(start + (musicVolume - start) * t);
+      setMusicLevel(from + (live.music - from) * t);
       if (t >= 1) { clearInterval(musicFadeTimer); musicFadeTimer = null; }
     }, 60);
   }
-
-  // The fade has to be measured from the moment the track is actually
-  // AUDIBLE, not from a wall clock -- otherwise it silently misses on a
-  // slow connection. The music files run 578KB-3.1MB, so on mobile data
-  // play() often returns long before the element has buffered enough to
-  // emit sound; the old timer-driven fade then ran its whole FADE_IN_MS
-  // against silence and was already sitting at full level by the time the
-  // first audio came out, which is exactly the reported "no fade-in on
-  // mobile" (desktop, loading instantly, never showed it). Deferring to
-  // the element's own 'playing' event ties the ramp to real playback on
-  // any connection speed.
-  let musicPlaybackLive = false;
-  let pendingFadeMs = 0;
   function fadeMusicIn(ms) {
     if (!musicEl) return;
-    if (!musicPlaybackLive) { pendingFadeMs = ms; return; } // still buffering -- onMusicPlaying() picks this up
-    beginMusicFade(ms);
+    if (!musicAudible) { pendingFadeMs = ms; return; } // onMusicPlaying() picks it up
+    beginFade(ms);
   }
   function onMusicPlaying() {
-    musicPlaybackLive = true;
-    if (pendingFadeMs) {
-      const ms = pendingFadeMs;
-      pendingFadeMs = 0;
-      beginMusicFade(ms);
-    }
+    musicAudible = true;
+    if (pendingFadeMs) { const ms = pendingFadeMs; pendingFadeMs = 0; beginFade(ms); }
   }
 
-  // Live preview only -- does not persist. See persistSettings()/
-  // revertSettings() below for the Save-button-gated commit step.
-  function setMusicVolume(v) {
-    musicVolume = Math.min(1, Math.max(0, v));
-    // Leave an in-progress fade-in alone -- it re-reads musicVolume on its
-    // own next tick (see fadeMusicIn()), so it's already heading toward the
-    // just-updated value instead of needing a jump-cut here.
-    if (musicEl && !musicMuted && !musicFadeTimer) applyMusicLevel(musicVolume);
+  function pickTrackIndex() {
+    if (MUSIC_TRACKS.length <= 1) return 0;
+    let idx;
+    do { idx = (Math.random() * MUSIC_TRACKS.length) | 0; } while (idx === lastTrackIdx);
+    return idx;
   }
-  function setSfxVolume(v) {
-    sfxVolume = Math.min(1, Math.max(0, v));
-    if (actx && sfxGain && !musicMuted) {
-      sfxGain.gain.setTargetAtTime(sfxVolume, actx.currentTime, 0.05);
-      runGain.gain.setTargetAtTime(sfxVolume, actx.currentTime, 0.05);
-    }
+  function playMusicEl() {
+    if (!musicEl) return;
+    const p = musicEl.play();
+    if (p && p.catch) p.catch(() => { /* autoplay blocked -- a later gesture retries */ });
   }
 
-  // Decodes an SFX/running-loop file exactly once regardless of how many
-  // times it's requested -- concurrent callers share the same in-flight
-  // promise. Music never goes through here -- see the audio section intro
-  // above for why.
+  // Called synchronously inside the gesture that starts a run: mobile
+  // autoplay policy ties play()'s permission to that gesture, and the 1s
+  // spawn flicker that follows would put it out of reach. The track is
+  // started silent; fadeMusicIn() takes it up once it is actually audible.
+  function startMusicPlayback() {
+    const el = ensureMusicEl();
+    resumeCtx();
+    if (musicFadeTimer) { clearInterval(musicFadeTimer); musicFadeTimer = null; }
+    musicAudible = false; // a new src restarts buffering
+    pendingFadeMs = 0;
+    lastTrackIdx = pickTrackIndex();
+    el.src = ASSET_BASE + MUSIC_BASE + MUSIC_TRACKS[lastTrackIdx];
+    el.currentTime = 0;
+    setMusicLevel(0, true);
+    if (live.muted) return; // armed but not playing -- flipping Sound on starts it
+    playMusicEl();
+  }
+
+  function stopMusic() {
+    if (musicFadeTimer) { clearInterval(musicFadeTimer); musicFadeTimer = null; }
+    pendingFadeMs = 0;
+    musicAudible = false;
+    if (musicEl) musicEl.pause();
+  }
+
   function loadBuffer(file) {
     if (audioBuffers[file]) return audioBuffers[file];
     const ctx = ensureAudioCtx();
@@ -938,84 +916,23 @@ if (canvas) {
     return p;
   }
 
-  // Kicks off decoding the running loop + jump/land/coin/impact SFX up
-  // front so gameplay never pays a first-use decode cost -- only cheap
-  // buffer scheduling happens during an actual run. All five are small
-  // (under 300KB) and decode in under ~20ms each even under heavy CPU
-  // throttling, chained one-at-a-time rather than fired concurrently
-  // (profiling showed serialized was cheaper on the main thread at any
-  // given instant than the same five racing in parallel).
+  // Decodes the running loop + jump/land/coin/impact up front so gameplay
+  // never pays a first-use decode cost. Chained one at a time rather than
+  // fired concurrently -- profiling showed serialized was cheaper on the
+  // main thread at any given instant than the same five racing.
   function preloadAudio() {
     if (!ensureAudioCtx()) return;
     const critical = [RUN_SFX_FILE].concat(Object.values(SFX_FILES));
     critical.reduce((p, file) => p.then(() => loadBuffer(file)), Promise.resolve());
   }
 
-  function pickTrackIndex() {
-    if (MUSIC_TRACKS.length <= 1) return 0;
-    let idx;
-    do { idx = (Math.random() * MUSIC_TRACKS.length) | 0; } while (idx === lastTrackIdx);
-    return idx;
-  }
-
-  // Starts playback (silent, volume 0) without fading it in -- split out of
-  // playRandomMusic() so startRun() can call this part *synchronously*
-  // inside the user gesture that starts a run, before the SPAWN flicker.
-  // Mobile browsers' autoplay policy ties HTMLMediaElement.play()'s
-  // permission to the gesture that (directly or very closely) triggered it;
-  // calling it from inside updateSpawn() -- fired a full second later via
-  // requestAnimationFrame, well outside the original gesture -- silently
-  // lost that activation on strict mobile browsers, so music never started
-  // on the first run and only began after some unrelated later gesture
-  // (e.g. opening/closing the settings panel) happened to unlock it.
-  function startMusicPlayback() {
-    if (musicMuted) return;
-    const el = ensureMusicEl();
-    // On the Web Audio path the element feeds a GainNode, so the context
-    // has to actually be running or the routed audio never reaches the
-    // speakers. Same gesture-scoped resume primeAudio() does for SFX.
-    if (musicUsesWebAudio && actx && actx.state === 'suspended') actx.resume();
-    lastTrackIdx = pickTrackIndex();
-    // Swapping src restarts buffering, so the track is silent again until
-    // the element re-fires 'playing' -- see fadeMusicIn()/onMusicPlaying().
-    musicPlaybackLive = false;
-    pendingFadeMs = 0;
-    el.removeEventListener('playing', onMusicPlaying);
-    el.addEventListener('playing', onMusicPlaying, { once: true });
-    el.src = ASSET_BASE + MUSIC_BASE + MUSIC_TRACKS[lastTrackIdx];
-    el.currentTime = 0;
-    applyMusicLevel(0, true); // silent pre-roll -- fadeMusicIn() takes it up from here
-    const p = el.play();
-    if (p && p.catch) p.catch(() => { /* blocked -- no gesture yet, next call will retry */ });
-  }
-
-  // Used where playback doesn't need to be split from its fade-in -- e.g.
-  // un-muting mid-run, itself already a direct user gesture (the Sound
-  // toggle's own change event).
-  function playRandomMusic() {
-    startMusicPlayback();
-    fadeMusicIn(FADE_IN_MS);
-  }
-
-  function stopMusic() {
-    if (musicFadeTimer) { clearInterval(musicFadeTimer); musicFadeTimer = null; }
-    // Drop any fade still waiting on 'playing' -- otherwise a run that ended
-    // while the track was still buffering would fade in over the next one.
-    pendingFadeMs = 0;
-    musicPlaybackLive = false;
-    if (musicEl) {
-      musicEl.removeEventListener('playing', onMusicPlaying);
-      musicEl.pause();
-    }
-  }
-
   async function playSfx(name) {
-    if (musicMuted) return;
+    if (live.muted) return;
     const ctx = ensureAudioCtx();
     if (!ctx) return;
-    if (ctx.state === 'suspended') ctx.resume();
+    resumeCtx();
     const buf = await loadBuffer(SFX_FILES[name]);
-    if (!buf || musicMuted) return;
+    if (!buf || live.muted) return;
     const src = ctx.createBufferSource();
     src.buffer = buf;
     src.connect(sfxGain);
@@ -1023,12 +940,12 @@ if (canvas) {
   }
 
   async function startRunSfx() {
-    if (musicMuted || runSource) return; // already looping -- don't restart it from the top
+    if (live.muted || runSource) return; // already looping -- don't restart from the top
     const ctx = ensureAudioCtx();
     if (!ctx) return;
-    if (ctx.state === 'suspended') ctx.resume();
+    resumeCtx();
     const buf = await loadBuffer(RUN_SFX_FILE);
-    if (!buf || musicMuted || runSource) return;
+    if (!buf || live.muted || runSource) return;
     const src = ctx.createBufferSource();
     src.buffer = buf;
     src.loop = true;
@@ -1040,60 +957,81 @@ if (canvas) {
     if (runSource) { try { runSource.stop(); } catch (err) { /* already stopped */ } runSource = null; }
   }
 
-  // Live preview only -- does not persist. See persistSettings()/
-  // revertSettings() below for the Save-button-gated commit step.
+  // ----- the three user-facing controls -----
+  // All three are live preview only: they change what you hear immediately
+  // but do not persist. persistSettings()/revertSettings() in the settings
+  // panel below are the Save-gated commit and undo.
+  function setMusicVolume(v) {
+    live.music = clamp01(v);
+    // A fade in flight re-reads live.music every tick, so let it keep
+    // steering rather than jump-cutting the level out from under it.
+    if (!musicFadeTimer) setMusicLevel(live.music);
+  }
+  function setSfxVolume(v) {
+    live.sfx = clamp01(v);
+    // Independent of the master mute, so a drag while muted is already
+    // correct the moment sound comes back on.
+    rampGain(sfxGain && sfxGain.gain, live.sfx, false);
+    rampGain(runGain && runGain.gain, live.sfx, false);
+  }
   function setMuted(muted) {
-    musicMuted = muted;
-    if (soundToggle) soundToggle.checked = !muted;
-    if (muted) {
-      stopMusic();
+    live.muted = !!muted;
+    if (soundToggle) soundToggle.checked = !live.muted;
+    rampGain(masterGain && masterGain.gain, live.muted ? 0 : 1, false);
+    if (live.muted) {
+      // Pause the stream too -- a muted run should not quietly burn mobile
+      // data. Position is kept, so unmuting picks the same track back up.
+      if (musicEl) musicEl.pause();
       stopRunSfx();
     } else {
-      // setSfxVolume() no-ops on the actual gain nodes while musicMuted is
-      // true, so a slider drag during mute only updated the stored
-      // sfxVolume -- refresh both gains now that musicMuted is false again,
-      // or the next SFX plays at whatever stale level they were left at.
-      if (actx && sfxGain && runGain) {
-        sfxGain.gain.setTargetAtTime(sfxVolume, actx.currentTime, 0.05);
-        runGain.gain.setTargetAtTime(sfxVolume, actx.currentTime, 0.05);
-      }
-      if (state === STATE.PLAYING) {
-        playRandomMusic();
-        if (player.grounded) startRunSfx();
-      }
+      resumeCtx();
+      if (musicEl && musicEl.src && (state === STATE.SPAWN || state === STATE.PLAYING)) playMusicEl();
+      if (state === STATE.PLAYING && player.grounded) startRunSfx();
     }
   }
 
   // ---------- settings panel (top-right "Settings" button, popup centered over the game: music/SFX volume, version) ----------
   if (settingsBtn && settingsPanel) {
-    if (soundToggle) soundToggle.checked = !musicMuted;
-    if (musicVolInput) musicVolInput.value = String(Math.round(musicVolume * 100));
-    if (sfxVolInput) sfxVolInput.value = String(Math.round(sfxVolume * 100));
     if (versionEl) versionEl.textContent = 'Hood Runner v' + GAME_VERSION;
+    syncControls();
+    refreshSaveBtn();
 
-    // Writes the live (already-previewed) Sound/Music/SFX values to
-    // localStorage and moves the saved snapshot up to match -- only called
-    // by the Save button. Anything currently playing already sounds like
-    // this; committing just makes it stick past this session.
+    // Pushes `live` back out to the three controls -- used at boot and after
+    // a revert, so the widgets always show what is actually in effect.
+    function syncControls() {
+      if (soundToggle) soundToggle.checked = !live.muted;
+      if (musicVolInput) musicVolInput.value = String(Math.round(live.music * 100));
+      if (sfxVolInput) sfxVolInput.value = String(Math.round(live.sfx * 100));
+    }
+    function isDirty() {
+      return live.music !== saved.music || live.sfx !== saved.sfx || live.muted !== saved.muted;
+    }
+    // Marks the Save button while there are unsaved changes. Closing the
+    // panel any other way discards them by design, so the button has to show
+    // that there is something to lose rather than looking inert.
+    function refreshSaveBtn() {
+      if (!saveSettingsBtn || saveSettingsBtn.disabled) return;
+      saveSettingsBtn.classList.toggle('is-dirty', isDirty());
+    }
+
     function persistSettings() {
       try {
-        localStorage.setItem('hoodRunnerMusicVol', String(musicVolume));
-        localStorage.setItem('hoodRunnerSfxVol', String(sfxVolume));
-        localStorage.setItem('hoodRunnerMuted', musicMuted ? '1' : '0');
-      } catch (err) { /* private mode etc */ }
-      savedMusicVolume = musicVolume;
-      savedSfxVolume = sfxVolume;
-      savedMuted = musicMuted;
+        localStorage.setItem(STORE.music, String(live.music));
+        localStorage.setItem(STORE.sfx, String(live.sfx));
+        localStorage.setItem(STORE.muted, live.muted ? '1' : '0');
+      } catch (err) { /* private mode etc -- settings just won't persist */ }
+      saved.music = live.music;
+      saved.sfx = live.sfx;
+      saved.muted = live.muted;
     }
-    // Undoes a live-but-unsaved preview -- reapplies the last saved values
-    // (audio + slider/toggle controls) and drops whatever was being
-    // auditioned. Called whenever the panel closes any way other than Save.
+    // Undoes a live-but-unsaved preview: reapplies the committed values to
+    // both the audio graph and the widgets.
     function revertSettings() {
-      setMusicVolume(savedMusicVolume);
-      setSfxVolume(savedSfxVolume);
-      setMuted(savedMuted); // also syncs soundToggle.checked
-      if (musicVolInput) musicVolInput.value = String(Math.round(savedMusicVolume * 100));
-      if (sfxVolInput) sfxVolInput.value = String(Math.round(savedSfxVolume * 100));
+      setMusicVolume(saved.music);
+      setSfxVolume(saved.sfx);
+      setMuted(saved.muted);
+      syncControls();
+      refreshSaveBtn();
     }
 
     function closeSettings() {
@@ -1105,10 +1043,10 @@ if (canvas) {
       closeSettings();
     }
     settingsBtn.addEventListener('click', () => {
-      const willOpen = settingsPanel.hidden;
-      if (willOpen) {
+      if (settingsPanel.hidden) {
         settingsPanel.hidden = false;
         settingsBtn.setAttribute('aria-expanded', 'true');
+        refreshSaveBtn();
       } else {
         closeSettingsDiscarding();
       }
@@ -1121,23 +1059,23 @@ if (canvas) {
       closeSettingsDiscarding();
     });
     if (soundToggle) {
-      soundToggle.addEventListener('change', () => setMuted(!soundToggle.checked));
+      soundToggle.addEventListener('change', () => { setMuted(!soundToggle.checked); refreshSaveBtn(); });
     }
     if (musicVolInput) {
-      musicVolInput.addEventListener('input', () => setMusicVolume(musicVolInput.valueAsNumber / 100));
+      musicVolInput.addEventListener('input', () => { setMusicVolume(musicVolInput.valueAsNumber / 100); refreshSaveBtn(); });
     }
     if (sfxVolInput) {
-      sfxVolInput.addEventListener('input', () => setSfxVolume(sfxVolInput.valueAsNumber / 100));
+      sfxVolInput.addEventListener('input', () => { setSfxVolume(sfxVolInput.valueAsNumber / 100); refreshSaveBtn(); });
     }
     if (saveSettingsBtn) {
       let saveFeedbackTimer = null;
       saveSettingsBtn.addEventListener('click', () => {
         persistSettings();
-        // Brief "Saved!" confirmation on the button itself before the panel
-        // closes -- the whole point of a Save button is confirming the
-        // change actually took, so closing instantly with no acknowledgement
-        // at all would defeat that.
+        // Brief "Saved!" acknowledgement before the panel closes -- the whole
+        // point of a Save button is confirming the change took, so closing
+        // instantly with no feedback would defeat it.
         if (saveFeedbackTimer) clearTimeout(saveFeedbackTimer);
+        saveSettingsBtn.classList.remove('is-dirty');
         saveSettingsBtn.textContent = 'Saved!';
         saveSettingsBtn.disabled = true;
         saveFeedbackTimer = setTimeout(() => {
@@ -1149,7 +1087,6 @@ if (canvas) {
       });
     }
   }
-
   // ---------- fullscreen ----------
   // The wrap element itself goes fullscreen (not the whole page) -- see the
   // :fullscreen CSS for how the canvas letterboxes to fill the screen at
