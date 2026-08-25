@@ -1143,7 +1143,7 @@
     .hood-game-wrap:-webkit-full-screen,
     .hood-game-wrap.is-pseudo-fullscreen,
     .hood-game-wrap.hood-game-force-landscape{
-      --hgw-hud-scale:calc(var(--hgw-scale-w) * 1.6);
+      --hgw-hud-scale:calc(var(--hgw-scale-w) * 1.44);
     }
   }
   .hood-game-wrap:fullscreen .hood-game-hud,
