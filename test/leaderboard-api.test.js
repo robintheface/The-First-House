@@ -9,7 +9,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import http from "node:http";
 import util from "../api/_util.js";
 
-const { TOKEN_TTL_SEC } = util;
+const { TOKEN_TTL_SEC, MAX_CARRIED_PER_DAY } = util;
 
 let mock, api, base;
 const store = { kv: new Map(), z: new Map(), ttl: new Map() };
@@ -245,6 +245,50 @@ describe("name-check", () => {
   it("marks a name that sanitizes away as invalid", async () => {
     const { body } = await get("/api/name-check?name=" + encodeURIComponent("<<>>"));
     expect(body).toMatchObject({ valid: false, taken: false });
+  });
+});
+
+describe("carried best scores", () => {
+  it("accepts a best carried over from before the leaderboard, with no run token", async () => {
+    const res = await post("/api/score", { score: 300, nickname: "Oldtimer", carried: true });
+    expect(res.status).toBe(200);
+    expect(res.body.nickname).toBe("Oldtimer");
+    const all = await get("/api/leaderboard");
+    expect(all.body.entries.find((e) => e.name === "Oldtimer").score).toBe(300);
+  });
+
+  it("still refuses a name someone already has", async () => {
+    const res = await post("/api/score", { score: 300, nickname: "Oldtimer", carried: true });
+    expect(res.status).toBe(409);
+    expect(res.body.error).toBe("name_taken");
+  });
+
+  // Nothing verifies a carried score, so these two limits are all that stand
+  // behind it. They are damage control, not proof.
+  it("refuses a carried score past the ceiling", async () => {
+    const res = await post("/api/score", { score: 999999, nickname: "Cheat", carried: true });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe("score_implausible");
+  });
+
+  it("caps how many one address may carry in a day", async () => {
+    const ip = "9.9.9.9";
+    const codes = [];
+    for (let i = 0; i < 5; i++) {
+      codes.push((await post("/api/score", { score: 200 + i, nickname: "Carry" + i, carried: true }, ip)).status);
+    }
+    expect(codes.filter((c) => c === 200)).toHaveLength(MAX_CARRIED_PER_DAY);
+    expect(codes.filter((c) => c === 429)).toHaveLength(5 - MAX_CARRIED_PER_DAY);
+  });
+
+  it("does not spend one of the three on a name that was refused", async () => {
+    const ip = "8.8.8.8";
+    expect((await post("/api/score", { score: 210, nickname: "Keeper", carried: true }, ip)).status).toBe(200);
+    // Same name again -> 409, and must not count against the daily allowance.
+    expect((await post("/api/score", { score: 210, nickname: "Keeper", carried: true }, ip)).status).toBe(409);
+    expect((await post("/api/score", { score: 211, nickname: "Keeper2", carried: true }, ip)).status).toBe(200);
+    expect((await post("/api/score", { score: 212, nickname: "Keeper3", carried: true }, ip)).status).toBe(200);
+    expect((await post("/api/score", { score: 213, nickname: "Keeper4", carried: true }, ip)).status).toBe(429);
   });
 });
 

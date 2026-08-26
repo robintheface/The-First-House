@@ -37,6 +37,7 @@ if (canvas) {
   const nickSkipBtn = document.getElementById('hoodGameNickSkip');
   const nickField = document.querySelector('.hood-game-save-field');
   const nickState = document.getElementById('hoodGameNickState');
+  const saveLabel = document.querySelector('.hood-game-save-label');
   const GAME_VERSION = '1.0.0';
   if (versionBadgeEl) versionBadgeEl.textContent = 'v' + GAME_VERSION;
 
@@ -378,13 +379,14 @@ if (canvas) {
   }
 
   function jump() {
+    // A name prompt is open and unanswered -- from a qualifying run, or from
+    // the best carried over on the idle screen. Starting a run now would
+    // throw that place away, and the prompt itself invites a keypress, so
+    // Space belongs to the name field until Save or Skip settles it.
+    if (awaitingSave) return;
     if (state === STATE.IDLE) { startRun(); return; }
     if (state === STATE.OVER) {
       if (!resultShown) return; // still in the pre-text beat -- ignore input entirely
-      // A qualifying run is holding the name prompt open. Restarting now
-      // would throw the place away, and the prompt invites a keypress, so
-      // Space belongs to the name field until Save or Skip settles it.
-      if (awaitingSave) return;
       if (performance.now() - overSince < RESTART_COOLDOWN) return;
       startRun();
       return;
@@ -1122,6 +1124,12 @@ if (canvas) {
   // or Skip settles it. jump() honours this so the run cannot be restarted
   // out from under an unsaved place.
   let awaitingSave = false;
+  // Set while the prompt is offering a best score carried over from before
+  // the leaderboard existed, rather than a run that just ended.
+  let carriedOffer = false;
+  const CARRIED_DONE = 'hoodRunnerBestSynced';
+  const SAVE_LABEL_RUN = 'You made the top 10 — name it (max 12)';
+  const SAVE_LABEL_CARRIED = 'Your best so far — put it on the board (max 12)';
   // The server's rules are the authority on what a save may do; this only
   // puts a readable sentence on whichever one it enforced.
   const SAVE_ERRORS = {
@@ -1131,6 +1139,7 @@ if (canvas) {
     store_unavailable: 'Leaderboard is unreachable',
     no_token: 'No finished run to save',
     name_taken: 'That name is taken',
+    carried_limit: 'Too many carried scores today',
     token_unknown_or_used: 'This run was already saved',
     score_implausible: 'Run could not be verified',
     run_too_short: 'Run could not be verified'
@@ -1242,6 +1251,28 @@ if (canvas) {
     if (!saveScoreForm || !lb.isAvailable() || !lb.canSubmit()) return;
     const entries = await lb.getBoard('all');
     if (!lb.qualifies(finalScore, entries)) return;
+    openSavePrompt(finalScore, false);
+  }
+
+  // The best score already in localStorage predates the leaderboard, so it
+  // has no run behind it. Offered once per browser, on the idle screen,
+  // before the first run of the session.
+  async function offerCarriedBest() {
+    if (!saveScoreForm || !lb.isAvailable()) return;
+    if (!(best > 0)) return;
+    try { if (localStorage.getItem(CARRIED_DONE) === '1') return; } catch (err) { return; }
+    const entries = await lb.getBoard('all');
+    if (!lb.qualifies(Math.floor(best), entries)) return;
+    openSavePrompt(Math.floor(best), true);
+  }
+
+  function markCarriedDone() {
+    try { localStorage.setItem(CARRIED_DONE, '1'); } catch (err) { /* private mode */ }
+  }
+
+  function openSavePrompt(finalScore, carried) {
+    carriedOffer = carried;
+    if (saveLabel) saveLabel.textContent = carried ? SAVE_LABEL_CARRIED : SAVE_LABEL_RUN;
     if (saveMsg) { saveMsg.hidden = true; saveMsg.classList.remove('is-error'); }
     // Deliberately blank: prefilling last run's name means clearing it by
     // hand every single time, which is worse than typing it again.
@@ -1275,7 +1306,7 @@ if (canvas) {
     if (!saveScoreForm) return;
     if (nickSaveBtn) nickSaveBtn.disabled = true;
     if (nickSkipBtn) nickSkipBtn.disabled = true;
-    const res = await lb.submit(nick, Number(saveScoreForm.dataset.score || 0));
+    const res = await lb.submit(nick, Number(saveScoreForm.dataset.score || 0), carriedOffer);
     if (res.retry) {
       // The name was refused before the run token was spent, so the run is
       // still there to save -- reopen the prompt instead of retiring it.
@@ -1287,6 +1318,9 @@ if (canvas) {
       // Nothing left to say: the row is on the board, so the prompt gets out
       // of the way and leaves the game-over screen as it would have been.
       lastSavedNick = res.nickname || '';
+      // Asked once per browser: a carried best that made it onto the board
+      // must not be offered again on the next visit.
+      if (carriedOffer) markCarriedDone();
       saveScoreForm.hidden = true;
       if (saveMsg) saveMsg.hidden = true;
     } else if (saveMsg) {
@@ -1312,7 +1346,9 @@ if (canvas) {
   }
 
   // One probe at boot decides whether the board exists in this deployment.
-  lb.getBoard('all').then(() => {
+  // Kept as a promise: the carried-best offer has to wait for both this and
+  // the idle screen, and showOverlay() closes the prompt as it redraws.
+  const boardProbe = lb.getBoard('all').then(() => {
     if (lb.isAvailable() && ranksBtn) ranksBtn.hidden = false;
   });
 
@@ -1494,8 +1530,11 @@ if (canvas) {
     // exactly what leaves it stuck unable to unlock on some mobile browsers.
     assetsReady = true;
     state = STATE.IDLE;
-    showOverlay('HOOD RUN', ['PRESS SPACE TO START']);
+    showOverlay('HOOD RUN', [{ text: 'PRESS SPACE TO START', cls: 'hood-game-overlay-continue' }]);
     ensureLoopRunning(); // one draw of the idle screen, then the loop parks itself
+    // Only now, with the idle screen drawn, is there something to put the
+    // carried-best prompt on top of.
+    boardProbe.then(offerCarriedBest);
   }).catch((err) => {
     console.error('Hood Runner: asset load failed', err);
     showOverlay('HOOD RUN', ['Could not load — try refreshing.']);

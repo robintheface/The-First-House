@@ -34,6 +34,14 @@ const ANON_COUNTER = 'lb:anon';
 // player can pick another -- see api/name-check.js, which answers the same
 // question while they are still typing.
 const BOARD_KEY = 'lb:all';
+
+// A best score carried over from before the leaderboard existed has no run
+// behind it -- no token, no elapsed time, nothing to check it against. It is
+// accepted on trust, so the only thing standing behind it is these two
+// limits: a per-IP daily cap on how many can be claimed, and a ceiling no
+// honest carried-over score would reach. Neither is verification.
+const MAX_CARRIED_PER_DAY = 3;
+const MAX_CARRIED_SCORE = 50000;
 // Kept intentionally small and obvious: a blocklist can never be complete,
 // and an aggressive one mangles innocent names. This catches the lazy case;
 // anything past it is a moderation problem, not a regex problem.
@@ -86,6 +94,6 @@ function json(res, status, payload) {
 
 module.exports = {
   TOP_N, MIN_RUN_MS, TOKEN_TTL_SEC, MAX_SUBMITS_PER_HOUR, NICK_MAX,
-  ANON_PREFIX, ANON_COUNTER, BOARD_KEY,
+  ANON_PREFIX, ANON_COUNTER, BOARD_KEY, MAX_CARRIED_PER_DAY, MAX_CARRIED_SCORE,
   clientIp, sanitizeNickname, maxPlausibleScore, dayKey, readBody, json
 };

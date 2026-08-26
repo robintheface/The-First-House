@@ -86,18 +86,23 @@ export async function checkName(name) {
 }
 
 // A null nickname means "let the server name this one" -- it answers with
-// any#1, any#2, and so on, so skipping is one click and still keeps the row.
-export async function submit(nickname, score) {
-  if (!runToken) return { ok: false, error: 'no_token' };
-  const token = runToken;
+// Anonymous#1, Anonymous#2, and so on, so skipping is one click and still
+// keeps the row.
+//
+// `carried` submits a best score from before the leaderboard existed. There
+// is no run behind it, so no token is sent and the server takes it on trust
+// within its own limits -- see api/_util.js.
+export async function submit(nickname, score, carried) {
+  if (!carried && !runToken) return { ok: false, error: 'no_token' };
+  const token = carried ? '' : runToken;
   const named = nickname === null ? { anonymous: true } : { nickname };
   try {
     const d = await req('/score', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(Object.assign({ token, score }, named))
+      body: JSON.stringify(Object.assign({ token, score }, named, carried ? { carried: true } : null))
     });
-    runToken = null; // one run, one submission -- mirrors the server's own rule
+    if (!carried) runToken = null; // one run, one submission -- the server's own rule
     boardCache.clear(); // the board just changed
     return { ok: true, rank: d.rank, nickname: d.nickname };
   } catch (err) {
@@ -105,7 +110,7 @@ export async function submit(nickname, score) {
     // A taken name is refused before the server spends the token, so the run
     // survives and the player can try another. Every other rejection spent
     // it, and a network failure might have -- both give the token up.
-    if (error !== 'name_taken') runToken = null;
+    if (!carried && error !== 'name_taken') runToken = null;
     return { ok: false, error, retry: error === 'name_taken' };
   }
 }

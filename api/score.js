@@ -2,6 +2,7 @@
 const { cmd, isConfigured } = require('./_store.js');
 const {
   TOP_N, MIN_RUN_MS, MAX_SUBMITS_PER_HOUR, ANON_PREFIX, ANON_COUNTER, BOARD_KEY,
+  MAX_CARRIED_PER_DAY, MAX_CARRIED_SCORE,
   clientIp, sanitizeNickname, maxPlausibleScore, dayKey, readBody, json
 } = require('./_util.js');
 
@@ -21,10 +22,15 @@ module.exports = async (req, res) => {
     const anonymous = body.anonymous === true;
     const nickname = anonymous ? '' : sanitizeNickname(body.nickname);
     const token = typeof body.token === 'string' ? body.token : '';
+    // A best score from before the leaderboard existed: there is no run to
+    // point at, so it skips the token rules entirely and answers to the
+    // carried-score limits instead. Accepted on trust -- see api/_util.js.
+    const carried = body.carried === true;
 
     if (!anonymous && !nickname) return json(res, 400, { error: 'bad_nickname' });
     if (!Number.isFinite(score) || score <= 0) return json(res, 400, { error: 'bad_score' });
-    if (!/^[a-f0-9]{32}$/.test(token)) return json(res, 400, { error: 'bad_token' });
+    if (!carried && !/^[a-f0-9]{32}$/.test(token)) return json(res, 400, { error: 'bad_token' });
+    if (carried && score > MAX_CARRIED_SCORE) return json(res, 400, { error: 'score_implausible' });
 
     // Rate limit before touching the run token, so hammering this endpoint
     // cannot burn through tokens.
@@ -42,16 +48,25 @@ module.exports = async (req, res) => {
       return json(res, 409, { error: 'name_taken' });
     }
 
-    const runKey = 'run:' + token;
-    const issuedAt = Number(await cmd(['GET', runKey]));
-    // Spend the token whatever happens next -- a rejected attempt must not
-    // leave it available for a second, better-tuned guess.
-    await cmd(['DEL', runKey]);
-    if (!issuedAt) return json(res, 400, { error: 'token_unknown_or_used' });
+    if (carried) {
+      // Counted only once the name is known to be free, so a rejected name
+      // does not eat one of the player's three.
+      const carriedKey = 'carried:' + ip + ':' + dayKey();
+      const used = Number(await cmd(['INCR', carriedKey]));
+      if (used === 1) await cmd(['EXPIRE', carriedKey, String(60 * 60 * 24)]);
+      if (used > MAX_CARRIED_PER_DAY) return json(res, 429, { error: 'carried_limit' });
+    } else {
+      const runKey = 'run:' + token;
+      const issuedAt = Number(await cmd(['GET', runKey]));
+      // Spend the token whatever happens next -- a rejected attempt must not
+      // leave it available for a second, better-tuned guess.
+      await cmd(['DEL', runKey]);
+      if (!issuedAt) return json(res, 400, { error: 'token_unknown_or_used' });
 
-    const runMs = Date.now() - issuedAt;
-    if (runMs < MIN_RUN_MS) return json(res, 400, { error: 'run_too_short' });
-    if (score > maxPlausibleScore(runMs)) return json(res, 400, { error: 'score_implausible' });
+      const runMs = Date.now() - issuedAt;
+      if (runMs < MIN_RUN_MS) return json(res, 400, { error: 'run_too_short' });
+      if (score > maxPlausibleScore(runMs)) return json(res, 400, { error: 'score_implausible' });
+    }
 
     // Numbered only once the run has passed every check, so a rejected
     // attempt cannot burn a number. INCR is atomic, so concurrent skips get
