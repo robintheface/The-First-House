@@ -325,11 +325,12 @@ describe("carried best scores", () => {
   it("caps how many one address may carry in a day", async () => {
     const ip = "9.9.9.9";
     const codes = [];
-    for (let i = 0; i < 5; i++) {
+    const tries = MAX_CARRIED_PER_DAY + 2;
+    for (let i = 0; i < tries; i++) {
       codes.push((await post("/api/score", { score: 200 + i, nickname: "Carry" + i, carried: true }, ip)).status);
     }
     expect(codes.filter((c) => c === 200)).toHaveLength(MAX_CARRIED_PER_DAY);
-    expect(codes.filter((c) => c === 429)).toHaveLength(5 - MAX_CARRIED_PER_DAY);
+    expect(codes.filter((c) => c === 429)).toHaveLength(tries - MAX_CARRIED_PER_DAY);
   });
 
   it("does not spend one of the three on a name that was refused", async () => {
@@ -339,9 +340,14 @@ describe("carried best scores", () => {
     // against this address's daily allowance.
     expect((await post("/api/score",
       { score: 210, nickname: "Keeper", carried: true, secret: SECRET_B }, ip)).status).toBe(409);
-    expect((await post("/api/score", { score: 211, nickname: "Keeper2", carried: true }, ip)).status).toBe(200);
-    expect((await post("/api/score", { score: 212, nickname: "Keeper3", carried: true }, ip)).status).toBe(200);
-    expect((await post("/api/score", { score: 213, nickname: "Keeper4", carried: true }, ip)).status).toBe(429);
+    // Fill the rest of this address's allowance; the refused name above must
+    // not have counted, so the last one inside the cap still succeeds.
+    for (let i = 2; i <= MAX_CARRIED_PER_DAY; i++) {
+      expect((await post("/api/score",
+        { score: 210 + i, nickname: "Keeper" + i, carried: true }, ip)).status).toBe(200);
+    }
+    expect((await post("/api/score",
+      { score: 999, nickname: "KeeperOver", carried: true }, ip)).status).toBe(429);
   });
 });
 

@@ -1146,10 +1146,6 @@
      START" overlay, where there is no run to save and pressing Save could
      only ever fail. */
   .hood-game-save-score[hidden]{ display:none; }
-  .hood-game-save-label{
-    font-family:'IM Fell English',serif; font-size:12px; letter-spacing:0.04em;
-    color:var(--green-bright);
-  }
   .hood-game-save-row{ display:flex; gap:6px; }
   /* The tick sits inside the field, so the row keeps its width whether or
      not the name has been checked yet -- nothing shifts as you type. */
@@ -1177,7 +1173,6 @@
   .hood-game-save-state.is-error{ color:#e88b6a; }
   /* The attempt spends the run token, so there is no second try to offer:
      once it settles, the prompt retires and leaves only its verdict. */
-  .hood-game-save-score.is-done .hood-game-save-label,
   .hood-game-save-score.is-done .hood-game-save-row,
   .hood-game-save-score.is-done .hood-game-save-state,
   .hood-game-save-score.is-done .hood-game-save-skip{ display:none; }
@@ -1194,10 +1189,12 @@
     transition:background 0.15s ease;
   }
   .hood-game-save-btn:disabled{ opacity:0.55; cursor:default; }
-  /* Quiet on purpose: saving is the point, skipping is the way out. */
+  /* Uppercase like SAVE beside it, but quiet: saving is the point, skipping
+     is the way out. */
   .hood-game-save-skip{
     background:none; border:0; cursor:pointer; padding:2px 6px;
-    font-family:'IM Fell English',serif; font-size:11px; letter-spacing:0.04em;
+    font-family:'IM Fell English',serif; font-size:11px; letter-spacing:0.05em;
+    text-transform:uppercase;
     color:rgba(200,240,184,0.55); text-decoration:underline;
   }
   .hood-game-save-skip[hidden]{ display:none; }
@@ -1556,8 +1553,7 @@
     .hood-game-overlay-lines p + p{ font-size:11px; margin-top:3px; }
     .hood-game-overlay-lines p.hood-game-overlay-score{ font-size:19px; margin:1px 0; }
     .hood-game-save-score{ margin-top:8px; gap:4px; }
-    .hood-game-save-label{ font-size:11px; letter-spacing:0.02em; }
-    .hood-game-save-input{ width:118px; padding:4px 8px; font-size:12px; }
+      .hood-game-save-input{ width:118px; padding:4px 8px; font-size:12px; }
     .hood-game-save-btn{ padding:4px 10px; font-size:11px; }
     .hood-game-save-tick{ right:6px; font-size:11px; }
     .hood-game-save-field.is-free .hood-game-save-input{ padding-right:20px; }

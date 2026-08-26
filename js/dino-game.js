@@ -37,7 +37,6 @@ if (canvas) {
   const nickSkipBtn = document.getElementById('hoodGameNickSkip');
   const nickField = document.querySelector('.hood-game-save-field');
   const nickState = document.getElementById('hoodGameNickState');
-  const saveLabel = document.querySelector('.hood-game-save-label');
   const GAME_VERSION = '1.1.0';
   if (versionBadgeEl) versionBadgeEl.textContent = 'v' + GAME_VERSION;
 
@@ -1127,8 +1126,6 @@ if (canvas) {
   // Set while the prompt is offering a best score carried over from before
   // the leaderboard existed, rather than a run that just ended.
   let carriedOffer = false;
-  const SAVE_LABEL_RUN = 'Your name from now on (max 12)';
-  const SAVE_LABEL_CARRIED = 'Your name — best comes with it (max 12)';
   // The server's rules are the authority on what a save may do; this only
   // puts a readable sentence on whichever one it enforced.
   const SAVE_ERRORS = {
@@ -1280,7 +1277,6 @@ if (canvas) {
 
   function openSavePrompt(finalScore, carried) {
     carriedOffer = carried;
-    if (saveLabel) saveLabel.textContent = carried ? SAVE_LABEL_CARRIED : SAVE_LABEL_RUN;
     if (saveMsg) { saveMsg.hidden = true; saveMsg.classList.remove('is-error'); }
     // Deliberately blank: prefilling last run's name means clearing it by
     // hand every single time, which is worse than typing it again.
