@@ -3,7 +3,8 @@ const { cmd, isConfigured } = require('./_store.js');
 const {
   TOP_N, MIN_RUN_MS, MAX_SUBMITS_PER_HOUR, ANON_PREFIX, ANON_COUNTER, BOARD_KEY,
   MAX_CARRIED_PER_DAY, MAX_CARRIED_SCORE,
-  clientIp, sanitizeNickname, maxPlausibleScore, dayKey, readBody, json
+  HOUR_SEC, TOO_BIG,
+  clientIp, overRateLimit, sanitizeNickname, maxPlausibleScore, dayKey, readBody, json
 } = require('./_util.js');
 
 
@@ -16,6 +17,7 @@ module.exports = async (req, res) => {
 
   try {
     const body = await readBody(req);
+    if (body === TOO_BIG) return json(res, 413, { error: 'body_too_large' });
     const score = Math.floor(Number(body.score));
     // An anonymous save asks the server for a name instead of supplying one,
     // so two players skipping at the same moment cannot land on the same row.
@@ -35,10 +37,9 @@ module.exports = async (req, res) => {
     // Rate limit before touching the run token, so hammering this endpoint
     // cannot burn through tokens.
     const ip = clientIp(req);
-    const rlKey = 'rl:' + ip + ':' + Math.floor(Date.now() / 3600000);
-    const hits = Number(await cmd(['INCR', rlKey]));
-    if (hits === 1) await cmd(['EXPIRE', rlKey, '3600']);
-    if (hits > MAX_SUBMITS_PER_HOUR) return json(res, 429, { error: 'rate_limited' });
+    if (await overRateLimit(cmd, 'score', ip, MAX_SUBMITS_PER_HOUR, HOUR_SEC)) {
+      return json(res, 429, { error: 'rate_limited' });
+    }
 
     // Checked before the token is spent, and only for a typed name: a name
     // someone already has is the one rejection a player can actually fix, so
@@ -85,7 +86,7 @@ module.exports = async (req, res) => {
     await cmd(['ZADD', today, 'NX', String(score), name]);
     await cmd(['EXPIRE', today, String(60 * 60 * 48)]);
 
-    const board = await cmd(['ZREVRANGE', 'lb:all', '0', String(TOP_N - 1), 'WITHSCORES']);
+    const board = (await cmd(['ZREVRANGE', BOARD_KEY, '0', String(TOP_N - 1), 'WITHSCORES'])) || [];
     const names = [];
     for (let i = 0; i < board.length; i += 2) names.push(board[i]);
     const rank = names.indexOf(name);

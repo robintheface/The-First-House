@@ -9,7 +9,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import http from "node:http";
 import util from "../api/_util.js";
 
-const { TOKEN_TTL_SEC, MAX_CARRIED_PER_DAY } = util;
+const { TOKEN_TTL_SEC, MAX_CARRIED_PER_DAY, MAX_SUBMITS_PER_HOUR } = util;
 
 let mock, api, base;
 const store = { kv: new Map(), z: new Map(), ttl: new Map() };
@@ -62,6 +62,7 @@ function startMock() {
 
 beforeAll(async () => {
   await startMock();
+  process.env.VERCEL = "1"; // the deployment target these rules are written for
   process.env.KV_REST_API_URL = "http://127.0.0.1:" + mock.address().port;
   process.env.KV_REST_API_TOKEN = "test-token";
   // Imported only once the env is set -- api/_store.js reads it at load time.
@@ -80,7 +81,11 @@ beforeAll(async () => {
   api = http.createServer((req, res) => {
     const h = routes[req.url.split("?")[0]];
     if (!h) { res.statusCode = 404; return res.end("{}"); }
-    req.headers["x-forwarded-for"] = req.headers["x-test-ip"] || "1.2.3.4";
+    // Stand in for Vercel's edge: it writes its own header from the real
+    // peer and leaves whatever the client put in x-forwarded-for untouched.
+    // x-test-ip is this suite's way of saying "the request really came from
+    // here"; a spoofed x-forwarded-for rides along separately.
+    req.headers["x-vercel-forwarded-for"] = req.headers["x-test-ip"] || "1.2.3.4";
     h(req, res);
   });
   await new Promise((r) => api.listen(0, r));
@@ -289,6 +294,56 @@ describe("carried best scores", () => {
     expect((await post("/api/score", { score: 211, nickname: "Keeper2", carried: true }, ip)).status).toBe(200);
     expect((await post("/api/score", { score: 212, nickname: "Keeper3", carried: true }, ip)).status).toBe(200);
     expect((await post("/api/score", { score: 213, nickname: "Keeper4", carried: true }, ip)).status).toBe(429);
+  });
+});
+
+describe("the address a rate limit counts against", () => {
+  // The bug this pins: clientIp() read the LEFTMOST x-forwarded-for entry,
+  // which is whatever the sender wrote. One machine could mint a fresh limit
+  // bucket per request just by changing a header, which made every cap here
+  // -- hourly submits and carried scores alike -- decorative.
+  it("does not let a client mint a new bucket by rewriting x-forwarded-for", async () => {
+    const codes = [];
+    for (let i = 0; i < MAX_CARRIED_PER_DAY + 3; i++) {
+      // One caller (x-test-ip fixed, as the edge would see it) claiming a
+      // different address every time in the header it can write.
+      const r = await fetch(base + "/api/score", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-test-ip": "3.3.3.3",
+          "x-forwarded-for": "9.9.9." + i
+        },
+        body: JSON.stringify({ score: 500 + i, nickname: "Rot" + i, carried: true })
+      });
+      codes.push(r.status);
+    }
+    expect(codes.filter((c) => c === 200)).toHaveLength(MAX_CARRIED_PER_DAY);
+    expect(codes.filter((c) => c === 429)).toHaveLength(3);
+  });
+
+  it("bounds the address so it cannot become an unbounded store key", () => {
+    const long = { headers: { "x-vercel-forwarded-for": "1.2.3.4" + "9".repeat(500) }, socket: {} };
+    expect(util.clientIp(long).length).toBeLessThanOrEqual(45);
+    // Anything an address cannot contain is dropped rather than keyed on.
+    const junk = { headers: { "x-vercel-forwarded-for": "lb:all evil\r\n" }, socket: {} };
+    expect(/^[0-9a-fA-F.:]+$/.test(util.clientIp(junk))).toBe(true);
+  });
+});
+
+describe("oversized request bodies", () => {
+  // readBody() used to destroy the stream without settling its promise, and
+  // req.destroy() emits neither 'end' nor 'error' -- so the handler simply
+  // hung until the platform timed it out. Free way to tie up a function.
+  it("answers instead of hanging", async () => {
+    const started = Date.now();
+    const r = await fetch(base + "/api/score", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ score: 1, nickname: "X", pad: "A".repeat(200000) })
+    });
+    expect(r.status).toBe(413);
+    expect(Date.now() - started).toBeLessThan(5000);
   });
 });
 
