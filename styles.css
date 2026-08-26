@@ -1166,8 +1166,11 @@
     border-color:rgba(111,207,58,0.75); padding-right:24px;
   }
   .hood-game-save-field.is-taken .hood-game-save-input{ border-color:rgba(232,139,106,0.85); }
+  /* One size for every message the overlay shows -- this line, the save
+     confirmation and the game-over text under the score all read as one
+     family rather than three near-misses. Skip stays a notch quieter. */
   .hood-game-save-state{
-    margin:0; font-family:'IM Fell English',serif; font-size:11px; letter-spacing:0.03em;
+    margin:0; font-family:'IM Fell English',serif; font-size:12px; letter-spacing:0.03em;
     color:#6fcf3a;
   }
   .hood-game-save-state[hidden]{ display:none; }
@@ -1532,21 +1535,35 @@
      the name prompt ran off the bottom of the game with its Skip link
      unreachable. Everything here is the same layout, sized to fit. */
   @media (max-width: 700px){
+    /* The HUD is flat pixels and never scaled with the frame, so on a 350px
+       canvas "Best" alone was 6.3% of the width against 2.75% on desktop --
+       more than twice as loud, crowding the overlay it sits behind. These
+       bring the whole frame back to roughly its desktop proportions, with a
+       floor at what stays readable on a phone rather than pure arithmetic
+       (14px of score would scale to 6px). Fullscreen is untouched: its rules
+       carry a class each and outrank these. */
+    .hood-game-hud{ font-size:10px; top:8px; padding:0 10px; }
+    .hood-game-best{ font-size:13px; top:7px; }
+    .hood-game-settings-btn{ font-size:11px; top:5px; right:5px; padding:4px 8px; }
+    .hood-game-version-badge{ font-size:9px; left:7px; bottom:7px; }
+    .hood-game-fullscreen-btn{ width:28px; height:28px; font-size:12px; right:7px; bottom:7px; }
+
     .hood-game-overlay{ padding:10px; }
     .hood-game-overlay-inner{ max-width:32ch; }
-    .hood-game-overlay-title{ font-size:20px; margin:0 0 4px; }
-    .hood-game-overlay-title-sm{ font-size:17px; }
-    .hood-game-overlay-lines p{ font-size:13px; }
-    .hood-game-overlay-lines p.hood-game-overlay-score{ font-size:24px; margin:2px 0; }
+    .hood-game-overlay-title{ font-size:16px; margin:0 0 3px; }
+    .hood-game-overlay-title-sm{ font-size:13px; }
+    .hood-game-overlay-lines p{ font-size:11px; }
+    .hood-game-overlay-lines p + p{ font-size:11px; margin-top:3px; }
+    .hood-game-overlay-lines p.hood-game-overlay-score{ font-size:19px; margin:1px 0; }
     .hood-game-save-score{ margin-top:8px; gap:4px; }
-    .hood-game-save-label{ font-size:10px; letter-spacing:0.02em; }
+    .hood-game-save-label{ font-size:11px; letter-spacing:0.02em; }
     .hood-game-save-input{ width:118px; padding:4px 8px; font-size:12px; }
     .hood-game-save-btn{ padding:4px 10px; font-size:11px; }
     .hood-game-save-tick{ right:6px; font-size:11px; }
     .hood-game-save-field.is-free .hood-game-save-input{ padding-right:20px; }
-    .hood-game-save-state{ font-size:9px; }
-    .hood-game-save-skip{ font-size:9px; padding:0 4px; }
+    .hood-game-save-state{ font-size:11px; }
     .hood-game-save-msg{ font-size:11px; }
+    .hood-game-save-skip{ font-size:10px; padding:0 4px; }
 
     /* Naming comes first, and on a screen this size it comes alone: the
        title and the game-over text stand down so the field and both buttons
