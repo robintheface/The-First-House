@@ -1127,8 +1127,8 @@ if (canvas) {
   // Set while the prompt is offering a best score carried over from before
   // the leaderboard existed, rather than a run that just ended.
   let carriedOffer = false;
-  const SAVE_LABEL_RUN = 'Pick your name — used from now on (max 12)';
-  const SAVE_LABEL_CARRIED = 'Pick your name — your best comes with it (max 12)';
+  const SAVE_LABEL_RUN = 'Your name from now on (max 12)';
+  const SAVE_LABEL_CARRIED = 'Your name — best comes with it (max 12)';
   // The server's rules are the authority on what a save may do; this only
   // puts a readable sentence on whichever one it enforced.
   const SAVE_ERRORS = {
@@ -1295,6 +1295,7 @@ if (canvas) {
     // Hold back the "press space" invite: showing it next to a name field
     // is what made a qualifying run one stray keypress away from being lost.
     awaitingSave = true;
+    if (overlay) overlay.classList.add('is-naming');
     showContinueLine(false);
   }
 
@@ -1303,6 +1304,7 @@ if (canvas) {
   function finishSave() {
     awaitingSave = false;
     if (nickSkipBtn) nickSkipBtn.hidden = true;
+    if (overlay) overlay.classList.remove('is-naming');
     showContinueLine(true);
   }
 
