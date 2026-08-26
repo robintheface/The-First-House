@@ -1126,6 +1126,23 @@ if (canvas) {
   // Set while the prompt is offering a best score carried over from before
   // the leaderboard existed, rather than a run that just ended.
   let carriedOffer = false;
+  // The highest score this browser has actually got onto the board. A run
+  // that cannot beat it has nothing to add -- the server would take the
+  // write and discard it against its own GT -- so it is never sent.
+  //
+  // Kept apart from `best`, which is the local record and moves whether or
+  // not the send worked. If a submission fails this stays where it was, and
+  // the next run good enough to beat it tries again, instead of the board
+  // being stuck one score behind for good.
+  const SYNCED_KEY = 'hoodRunnerSynced';
+  let syncedBest = (() => {
+    try { return parseInt(localStorage.getItem(SYNCED_KEY) || '0', 10) || 0; } catch (err) { return 0; }
+  })();
+  function rememberSynced(v) {
+    if (!(v > syncedBest)) return;
+    syncedBest = Math.floor(v);
+    try { localStorage.setItem(SYNCED_KEY, String(syncedBest)); } catch (err) { /* private mode */ }
+  }
   // The server's rules are the authority on what a save may do; this only
   // puts a readable sentence on whichever one it enforced.
   const SAVE_ERRORS = {
@@ -1259,8 +1276,13 @@ if (canvas) {
   // Silent from here on. A failure is not worth interrupting a game over for:
   // the score is already on screen and the next run will submit again.
   async function autoSubmit(finalScore) {
+    if (finalScore <= syncedBest) return;   // nothing the board does not already have
     const res = await lb.submit(undefined, finalScore, false);
-    if (!res.ok || !res.improved) return;
+    if (!res.ok) return;
+    // The server's own figure, which can be higher than this run if a better
+    // one already stands under this name.
+    rememberSynced(Number.isFinite(res.best) ? res.best : finalScore);
+    if (!res.improved) return;
     showSaveNote(res.rank ? 'New best — #' + res.rank : 'New best saved');
   }
 
@@ -1324,6 +1346,7 @@ if (canvas) {
       // Named now, so this is the last time the prompt appears. What stays on
       // screen is the confirmation, not a form.
       lastSavedNick = res.nickname || '';
+      rememberSynced(Number.isFinite(res.best) ? res.best : Number(saveScoreForm.dataset.score || 0));
       saveScoreForm.classList.add('is-done');
       if (saveMsg) {
         saveMsg.hidden = false;
