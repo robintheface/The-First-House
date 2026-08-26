@@ -38,7 +38,7 @@ if (canvas) {
   const nickField = document.querySelector('.hood-game-save-field');
   const nickState = document.getElementById('hoodGameNickState');
   const saveLabel = document.querySelector('.hood-game-save-label');
-  const GAME_VERSION = '1.0.0';
+  const GAME_VERSION = '1.1.0';
   if (versionBadgeEl) versionBadgeEl.textContent = 'v' + GAME_VERSION;
 
   const CW = canvas.width;   // 800
