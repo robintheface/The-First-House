@@ -9,7 +9,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import http from "node:http";
 import util from "../api/_util.js";
 
-const { TOKEN_TTL_SEC } = util;
+const { TOKEN_TTL_SEC, MAX_CARRIED_PER_DAY, MAX_SUBMITS_PER_HOUR } = util;
 
 let mock, api, base;
 const store = { kv: new Map(), z: new Map(), ttl: new Map() };
@@ -28,24 +28,35 @@ function startMock() {
       };
       let result = null;
       if (op === "SET") {
-        store.kv.set(key, a[2]);
-        // Honour an inline TTL so a key written with EX is distinguishable
-        // from one written without -- see the token expiry test below.
-        if (String(a[3] || "").toUpperCase() === "EX") store.ttl.set(key, Number(a[4]));
-        result = "OK";
+        const flags = a.slice(3).map((v) => String(v).toUpperCase());
+        if (flags.includes("NX") && store.kv.has(key)) result = null;
+        else {
+          store.kv.set(key, a[2]);
+          // Honour an inline TTL so a key written with EX is distinguishable
+          // from one written without -- see the token expiry test below.
+          const ex = flags.indexOf("EX");
+          if (ex !== -1) store.ttl.set(key, Number(a[3 + ex + 1]));
+          result = "OK";
+        }
       }
       else if (op === "GET") result = store.kv.has(key) ? store.kv.get(key) : null;
       else if (op === "DEL") { store.ttl.delete(key); result = store.kv.delete(key) ? 1 : 0; }
       else if (op === "INCR") { const v = Number(store.kv.get(key) || 0) + 1; store.kv.set(key, String(v)); result = v; }
       else if (op === "EXPIRE") { store.ttl.set(key, Number(a[2])); result = 1; }
       else if (op === "ZADD") {
-        // ZADD key [GT|NX] score member
-        const m = zs(), flag = String(a[2]).toUpperCase();
-        const has = flag === "GT" || flag === "NX";
-        const sc = Number(has ? a[3] : a[2]), mem = has ? a[4] : a[3];
-        if (flag === "NX" && m.has(mem)) result = 0;
-        else if (flag === "GT" && m.has(mem) && sc <= m.get(mem)) result = 0;
-        else { m.set(mem, sc); result = 1; }
+        // ZADD key [NX|XX|GT|LT|CH]... score member
+        const m = zs(), flags = [];
+        let i = 2;
+        while (i < a.length && Number.isNaN(Number(a[i]))) { flags.push(String(a[i]).toUpperCase()); i++; }
+        const sc = Number(a[i]), mem = String(a[i + 1]);
+        const had = m.has(mem);
+        if (flags.includes("NX") && had) result = 0;
+        else if (flags.includes("GT") && had && sc <= m.get(mem)) result = 0;
+        else {
+          const changed = !had || m.get(mem) !== sc;
+          m.set(mem, sc);
+          result = flags.includes("CH") ? (changed ? 1 : 0) : (had ? 0 : 1);
+        }
       }
       else if (op === "ZSCORE") { const m = zs(); result = m.has(a[2]) ? String(m.get(a[2])) : null; }
       else if (op === "ZREVRANGE") {
@@ -62,6 +73,7 @@ function startMock() {
 
 beforeAll(async () => {
   await startMock();
+  process.env.VERCEL = "1"; // the deployment target these rules are written for
   process.env.KV_REST_API_URL = "http://127.0.0.1:" + mock.address().port;
   process.env.KV_REST_API_TOKEN = "test-token";
   // Imported only once the env is set -- api/_store.js reads it at load time.
@@ -80,7 +92,11 @@ beforeAll(async () => {
   api = http.createServer((req, res) => {
     const h = routes[req.url.split("?")[0]];
     if (!h) { res.statusCode = 404; return res.end("{}"); }
-    req.headers["x-forwarded-for"] = req.headers["x-test-ip"] || "1.2.3.4";
+    // Stand in for Vercel's edge: it writes its own header from the real
+    // peer and leaves whatever the client put in x-forwarded-for untouched.
+    // x-test-ip is this suite's way of saying "the request really came from
+    // here"; a spoofed x-forwarded-for rides along separately.
+    req.headers["x-vercel-forwarded-for"] = req.headers["x-test-ip"] || "1.2.3.4";
     h(req, res);
   });
   await new Promise((r) => api.listen(0, r));
@@ -90,7 +106,12 @@ beforeAll(async () => {
 afterAll(() => { mock && mock.close(); api && api.close(); });
 
 const get = async (p) => { const r = await fetch(base + p); return { status: r.status, body: await r.json() }; };
+const SECRET_A = "a".repeat(32);
+const SECRET_B = "b".repeat(32);
+// Score posts all carry a browser secret now; tests that care pass their own.
 const post = async (p, body, ip) => {
+  // "in", not falsy: a test passing secret:"" is testing the empty case.
+  if (p === "/api/score" && body && !("secret" in body)) body = { ...body, secret: SECRET_A };
   const r = await fetch(base + p, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...(ip ? { "x-test-ip": ip } : {}) },
@@ -205,9 +226,10 @@ describe("anonymous saves", () => {
   });
 });
 
-describe("name collisions", () => {
-  it("refuses a name already on the board", async () => {
-    const res = await post("/api/score", { token: await aged(), score: 40, nickname: "Robin Hood" });
+describe("a name belongs to the browser that claimed it", () => {
+  it("refuses the name to a browser that does not hold it", async () => {
+    const res = await post("/api/score",
+      { token: await aged(), score: 40, nickname: "Robin Hood", secret: SECRET_B });
     expect(res.status).toBe(409);
     expect(res.body.error).toBe("name_taken");
   });
@@ -216,16 +238,44 @@ describe("name collisions", () => {
   // rejection the player can fix, so it must not cost them the run.
   it("leaves the run token unspent so the player can try another name", async () => {
     const token = await aged();
-    expect((await post("/api/score", { token, score: 40, nickname: "Robin Hood" })).status).toBe(409);
-    const second = await post("/api/score", { token, score: 40, nickname: "Marian" });
+    expect((await post("/api/score",
+      { token, score: 40, nickname: "Robin Hood", secret: SECRET_B })).status).toBe(409);
+    const second = await post("/api/score", { token, score: 40, nickname: "Marian", secret: SECRET_B });
     expect(second.status).toBe(200);
     expect(second.body.nickname).toBe("Marian");
   });
 
-  it("does not merge a repeated name into the existing row", async () => {
+  // The whole point of the rewrite: no prompt after the first run, so the
+  // holder submits under the same name again and the board keeps the best.
+  it("lets the holder submit again and keeps the better score", async () => {
+    const worse = await post("/api/score", { token: await aged(), score: 5, nickname: "Robin Hood" });
+    expect(worse.status).toBe(200);
+    expect(worse.body.improved).toBe(false);
+    expect(worse.body.best).toBe(120);
+
+    // Within what a run this short can account for -- see maxPlausibleScore.
+    const better = await post("/api/score", { token: await aged(), score: 200, nickname: "Robin Hood" });
+    expect(better.body.improved).toBe(true);
+    expect(better.body.best).toBe(200);
+
     const all = await get("/api/leaderboard");
     expect(all.body.entries.filter((e) => e.name === "Robin Hood")).toHaveLength(1);
-    expect(all.body.entries.find((e) => e.name === "Robin Hood").score).toBe(120);
+    expect(all.body.entries.find((e) => e.name === "Robin Hood").score).toBe(200);
+  });
+
+  it("will not take a submission without a usable secret", async () => {
+    for (const secret of ["", "short", "!".repeat(32), "A".repeat(32)]) {
+      const r = await post("/api/score", { token: await aged(), score: 40, nickname: "Nope", secret });
+      expect(r.status).toBe(400);
+      expect(r.body.error).toBe("bad_secret");
+    }
+  }, 20000);
+
+  it("keeps the secret out of the store", () => {
+    const stored = store.kv.get("owner:Robin Hood");
+    expect(stored).toBeTruthy();
+    expect(stored).not.toBe(SECRET_A);
+    expect(stored).toBe(util.hashSecret(SECRET_A));
   });
 });
 
@@ -245,6 +295,103 @@ describe("name-check", () => {
   it("marks a name that sanitizes away as invalid", async () => {
     const { body } = await get("/api/name-check?name=" + encodeURIComponent("<<>>"));
     expect(body).toMatchObject({ valid: false, taken: false });
+  });
+});
+
+describe("carried best scores", () => {
+  it("accepts a best carried over from before the leaderboard, with no run token", async () => {
+    const res = await post("/api/score", { score: 300, nickname: "Oldtimer", carried: true });
+    expect(res.status).toBe(200);
+    expect(res.body.nickname).toBe("Oldtimer");
+    const all = await get("/api/leaderboard");
+    expect(all.body.entries.find((e) => e.name === "Oldtimer").score).toBe(300);
+  });
+
+  it("still refuses a name another browser holds", async () => {
+    const res = await post("/api/score",
+      { score: 300, nickname: "Oldtimer", carried: true, secret: SECRET_B });
+    expect(res.status).toBe(409);
+    expect(res.body.error).toBe("name_taken");
+  });
+
+  // Nothing verifies a carried score, so these two limits are all that stand
+  // behind it. They are damage control, not proof.
+  it("refuses a carried score past the ceiling", async () => {
+    const res = await post("/api/score", { score: 999999, nickname: "Cheat", carried: true });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe("score_implausible");
+  });
+
+  it("caps how many one address may carry in a day", async () => {
+    const ip = "9.9.9.9";
+    const codes = [];
+    for (let i = 0; i < 5; i++) {
+      codes.push((await post("/api/score", { score: 200 + i, nickname: "Carry" + i, carried: true }, ip)).status);
+    }
+    expect(codes.filter((c) => c === 200)).toHaveLength(MAX_CARRIED_PER_DAY);
+    expect(codes.filter((c) => c === 429)).toHaveLength(5 - MAX_CARRIED_PER_DAY);
+  });
+
+  it("does not spend one of the three on a name that was refused", async () => {
+    const ip = "8.8.8.8";
+    expect((await post("/api/score", { score: 210, nickname: "Keeper", carried: true }, ip)).status).toBe(200);
+    // Another browser reaching for that name -> 409, and it must not count
+    // against this address's daily allowance.
+    expect((await post("/api/score",
+      { score: 210, nickname: "Keeper", carried: true, secret: SECRET_B }, ip)).status).toBe(409);
+    expect((await post("/api/score", { score: 211, nickname: "Keeper2", carried: true }, ip)).status).toBe(200);
+    expect((await post("/api/score", { score: 212, nickname: "Keeper3", carried: true }, ip)).status).toBe(200);
+    expect((await post("/api/score", { score: 213, nickname: "Keeper4", carried: true }, ip)).status).toBe(429);
+  });
+});
+
+describe("the address a rate limit counts against", () => {
+  // The bug this pins: clientIp() read the LEFTMOST x-forwarded-for entry,
+  // which is whatever the sender wrote. One machine could mint a fresh limit
+  // bucket per request just by changing a header, which made every cap here
+  // -- hourly submits and carried scores alike -- decorative.
+  it("does not let a client mint a new bucket by rewriting x-forwarded-for", async () => {
+    const codes = [];
+    for (let i = 0; i < MAX_CARRIED_PER_DAY + 3; i++) {
+      // One caller (x-test-ip fixed, as the edge would see it) claiming a
+      // different address every time in the header it can write.
+      const r = await fetch(base + "/api/score", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-test-ip": "3.3.3.3",
+          "x-forwarded-for": "9.9.9." + i
+        },
+        body: JSON.stringify({ score: 500 + i, nickname: "Rot" + i, carried: true, secret: SECRET_A })
+      });
+      codes.push(r.status);
+    }
+    expect(codes.filter((c) => c === 200)).toHaveLength(MAX_CARRIED_PER_DAY);
+    expect(codes.filter((c) => c === 429)).toHaveLength(3);
+  });
+
+  it("bounds the address so it cannot become an unbounded store key", () => {
+    const long = { headers: { "x-vercel-forwarded-for": "1.2.3.4" + "9".repeat(500) }, socket: {} };
+    expect(util.clientIp(long).length).toBeLessThanOrEqual(45);
+    // Anything an address cannot contain is dropped rather than keyed on.
+    const junk = { headers: { "x-vercel-forwarded-for": "lb:all evil\r\n" }, socket: {} };
+    expect(/^[0-9a-fA-F.:]+$/.test(util.clientIp(junk))).toBe(true);
+  });
+});
+
+describe("oversized request bodies", () => {
+  // readBody() used to destroy the stream without settling its promise, and
+  // req.destroy() emits neither 'end' nor 'error' -- so the handler simply
+  // hung until the platform timed it out. Free way to tie up a function.
+  it("answers instead of hanging", async () => {
+    const started = Date.now();
+    const r = await fetch(base + "/api/score", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ score: 1, nickname: "X", pad: "A".repeat(200000) })
+    });
+    expect(r.status).toBe(413);
+    expect(Date.now() - started).toBeLessThan(5000);
   });
 });
 
@@ -290,11 +437,11 @@ describe("anti-cheat", () => {
 
   it("rate limits a single IP", async () => {
     let limited = false;
-    for (let i = 0; i < 24 && !limited; i++) {
-      const { body } = await post("/api/run-start", {}, "9.9.9.9");
-      const r = await post("/api/score", { token: body.token, score: 10, nickname: "Spam" + i }, "9.9.9.9");
+    for (let i = 0; i < MAX_SUBMITS_PER_HOUR + 4 && !limited; i++) {
+      const r = await post("/api/score",
+        { token: "0".repeat(32), score: 10, nickname: "Spam" + i }, "9.9.9.9");
       if (r.status === 429) limited = true;
     }
     expect(limited).toBe(true);
-  }, 20000);
+  }, 30000);
 });

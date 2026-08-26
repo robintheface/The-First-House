@@ -6,7 +6,9 @@
 // time it is spent, so one run can post exactly one score.
 const crypto = require('crypto');
 const { cmd, isConfigured } = require('./_store.js');
-const { TOKEN_TTL_SEC, json } = require('./_util.js');
+const {
+  TOKEN_TTL_SEC, MAX_RUN_STARTS_PER_HOUR, HOUR_SEC, clientIp, overRateLimit, json
+} = require('./_util.js');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return json(res, 405, { error: 'method_not_allowed' });
@@ -16,6 +18,11 @@ module.exports = async (req, res) => {
   // here keeps every endpoint agreeing about whether the board exists.
   if (!isConfigured()) return json(res, 503, { error: 'store_not_configured' });
   try {
+    // Unauthenticated and it writes a key every time, so a loop here would
+    // fill the store for free. The cap is far above what playing produces.
+    if (await overRateLimit(cmd, 'start', clientIp(req), MAX_RUN_STARTS_PER_HOUR, HOUR_SEC)) {
+      return json(res, 429, { error: 'rate_limited' });
+    }
     const token = crypto.randomBytes(16).toString('hex');
     // One round trip, not two: this sits at the start of every run, so the
     // TTL rides along with the write rather than costing a second call.

@@ -37,7 +37,8 @@ if (canvas) {
   const nickSkipBtn = document.getElementById('hoodGameNickSkip');
   const nickField = document.querySelector('.hood-game-save-field');
   const nickState = document.getElementById('hoodGameNickState');
-  const GAME_VERSION = '1.0.0';
+  const saveLabel = document.querySelector('.hood-game-save-label');
+  const GAME_VERSION = '1.1.0';
   if (versionBadgeEl) versionBadgeEl.textContent = 'v' + GAME_VERSION;
 
   const CW = canvas.width;   // 800
@@ -378,13 +379,14 @@ if (canvas) {
   }
 
   function jump() {
+    // A name prompt is open and unanswered -- from a qualifying run, or from
+    // the best carried over on the idle screen. Starting a run now would
+    // throw that place away, and the prompt itself invites a keypress, so
+    // Space belongs to the name field until Save or Skip settles it.
+    if (awaitingSave) return;
     if (state === STATE.IDLE) { startRun(); return; }
     if (state === STATE.OVER) {
       if (!resultShown) return; // still in the pre-text beat -- ignore input entirely
-      // A qualifying run is holding the name prompt open. Restarting now
-      // would throw the place away, and the prompt invites a keypress, so
-      // Space belongs to the name field until Save or Skip settles it.
-      if (awaitingSave) return;
       if (performance.now() - overSince < RESTART_COOLDOWN) return;
       startRun();
       return;
@@ -1122,6 +1124,11 @@ if (canvas) {
   // or Skip settles it. jump() honours this so the run cannot be restarted
   // out from under an unsaved place.
   let awaitingSave = false;
+  // Set while the prompt is offering a best score carried over from before
+  // the leaderboard existed, rather than a run that just ended.
+  let carriedOffer = false;
+  const SAVE_LABEL_RUN = 'Your name from now on (max 12)';
+  const SAVE_LABEL_CARRIED = 'Your name — best comes with it (max 12)';
   // The server's rules are the authority on what a save may do; this only
   // puts a readable sentence on whichever one it enforced.
   const SAVE_ERRORS = {
@@ -1130,7 +1137,10 @@ if (canvas) {
     store_not_configured: 'Leaderboard is offline',
     store_unavailable: 'Leaderboard is unreachable',
     no_token: 'No finished run to save',
+    bad_secret: 'Could not save',
+    no_identity: 'Could not save',
     name_taken: 'That name is taken',
+    carried_limit: 'Too many carried scores today',
     token_unknown_or_used: 'This run was already saved',
     score_implausible: 'Run could not be verified',
     run_too_short: 'Run could not be verified'
@@ -1236,12 +1246,41 @@ if (canvas) {
     closeRanks();
   });
 
-  // Called once the game-over text is on screen. Only prompts when the run
-  // actually stands a chance, so an ordinary run ends as quietly as before.
+  // Called once the game-over text is on screen.
+  //
+  // The name is asked for exactly once. After that this browser holds a name
+  // on the server and every finished run is sent under it without a word --
+  // the board keeps the best of them, so there is nothing left to decide.
   async function offerScoreSave(finalScore) {
     if (!saveScoreForm || !lb.isAvailable() || !lb.canSubmit()) return;
-    const entries = await lb.getBoard('all');
-    if (!lb.qualifies(finalScore, entries)) return;
+    if (lb.hasIdentity()) { autoSubmit(finalScore); return; }
+    // Not named yet: ask, and offer the whole best rather than just this run,
+    // so a player who was here before the board keeps what they already had.
+    openSavePrompt(Math.max(Math.floor(best), finalScore), Math.floor(best) > finalScore);
+  }
+
+  // Silent from here on. A failure is not worth interrupting a game over for:
+  // the score is already on screen and the next run will submit again.
+  async function autoSubmit(finalScore) {
+    const res = await lb.submit(undefined, finalScore, false);
+    if (!res.ok || !res.improved) return;
+    showSaveNote(res.rank ? 'New best — #' + res.rank : 'New best saved');
+  }
+
+  // A one-line note under the game-over text. Not a prompt: nothing to answer
+  // and nothing held back waiting for it.
+  function showSaveNote(text) {
+    if (!saveScoreForm || !saveMsg) return;
+    saveScoreForm.classList.add('is-done');
+    saveScoreForm.hidden = false;
+    saveMsg.hidden = false;
+    saveMsg.classList.remove('is-error');
+    saveMsg.textContent = text;
+  }
+
+  function openSavePrompt(finalScore, carried) {
+    carriedOffer = carried;
+    if (saveLabel) saveLabel.textContent = carried ? SAVE_LABEL_CARRIED : SAVE_LABEL_RUN;
     if (saveMsg) { saveMsg.hidden = true; saveMsg.classList.remove('is-error'); }
     // Deliberately blank: prefilling last run's name means clearing it by
     // hand every single time, which is worse than typing it again.
@@ -1256,6 +1295,7 @@ if (canvas) {
     // Hold back the "press space" invite: showing it next to a name field
     // is what made a qualifying run one stray keypress away from being lost.
     awaitingSave = true;
+    if (overlay) overlay.classList.add('is-naming');
     showContinueLine(false);
   }
 
@@ -1264,18 +1304,19 @@ if (canvas) {
   function finishSave() {
     awaitingSave = false;
     if (nickSkipBtn) nickSkipBtn.hidden = true;
+    if (overlay) overlay.classList.remove('is-naming');
     showContinueLine(true);
   }
 
-  // Save and Skip differ only in the name they send: Skip passes null and
-  // lets the server number it (any#1, any#2...). Either way the attempt
-  // spends the run token, so there is nothing left to retry -- the whole
-  // prompt is retired and only its verdict stays on screen.
+  // The one-time naming. Save sends what was typed, Skip passes null and
+  // lets the server number it (Anonymous#1, Anonymous#2...). Either way the
+  // browser comes away holding a name, and every run after this submits
+  // under it on its own.
   async function submitScore(nick) {
     if (!saveScoreForm) return;
     if (nickSaveBtn) nickSaveBtn.disabled = true;
     if (nickSkipBtn) nickSkipBtn.disabled = true;
-    const res = await lb.submit(nick, Number(saveScoreForm.dataset.score || 0));
+    const res = await lb.submit(nick, Number(saveScoreForm.dataset.score || 0), carriedOffer);
     if (res.retry) {
       // The name was refused before the run token was spent, so the run is
       // still there to save -- reopen the prompt instead of retiring it.
@@ -1284,11 +1325,15 @@ if (canvas) {
       return;
     }
     if (res.ok) {
-      // Nothing left to say: the row is on the board, so the prompt gets out
-      // of the way and leaves the game-over screen as it would have been.
+      // Named now, so this is the last time the prompt appears. What stays on
+      // screen is the confirmation, not a form.
       lastSavedNick = res.nickname || '';
-      saveScoreForm.hidden = true;
-      if (saveMsg) saveMsg.hidden = true;
+      saveScoreForm.classList.add('is-done');
+      if (saveMsg) {
+        saveMsg.hidden = false;
+        saveMsg.classList.remove('is-error');
+        saveMsg.textContent = 'Playing as ' + lastSavedNick + (res.rank ? ' — #' + res.rank : '');
+      }
     } else if (saveMsg) {
       // A failure is worth a word -- the run token is spent either way, so
       // the prompt still retires, but the reason stays on screen.
@@ -1494,7 +1539,7 @@ if (canvas) {
     // exactly what leaves it stuck unable to unlock on some mobile browsers.
     assetsReady = true;
     state = STATE.IDLE;
-    showOverlay('HOOD RUN', ['PRESS SPACE TO START']);
+    showOverlay('HOOD RUN', [{ text: 'PRESS SPACE TO START', cls: 'hood-game-overlay-continue' }]);
     ensureLoopRunning(); // one draw of the idle screen, then the loop parks itself
   }).catch((err) => {
     console.error('Hood Runner: asset load failed', err);

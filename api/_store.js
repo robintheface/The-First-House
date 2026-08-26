@@ -21,22 +21,33 @@ function memCmd(args) {
   const [op, key, ...rest] = args;
   const z = () => (mem.get(key) instanceof Map ? mem.get(key) : (mem.set(key, new Map()), mem.get(key)));
   switch (String(op).toUpperCase()) {
-    case 'SET': { mem.set(key, rest[0]); return 'OK'; }
+    case 'SET': {
+      // SET key value [NX] [EX secs] -- NX is the only one that changes the
+      // answer here; EX is accepted and ignored, this store has no clock.
+      const flags = rest.slice(1).map((v) => String(v).toUpperCase());
+      if (flags.includes('NX') && mem.has(key)) return null;
+      mem.set(key, rest[0]);
+      return 'OK';
+    }
     case 'GET': return mem.has(key) ? mem.get(key) : null;
     case 'DEL': { const had = mem.delete(key); return had ? 1 : 0; }
     case 'INCR': { const v = Number(mem.get(key) || 0) + 1; mem.set(key, String(v)); return v; }
     case 'EXPIRE': return 1;
     case 'ZADD': {
-      // args: ZADD key [GT|NX] score member
+      // args: ZADD key [NX|XX|GT|LT|CH]... score member
       const m = z();
-      const flag = String(rest[0]).toUpperCase();
-      const hasFlag = flag === 'GT' || flag === 'NX';
-      const score = Number(hasFlag ? rest[1] : rest[0]);
-      const member = String(hasFlag ? rest[2] : rest[1]);
-      if (flag === 'NX' && m.has(member)) return 0;
-      if (flag === 'GT' && m.has(member) && score <= m.get(member)) return 0;
+      const flags = [];
+      let i = 0;
+      while (i < rest.length && Number.isNaN(Number(rest[i]))) { flags.push(String(rest[i]).toUpperCase()); i++; }
+      const score = Number(rest[i]);
+      const member = String(rest[i + 1]);
+      const had = m.has(member);
+      if (flags.includes('NX') && had) return 0;
+      if (flags.includes('GT') && had && score <= m.get(member)) return 0;
+      const changed = !had || m.get(member) !== score;
       m.set(member, score);
-      return 1;
+      // CH counts changed elements; without it, only newly added ones.
+      return flags.includes('CH') ? (changed ? 1 : 0) : (had ? 0 : 1);
     }
     case 'ZSCORE': { const m = z(); return m.has(String(rest[0])) ? String(m.get(String(rest[0]))) : null; }
     case 'ZREVRANGE': {
