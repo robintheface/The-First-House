@@ -59,7 +59,14 @@ const SECRET_RE = /^[a-f0-9]{32,64}$/;
 // accepted on trust, so the only thing standing behind it is these two
 // limits: a per-IP daily cap on how many can be claimed, and a ceiling no
 // honest carried-over score would reach. Neither is verification.
-const MAX_CARRIED_PER_DAY = 3;
+//
+// The cap is deliberately loose. Addresses are shared -- a household, an
+// office, a whole mobile carrier behind one NAT -- and each player carries a
+// score exactly once, on the run where they first pick a name. A tight cap
+// turns "several people on the same wifi" into "the fourth one is refused",
+// which is the far likelier event. What actually keeps the board honest is
+// that a name can only be claimed once.
+const MAX_CARRIED_PER_DAY = 25;
 const MAX_CARRIED_SCORE = 50000;
 // Kept intentionally small and obvious: a blocklist can never be complete,
 // and an aggressive one mangles innocent names. This catches the lazy case;
