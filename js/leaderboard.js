@@ -12,6 +12,45 @@
 
 const API = '/api';
 
+// The player's identity, kept in this browser only. The name is claimed once
+// on the server; the secret is what proves, on every run after that, that the
+// score belongs to whoever holds the name. Losing it (cleared storage, a
+// different browser) means claiming a new name -- there is no account here,
+// and nothing worth stealing if it leaks.
+const ID_NAME = 'hoodRunnerName';
+const ID_SECRET = 'hoodRunnerSecret';
+
+function readStore(key) {
+  try { return localStorage.getItem(key) || ''; } catch (e) { return ''; }
+}
+
+export function identity() {
+  const name = readStore(ID_NAME);
+  return name ? { name, secret: readStore(ID_SECRET) } : null;
+}
+
+export function hasIdentity() {
+  const id = identity();
+  return Boolean(id && id.secret);
+}
+
+// 128 bits from the platform CSPRNG. Generated once and reused, so the same
+// browser keeps proving the same claim.
+function ensureSecret() {
+  let s = readStore(ID_SECRET);
+  if (!/^[a-f0-9]{32,64}$/.test(s)) {
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    s = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+    try { localStorage.setItem(ID_SECRET, s); } catch (e) { /* private mode */ }
+  }
+  return s;
+}
+
+function rememberName(name) {
+  try { localStorage.setItem(ID_NAME, name); } catch (e) { /* private mode */ }
+}
+
 let runToken = null;
 let available = null;       // null = not probed yet
 const boardCache = new Map(); // which -> { at, entries }
@@ -85,9 +124,9 @@ export async function checkName(name) {
   }
 }
 
-// A null nickname means "let the server name this one" -- it answers with
-// Anonymous#1, Anonymous#2, and so on, so skipping is one click and still
-// keeps the row.
+// nickname null means "let the server name this one" -- it answers with
+// Anonymous#1, Anonymous#2, and so on. Pass undefined to submit under the
+// name this browser already holds.
 //
 // `carried` submits a best score from before the leaderboard existed. There
 // is no run behind it, so no token is sent and the server takes it on trust
@@ -95,16 +134,22 @@ export async function checkName(name) {
 export async function submit(nickname, score, carried) {
   if (!carried && !runToken) return { ok: false, error: 'no_token' };
   const token = carried ? '' : runToken;
-  const named = nickname === null ? { anonymous: true } : { nickname };
+  const secret = ensureSecret();
+  const named = nickname === null ? { anonymous: true }
+    : { nickname: nickname === undefined ? readStore(ID_NAME) : nickname };
+  if (!named.anonymous && !named.nickname) return { ok: false, error: 'no_identity' };
   try {
     const d = await req('/score', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(Object.assign({ token, score }, named, carried ? { carried: true } : null))
+      body: JSON.stringify(Object.assign({ token, score, secret }, named, carried ? { carried: true } : null))
     });
     if (!carried) runToken = null; // one run, one submission -- the server's own rule
     boardCache.clear(); // the board just changed
-    return { ok: true, rank: d.rank, nickname: d.nickname };
+    // The server is the authority on the final name (it numbers anonymous
+    // ones), so that is what gets remembered.
+    if (d.nickname) rememberName(d.nickname);
+    return { ok: true, rank: d.rank, nickname: d.nickname, improved: d.improved, best: d.best };
   } catch (err) {
     const error = (err.body && err.body.error) || err.message;
     // A taken name is refused before the server spends the token, so the run

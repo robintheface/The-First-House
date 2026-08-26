@@ -28,24 +28,35 @@ function startMock() {
       };
       let result = null;
       if (op === "SET") {
-        store.kv.set(key, a[2]);
-        // Honour an inline TTL so a key written with EX is distinguishable
-        // from one written without -- see the token expiry test below.
-        if (String(a[3] || "").toUpperCase() === "EX") store.ttl.set(key, Number(a[4]));
-        result = "OK";
+        const flags = a.slice(3).map((v) => String(v).toUpperCase());
+        if (flags.includes("NX") && store.kv.has(key)) result = null;
+        else {
+          store.kv.set(key, a[2]);
+          // Honour an inline TTL so a key written with EX is distinguishable
+          // from one written without -- see the token expiry test below.
+          const ex = flags.indexOf("EX");
+          if (ex !== -1) store.ttl.set(key, Number(a[3 + ex + 1]));
+          result = "OK";
+        }
       }
       else if (op === "GET") result = store.kv.has(key) ? store.kv.get(key) : null;
       else if (op === "DEL") { store.ttl.delete(key); result = store.kv.delete(key) ? 1 : 0; }
       else if (op === "INCR") { const v = Number(store.kv.get(key) || 0) + 1; store.kv.set(key, String(v)); result = v; }
       else if (op === "EXPIRE") { store.ttl.set(key, Number(a[2])); result = 1; }
       else if (op === "ZADD") {
-        // ZADD key [GT|NX] score member
-        const m = zs(), flag = String(a[2]).toUpperCase();
-        const has = flag === "GT" || flag === "NX";
-        const sc = Number(has ? a[3] : a[2]), mem = has ? a[4] : a[3];
-        if (flag === "NX" && m.has(mem)) result = 0;
-        else if (flag === "GT" && m.has(mem) && sc <= m.get(mem)) result = 0;
-        else { m.set(mem, sc); result = 1; }
+        // ZADD key [NX|XX|GT|LT|CH]... score member
+        const m = zs(), flags = [];
+        let i = 2;
+        while (i < a.length && Number.isNaN(Number(a[i]))) { flags.push(String(a[i]).toUpperCase()); i++; }
+        const sc = Number(a[i]), mem = String(a[i + 1]);
+        const had = m.has(mem);
+        if (flags.includes("NX") && had) result = 0;
+        else if (flags.includes("GT") && had && sc <= m.get(mem)) result = 0;
+        else {
+          const changed = !had || m.get(mem) !== sc;
+          m.set(mem, sc);
+          result = flags.includes("CH") ? (changed ? 1 : 0) : (had ? 0 : 1);
+        }
       }
       else if (op === "ZSCORE") { const m = zs(); result = m.has(a[2]) ? String(m.get(a[2])) : null; }
       else if (op === "ZREVRANGE") {
@@ -95,7 +106,12 @@ beforeAll(async () => {
 afterAll(() => { mock && mock.close(); api && api.close(); });
 
 const get = async (p) => { const r = await fetch(base + p); return { status: r.status, body: await r.json() }; };
+const SECRET_A = "a".repeat(32);
+const SECRET_B = "b".repeat(32);
+// Score posts all carry a browser secret now; tests that care pass their own.
 const post = async (p, body, ip) => {
+  // "in", not falsy: a test passing secret:"" is testing the empty case.
+  if (p === "/api/score" && body && !("secret" in body)) body = { ...body, secret: SECRET_A };
   const r = await fetch(base + p, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...(ip ? { "x-test-ip": ip } : {}) },
@@ -210,9 +226,10 @@ describe("anonymous saves", () => {
   });
 });
 
-describe("name collisions", () => {
-  it("refuses a name already on the board", async () => {
-    const res = await post("/api/score", { token: await aged(), score: 40, nickname: "Robin Hood" });
+describe("a name belongs to the browser that claimed it", () => {
+  it("refuses the name to a browser that does not hold it", async () => {
+    const res = await post("/api/score",
+      { token: await aged(), score: 40, nickname: "Robin Hood", secret: SECRET_B });
     expect(res.status).toBe(409);
     expect(res.body.error).toBe("name_taken");
   });
@@ -221,16 +238,44 @@ describe("name collisions", () => {
   // rejection the player can fix, so it must not cost them the run.
   it("leaves the run token unspent so the player can try another name", async () => {
     const token = await aged();
-    expect((await post("/api/score", { token, score: 40, nickname: "Robin Hood" })).status).toBe(409);
-    const second = await post("/api/score", { token, score: 40, nickname: "Marian" });
+    expect((await post("/api/score",
+      { token, score: 40, nickname: "Robin Hood", secret: SECRET_B })).status).toBe(409);
+    const second = await post("/api/score", { token, score: 40, nickname: "Marian", secret: SECRET_B });
     expect(second.status).toBe(200);
     expect(second.body.nickname).toBe("Marian");
   });
 
-  it("does not merge a repeated name into the existing row", async () => {
+  // The whole point of the rewrite: no prompt after the first run, so the
+  // holder submits under the same name again and the board keeps the best.
+  it("lets the holder submit again and keeps the better score", async () => {
+    const worse = await post("/api/score", { token: await aged(), score: 5, nickname: "Robin Hood" });
+    expect(worse.status).toBe(200);
+    expect(worse.body.improved).toBe(false);
+    expect(worse.body.best).toBe(120);
+
+    // Within what a run this short can account for -- see maxPlausibleScore.
+    const better = await post("/api/score", { token: await aged(), score: 200, nickname: "Robin Hood" });
+    expect(better.body.improved).toBe(true);
+    expect(better.body.best).toBe(200);
+
     const all = await get("/api/leaderboard");
     expect(all.body.entries.filter((e) => e.name === "Robin Hood")).toHaveLength(1);
-    expect(all.body.entries.find((e) => e.name === "Robin Hood").score).toBe(120);
+    expect(all.body.entries.find((e) => e.name === "Robin Hood").score).toBe(200);
+  });
+
+  it("will not take a submission without a usable secret", async () => {
+    for (const secret of ["", "short", "!".repeat(32), "A".repeat(32)]) {
+      const r = await post("/api/score", { token: await aged(), score: 40, nickname: "Nope", secret });
+      expect(r.status).toBe(400);
+      expect(r.body.error).toBe("bad_secret");
+    }
+  }, 20000);
+
+  it("keeps the secret out of the store", () => {
+    const stored = store.kv.get("owner:Robin Hood");
+    expect(stored).toBeTruthy();
+    expect(stored).not.toBe(SECRET_A);
+    expect(stored).toBe(util.hashSecret(SECRET_A));
   });
 });
 
@@ -262,8 +307,9 @@ describe("carried best scores", () => {
     expect(all.body.entries.find((e) => e.name === "Oldtimer").score).toBe(300);
   });
 
-  it("still refuses a name someone already has", async () => {
-    const res = await post("/api/score", { score: 300, nickname: "Oldtimer", carried: true });
+  it("still refuses a name another browser holds", async () => {
+    const res = await post("/api/score",
+      { score: 300, nickname: "Oldtimer", carried: true, secret: SECRET_B });
     expect(res.status).toBe(409);
     expect(res.body.error).toBe("name_taken");
   });
@@ -289,8 +335,10 @@ describe("carried best scores", () => {
   it("does not spend one of the three on a name that was refused", async () => {
     const ip = "8.8.8.8";
     expect((await post("/api/score", { score: 210, nickname: "Keeper", carried: true }, ip)).status).toBe(200);
-    // Same name again -> 409, and must not count against the daily allowance.
-    expect((await post("/api/score", { score: 210, nickname: "Keeper", carried: true }, ip)).status).toBe(409);
+    // Another browser reaching for that name -> 409, and it must not count
+    // against this address's daily allowance.
+    expect((await post("/api/score",
+      { score: 210, nickname: "Keeper", carried: true, secret: SECRET_B }, ip)).status).toBe(409);
     expect((await post("/api/score", { score: 211, nickname: "Keeper2", carried: true }, ip)).status).toBe(200);
     expect((await post("/api/score", { score: 212, nickname: "Keeper3", carried: true }, ip)).status).toBe(200);
     expect((await post("/api/score", { score: 213, nickname: "Keeper4", carried: true }, ip)).status).toBe(429);
@@ -314,7 +362,7 @@ describe("the address a rate limit counts against", () => {
           "x-test-ip": "3.3.3.3",
           "x-forwarded-for": "9.9.9." + i
         },
-        body: JSON.stringify({ score: 500 + i, nickname: "Rot" + i, carried: true })
+        body: JSON.stringify({ score: 500 + i, nickname: "Rot" + i, carried: true, secret: SECRET_A })
       });
       codes.push(r.status);
     }
@@ -389,11 +437,11 @@ describe("anti-cheat", () => {
 
   it("rate limits a single IP", async () => {
     let limited = false;
-    for (let i = 0; i < 24 && !limited; i++) {
-      const { body } = await post("/api/run-start", {}, "9.9.9.9");
-      const r = await post("/api/score", { token: body.token, score: 10, nickname: "Spam" + i }, "9.9.9.9");
+    for (let i = 0; i < MAX_SUBMITS_PER_HOUR + 4 && !limited; i++) {
+      const r = await post("/api/score",
+        { token: "0".repeat(32), score: 10, nickname: "Spam" + i }, "9.9.9.9");
       if (r.status === 429) limited = true;
     }
     expect(limited).toBe(true);
-  }, 20000);
+  }, 30000);
 });

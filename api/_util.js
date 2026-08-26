@@ -1,4 +1,5 @@
 // Shared helpers for the leaderboard endpoints.
+const crypto = require('crypto');
 
 // Score ceiling used to reject impossible submissions. Derived from the
 // game's own numbers rather than guessed (js/dino-game.js):
@@ -17,7 +18,10 @@ const FLAT_HEADROOM = 150;
 const MIN_RUN_MS = 1200;
 const TOKEN_TTL_SEC = 30 * 60;
 
-const MAX_SUBMITS_PER_HOUR = 20;
+// Every finished run submits now, so this has to sit above what an evening
+// of short runs produces. A submission still costs a run token, and those
+// are capped in turn, so this is a backstop rather than the real limit.
+const MAX_SUBMITS_PER_HOUR = 150;
 // run-start and name-check are unauthenticated and each costs a store call,
 // so they are capped too -- generously, since a real player triggers many of
 // both. These bound a flood, they do not police normal play.
@@ -41,10 +45,14 @@ const NICK_MAX = 12;
 // server hands out: Anonymous#1, Anonymous#2, and so on.
 const ANON_PREFIX = 'Anonymous#';
 const ANON_COUNTER = 'lb:anon';
-// Names are first come, first served. A taken one is reported back so the
-// player can pick another -- see api/name-check.js, which answers the same
-// question while they are still typing.
+// Names are first come, first served, and claimed for good: owner:<name>
+// holds a hash of the secret the claiming browser generated. Later runs from
+// that browser present the same secret, which is what lets a score be
+// updated in place without anyone else being able to overwrite it.
 const BOARD_KEY = 'lb:all';
+const OWNER_PREFIX = 'owner:';
+// 32 hex characters, matching what the client generates.
+const SECRET_RE = /^[a-f0-9]{32,64}$/;
 
 // A best score carried over from before the leaderboard existed has no run
 // behind it -- no token, no elapsed time, nothing to check it against. It is
@@ -116,6 +124,20 @@ function sanitizeNickname(raw) {
   return n;
 }
 
+// The secret never reaches the store in the clear: what is kept is a hash,
+// so a store dump does not hand over anyone's name.
+function hashSecret(secret) {
+  return crypto.createHash('sha256').update(String(secret)).digest('hex');
+}
+
+// Compared without leaking where two hashes start to differ.
+function sameHash(a, b) {
+  const x = Buffer.from(String(a || ''), 'utf8');
+  const y = Buffer.from(String(b || ''), 'utf8');
+  if (x.length !== y.length) return false;
+  return crypto.timingSafeEqual(x, y);
+}
+
 function maxPlausibleScore(runMs) {
   return Math.ceil((runMs / 1000) * MAX_POINTS_PER_SEC) + FLAT_HEADROOM;
 }
@@ -160,7 +182,9 @@ function json(res, status, payload, cache) {
 
 module.exports = {
   TOP_N, MIN_RUN_MS, TOKEN_TTL_SEC, MAX_SUBMITS_PER_HOUR, NICK_MAX,
-  ANON_PREFIX, ANON_COUNTER, BOARD_KEY, MAX_CARRIED_PER_DAY, MAX_CARRIED_SCORE,
+  ANON_PREFIX, ANON_COUNTER, BOARD_KEY, OWNER_PREFIX, SECRET_RE,
+  MAX_CARRIED_PER_DAY, MAX_CARRIED_SCORE,
   MAX_RUN_STARTS_PER_HOUR, MAX_NAME_CHECKS_PER_HOUR, HOUR_SEC, MAX_BODY_BYTES, TOO_BIG,
-  clientIp, boundIp, overRateLimit, sanitizeNickname, maxPlausibleScore, dayKey, readBody, json
+  clientIp, boundIp, overRateLimit, sanitizeNickname, hashSecret, sameHash,
+  maxPlausibleScore, dayKey, readBody, json
 };

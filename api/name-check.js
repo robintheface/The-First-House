@@ -5,7 +5,7 @@
 // name can be claimed in the moment between the two.
 const { cmd, isConfigured } = require('./_store.js');
 const {
-  BOARD_KEY, MAX_NAME_CHECKS_PER_HOUR, HOUR_SEC, clientIp, overRateLimit, sanitizeNickname, json
+  OWNER_PREFIX, MAX_NAME_CHECKS_PER_HOUR, HOUR_SEC, clientIp, overRateLimit, sanitizeNickname, json
 } = require('./_util.js');
 
 module.exports = async (req, res) => {
@@ -25,7 +25,9 @@ module.exports = async (req, res) => {
     const nickname = sanitizeNickname(url.searchParams.get('name'));
     if (!nickname) return json(res, 200, { nickname: '', valid: false, taken: false });
 
-    const taken = (await cmd(['ZSCORE', BOARD_KEY, nickname])) !== null;
+    // Ownership, not board presence: a name is spoken for the moment a
+    // browser claims it, whether or not its score is in the top ten.
+    const taken = Boolean(await cmd(['GET', OWNER_PREFIX + nickname]));
     return json(res, 200, { nickname, valid: true, taken });
   } catch (err) {
     console.error('name check failed', err);
