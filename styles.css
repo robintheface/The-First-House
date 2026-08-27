@@ -425,7 +425,18 @@
   .gallery-track{
     display:flex; gap:26px; width:max-content;
     animation:gscroll 42s linear infinite;
-    padding:24px 0 56px;
+    /* .gallery-wrap sets overflow-x:hidden -- per the CSS overflow spec,
+       pairing that with overflow-y:visible on the same element doesn't
+       actually stay "visible": the browser computes it to "auto" instead,
+       so anything popping up above the row (hover's translateY(-8px), the
+       is-lit spin glow) really is clipped by that top edge, not just
+       visually crowded. There's no way around that quirk on the clipping
+       element itself, so the real fix is padding: enough room here that
+       neither effect ever needs to cross it.
+       Top padding sized for the taller of the two: hover's translateY(-8px)
+       + its own scale(1.06) growth + shadow blur needs ~27px; is-lit's
+       glow (scale(1.06), shadow biased downward) needs ~21px. */
+    padding:44px 0 56px;
   }
   .gallery-wrap:hover .gallery-track, .gallery-wrap:active .gallery-track{animation-play-state:paused;}
   @keyframes gscroll{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
@@ -451,8 +462,13 @@
      rapid light-to-light handoff during a fast spin still looks crisp. */
   .face-card.is-lit{
     border-color:var(--gold);
+    /* Outer glow's y-offset biases it downward -- the row only has 24px of
+       top padding to grow into (vs. 56px at the bottom), so a symmetric
+       glow got its top edge clipped there. Pushing the shadow down instead
+       of just shrinking it keeps the glow looking full, just settled lower
+       around the card rather than centered on it. */
     box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(232,212,77,0.6),
-      0 0 26px 4px rgba(232,212,77,0.55);
+      0 8px 20px 2px rgba(232,212,77,0.55);
     transform:scale(1.06);
     z-index:2;
   }

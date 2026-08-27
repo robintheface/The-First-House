@@ -90,18 +90,15 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   // through center gets lit live (tracked every frame) as the spin runs,
   // and whichever one is lit when it lands hands off into the #faceDrawCard
   // flip reveal.
-  const CLONE_LOOPS = 3;         // extra full 24-card loops appended for spin room
+  const CLONE_LOOPS = 2;         // extra full 24-card loops appended for spin room
   const LAND_LOOP = CLONE_LOOPS; // land in the last appended loop -- maximum room to travel
-  // Slow to start, fastest through the middle, long decelerating tail to
-  // land -- not the instant-top-speed-then-brake curve this had before.
-  // The travel distance is fixed by real gallery geometry (see spinGallery
-  // below), so for a fixed easing curve, speed at every point in the spin
-  // scales as 1/duration -- stretching the duration cuts the peak (mid-
-  // spin) speed by the same ratio, same curve shape either way.
-  // 5400 (original) -> 7700 (-30% peak) -> 15400 (-50% more on top of
-  // that, i.e. ~35% of the original peak speed).
-  const GALLERY_SPIN_MS = 15400;
-  const GALLERY_SPIN_EASE = 'cubic-bezier(.76,0,.24,1)';
+  // Quick and snappy per request -- fast right from the start (no more
+  // slow-then-fast ramp-up), decelerating smoothly into the landing. A
+  // shorter total distance (CLONE_LOOPS above) to match: the same distance
+  // squeezed into a third of the time would only be a more intense strobe,
+  // not a faster-feeling spin.
+  const GALLERY_SPIN_MS = 3000;
+  const GALLERY_SPIN_EASE = 'cubic-bezier(.16,1,.3,1)'; // easeOutExpo-style: fast out of the gate, smooth long tail to a stop
   let gallerySpinCleanup = null; // non-null only while a spin (or its post-landing pause) is in flight
   let galleryRafId = null;
   let litCard = null;
@@ -114,98 +111,73 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     return match ? (parseFloat(match[1].split(',')[4]) || 0) : 0;
   }
 
-  // ---------- spin sound effect (sound-effects/spin.mp3) ----------
-  // A single looped clip whose playbackRate is continuously retuned to the
-  // gallery track's live measured speed -- not a fixed pitch -- so it
-  // audibly speeds up and slows down together with the actual spin. Same
-  // "tempo follows the spin" idea an earlier synthesized tick had, now
-  // driven by a real recording instead.
-  const SPIN_SOUND_SRC = '/sound-effects/spin.mp3';
-  // Wider than the first pass (0.55-1.7) so the tempo change actually
-  // reads as "synced to the spin" by ear, not just a subtle wobble.
-  const SPIN_RATE_MIN = 0.45;
-  const SPIN_RATE_MAX = 2.0;
-  // Empirically measured against this exact easing curve: peak
-  // instantaneous speed during a spin ≈ (travel distance / duration) *
-  // this factor, fairly consistent across the different durations and
-  // travel distances already tested -- recomputed fresh each spin from
-  // the real distance/duration below rather than hardcoded, so it stays
-  // right if either changes again later.
-  const SPIN_SOUND_PEAK_FACTOR = 5.95;
+  // ---------- spin tick, synthesized mono 8-bit ----------
+  // Back to a synthesized OscillatorNode blip (not the sound-effects/
+  // spin.mp3 file) -- one short click per card the spin's center actually
+  // crosses, fired on every real crossing regardless of whether that card
+  // is currently lit (see the glow gate in trackLitCard below), so the
+  // tick rate always genuinely tracks the spin's real speed instead of
+  // only ticking during the (now much shorter) lit windows. Pitch follows
+  // the real gap since the last tick, the same "rate falls out naturally"
+  // idea as before.
+  let spinAudioCtx = null;
+  let lastTickAt = 0;
+  function ensureSpinAudio(){
+    if (spinAudioCtx) return spinAudioCtx;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return null;
+    spinAudioCtx = new AudioCtx();
+    return spinAudioCtx;
+  }
+  // Must run synchronously inside the real click handler, before any await
+  // -- resuming here unlocks the context on strict browsers (notably
+  // Safari/iOS) that would otherwise refuse audio started outside a user
+  // gesture. Same reason as js/dino-game.js's primeAudio().
+  function primeSpinSound(){
+    const ctx = ensureSpinAudio();
+    if (ctx && ctx.state === 'suspended') ctx.resume();
+  }
+  function playSpinTick(gapMs){
+    const ctx = spinAudioCtx;
+    if (!ctx) return;
+    const freq = Math.max(320, Math.min(1100, 820 - (gapMs - 40) * 4));
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.18, now + 0.003);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.05);
+  }
+  function stopSpinSound(){
+    lastTickAt = 0;
+  }
+
   // Below this fraction of the spin's peak speed, the passing card
   // actually lights up; at or above it, no card lights (see trackLitCard).
-  // The fast cruise in the middle whips past many cards a second -- lighting
-  // every one of them, each with its own glow/scale pop, reads as a strobe
-  // rather than a highlight. Gating it to the slow start and the (long)
-  // decelerating tail keeps the glow meaningful without the flicker.
+  // The fast cruise whips past many cards a second -- lighting every one
+  // of them, each with its own glow/scale pop, reads as a strobe rather
+  // than a highlight. Gating it to the slow start and the decelerating
+  // tail keeps the glow meaningful without the flicker. The tick sound
+  // above is deliberately NOT gated by this -- it fires on every real
+  // crossing so it stays audibly synced to the actual spin speed.
   const GLOW_SPEED_RATIO = 0.18;
+  // Empirically measured against this exact easing curve: peak
+  // instantaneous speed during a spin ≈ (travel distance / duration) *
+  // this factor -- recomputed fresh each spin from the real distance/
+  // duration (see spinGallery) rather than hardcoded, so the glow gate
+  // above stays calibrated if either changes again later.
+  const SPIN_PEAK_FACTOR = 5.95;
 
-  let spinSoundEl = null;
-  let spinSoundPrimed = false;
-  let spinSoundPeakSpeed = 1;
+  let spinPeakSpeed = 1;
   let lastTrackX = 0;
   let lastTrackT = 0;
-
-  function ensureSpinSound(){
-    if (!spinSoundEl) {
-      spinSoundEl = new Audio(SPIN_SOUND_SRC);
-      spinSoundEl.loop = true;
-      spinSoundEl.volume = 0.55;
-    }
-    return spinSoundEl;
-  }
-
-  // Must run synchronously inside the real click handler, before any await
-  // -- play() then an immediate pause() here unlocks later programmatic
-  // play() calls on strict browsers (notably Safari/iOS) that would
-  // otherwise refuse audio started outside a user gesture. Same reason as
-  // js/dino-game.js's primeAudio().
-  function primeSpinSound(){
-    if (spinSoundPrimed) return;
-    spinSoundPrimed = true;
-    const el = ensureSpinSound();
-    const p = el.play();
-    if (p && p.catch) p.catch(() => {});
-    el.pause();
-    el.currentTime = 0;
-  }
-
-  function startSpinSound(peakSpeedPxMs){
-    const el = ensureSpinSound();
-    spinSoundPeakSpeed = peakSpeedPxMs || 1;
-    el.currentTime = 0;
-    el.volume = 0.55;
-    el.playbackRate = SPIN_RATE_MIN;
-    const p = el.play();
-    if (p && p.catch) p.catch(() => {});
-  }
-
-  // speed is px/ms, the same live measurement trackLitCard already takes
-  // each frame -- one measurement drives both the sound's tempo and the
-  // glow gate below, so they can't drift out of sync with each other.
-  function updateSpinSoundRate(speed){
-    if (!spinSoundEl) return;
-    const ratio = Math.min(1, speed / spinSoundPeakSpeed);
-    spinSoundEl.playbackRate = SPIN_RATE_MIN + ratio * (SPIN_RATE_MAX - SPIN_RATE_MIN);
-  }
-
-  // A quick fade rather than an abrupt cut when the spin stops or the
-  // overlay is closed out early.
-  function stopSpinSound(){
-    const el = spinSoundEl;
-    if (!el || el.paused) return;
-    const baseVolume = 0.55;
-    let steps = 6;
-    const fade = setInterval(() => {
-      steps--;
-      el.volume = Math.max(0, baseVolume * (steps / 6));
-      if (steps <= 0) {
-        clearInterval(fade);
-        el.pause();
-        el.volume = baseVolume;
-      }
-    }, 30);
-  }
+  let lastCenterCard = null; // drives the tick above -- independent of litCard/glowActive
 
   function setLitCard(el){
     if (el === litCard) return;
@@ -224,25 +196,37 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
 
     const centerInTrack = centerX - trackX;
     const idx = Math.max(0, Math.min(totalCount - 1, Math.round((centerInTrack - cardWidth / 2) / step)));
+    const centerCard = galleryTrack.children[idx];
+
+    // Tick on every real center-crossing, independent of the glow gate --
+    // this is what keeps the sound synced to the actual spin speed even
+    // while the visual stays dark during the fast cruise. Tracked via its
+    // own reference (not litCard) since litCard is deliberately left
+    // stale/dark while the gate is closed, but the center card keeps moving.
+    if (centerCard !== lastCenterCard) {
+      lastCenterCard = centerCard;
+      playSpinTick(lastTickAt ? now - lastTickAt : 40);
+      lastTickAt = now;
+    }
+
     // Hysteresis around the threshold -- crossing a single speed value
     // right at the boundary between the fast cruise and the slow tail lets
     // measurement noise flicker glowActive on/off several times in as many
     // frames. A gap between the "turn off" and "turn on" speeds keeps that
     // crossing a single, clean transition instead of a mini strobe burst.
-    const threshold = spinSoundPeakSpeed * GLOW_SPEED_RATIO;
+    const threshold = spinPeakSpeed * GLOW_SPEED_RATIO;
     if (glowActive) {
       if (speed > threshold * 1.3) glowActive = false;
     } else if (speed <= threshold * 0.75) {
       glowActive = true;
     }
     if (glowActive) {
-      setLitCard(galleryTrack.children[idx]);
+      setLitCard(centerCard);
     } else if (litCard) {
       // Too fast to track by eye right now -- go dark rather than strobe.
       litCard.classList.remove('is-lit');
       litCard = null;
     }
-    updateSpinSoundRate(speed);
     galleryRafId = requestAnimationFrame(() => trackLitCard(step, cardWidth, centerX, totalCount));
   }
 
@@ -303,9 +287,11 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     stopLitTracking();
     lastTrackX = currentX;
     lastTrackT = performance.now();
+    lastCenterCard = null;
+    lastTickAt = 0;
     glowActive = true;
+    spinPeakSpeed = (Math.abs(targetX - currentX) / GALLERY_SPIN_MS) * SPIN_PEAK_FACTOR;
     trackLitCard(step, cardWidth, centerX, galleryTrack.children.length);
-    startSpinSound((Math.abs(targetX - currentX) / GALLERY_SPIN_MS) * SPIN_SOUND_PEAK_FACTOR);
 
     galleryTrack.style.transition = `transform ${GALLERY_SPIN_MS}ms ${GALLERY_SPIN_EASE}`;
     galleryTrack.style.transform = `translateX(${targetX}px)`;
