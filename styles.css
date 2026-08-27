@@ -697,21 +697,18 @@
   .rank-copy-icon{font-size:12px; line-height:1;}
   .rank-copy-btn.is-copied{background:rgba(111,207,58,0.24); border-color:var(--green-bright); color:#8ade56;}
 
-  /* Holds "View on Explorer" and "Disconnect" side by side -- wraps to
-     two lines below ~360px (each still left-aligned) rather than forcing
-     the explorer link to shrink. */
-  .rank-explorer-row{display:flex; align-items:baseline; flex-wrap:wrap; column-gap:18px;}
   .rank-explorer-link{
     display:inline-flex; align-items:center; gap:5px; margin-top:14px;
     font-family:'IM Fell English',serif; font-size:13px; color:var(--green-bright);
     text-decoration:none; border-bottom:1px solid rgba(111,207,58,0.35); padding-bottom:1px;
     transition:color .15s ease, border-color .15s ease;
   }
-  /* Quiet on purpose -- ending the session is a fallback action, not the
-     main one, so it reads as secondary to the explorer link beside it. */
+  /* Sits under the wallet address, inside the same compact stat tile --
+     quiet on purpose, so it reads as a fallback tucked under the address
+     rather than competing with it. */
   .rank-switch-link{
-    margin-top:14px; padding:0; border:none; background:none; cursor:pointer;
-    font-family:'IM Fell English',serif; font-size:13px; color:var(--ink-dim);
+    display:block; margin-top:8px; padding:0; border:none; background:none; cursor:pointer;
+    font-family:'IM Fell English',serif; font-size:12px; color:var(--ink-dim);
     text-decoration:underline; text-decoration-color:rgba(238,244,234,0.25); text-underline-offset:2px;
     transition:color .15s ease, text-decoration-color .15s ease;
   }
