@@ -551,9 +551,23 @@
       0 0 40px -6px rgba(232,212,77,0.85), 0 30px 70px -12px rgba(0,0,0,0.75);
   }
   .face-draw-card.rarity-legendary .face-draw-front::after{
-    background:linear-gradient(115deg, transparent 30%, rgba(255,241,168,0.85) 48%, rgba(255,215,80,0.55) 54%, transparent 70%);
+    /* A bright core line flanked by soft falloff on each side, instead of
+       one flat soft band -- reads as an actual reflected-light streak off
+       foil rather than a gradient wash sliding across. */
+    background:linear-gradient(115deg,
+      transparent 28%, rgba(255,244,200,0.2) 40%, rgba(255,251,235,0.98) 47%,
+      rgba(255,215,80,0.98) 50%, rgba(255,244,200,0.2) 60%, transparent 72%);
     background-size:220% 220%;
     animation:fr-sheen-sweep 2.2s linear infinite;
+  }
+  /* A second, faster and much thinner glint chasing the main sheen --
+     the two-speed pass is what actually sells "foil" over "gradient". */
+  .face-draw-card.rarity-legendary .face-draw-front::before{
+    content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+    background:linear-gradient(115deg, transparent 46%, rgba(255,255,255,0.9) 50%, transparent 54%);
+    background-size:280% 280%;
+    animation:fr-sheen-sweep 2.2s linear infinite .35s;
+    mix-blend-mode:screen;
   }
   .face-draw-card.rarity-mythic .face-draw-front{
     border-color:transparent;
@@ -563,11 +577,26 @@
   .face-draw-card.rarity-mythic .face-draw-front::after{
     /* screen only ever brightens (never darkens), so the art's own shapes
        stay legible while the rainbow still actually reads as a rainbow --
-       overlay at higher opacity looked more like a plain tinted glow. */
-    opacity:0.35; mix-blend-mode:screen;
+       overlay at higher opacity looked more like a plain tinted glow.
+       background-size cut from 400% to 200% -- at 400% only a quarter of
+       the gradient's color range ever fits in the card at once, so it
+       read as a slow single-hue tint drifting rather than an actual
+       multi-color rainbow; at 200% (with the keyframe end below matching
+       it) about half the spectrum shows simultaneously. */
+    opacity:0.42; mix-blend-mode:screen;
     background:linear-gradient(120deg, #ff5e5e, #ffb84d, #fff36e, #6effa1, #5ec8ff, #a26bff, #ff5ec8, #ff5e5e);
-    background-size:400% 400%;
+    background-size:200% 200%;
     animation:fr-holo-shift 4s linear infinite;
+  }
+  /* A sharp white glint chasing the rainbow, same two-speed trick as
+     legendary above -- the rainbow alone read as a tinted glow; this is
+     what actually makes it catch the light like real holo foil. */
+  .face-draw-card.rarity-mythic .face-draw-front::before{
+    content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+    background:linear-gradient(115deg, transparent 44%, rgba(255,255,255,0.85) 50%, transparent 56%);
+    background-size:260% 260%;
+    animation:fr-sheen-sweep 2.6s linear infinite .5s;
+    mix-blend-mode:screen;
   }
   .face-draw-card.rarity-silver .face-draw-front{
     border-color:#cfd8dc;
@@ -575,7 +604,9 @@
       0 0 30px -8px rgba(207,216,220,0.65), 0 30px 70px -12px rgba(0,0,0,0.75);
   }
   .face-draw-card.rarity-silver .face-draw-front::after{
-    background:linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.55) 50%, transparent 65%);
+    background:linear-gradient(115deg,
+      transparent 30%, rgba(255,255,255,0.25) 42%, rgba(255,255,255,0.95) 48%,
+      rgba(207,216,220,0.9) 51%, rgba(255,255,255,0.25) 60%, transparent 72%);
     background-size:220% 220%;
     animation:fr-sheen-sweep 2.6s linear infinite;
   }
@@ -585,7 +616,9 @@
       0 0 28px -8px rgba(227,168,102,0.6), 0 30px 70px -12px rgba(0,0,0,0.75);
   }
   .face-draw-card.rarity-bronze .face-draw-front::after{
-    background:linear-gradient(115deg, transparent 35%, rgba(227,168,102,0.55) 50%, transparent 65%);
+    background:linear-gradient(115deg,
+      transparent 30%, rgba(240,205,160,0.2) 42%, rgba(255,235,205,0.9) 48%,
+      rgba(227,168,102,0.9) 51%, rgba(240,205,160,0.2) 60%, transparent 72%);
     background-size:220% 220%;
     animation:fr-sheen-sweep 3s linear infinite;
   }
@@ -598,9 +631,22 @@
   }
   @keyframes fr-holo-shift{
     0%{background-position:0% 50%;}
-    100%{background-position:400% 50%;}
+    100%{background-position:200% 50%;}
   }
   .face-draw-mood{font-family:'IM Fell English',serif; font-size:22px; color:var(--cream2);}
+  /* Tap-to-reveal replaced the old auto-flip timer -- the whole card is
+     clickable (js/face-draw.js), this is just the visible cue for that. */
+  .face-draw-card{cursor:pointer;}
+  .face-draw-card:has(.face-draw-card-inner.is-flipped){cursor:default;}
+  .face-draw-tap-hint{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase;
+    color:var(--gold); opacity:0.75; margin-top:10px;
+    animation:tap-hint-pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes tap-hint-pulse{
+    0%, 100%{opacity:0.5;}
+    50%{opacity:0.95;}
+  }
   .face-draw-back{
     transform:rotateY(180deg);
     justify-content:center; gap:14px;
