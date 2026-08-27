@@ -92,13 +92,14 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   // flip reveal.
   const CLONE_LOOPS = 2;         // extra full 24-card loops appended for spin room
   const LAND_LOOP = CLONE_LOOPS; // land in the last appended loop -- maximum room to travel
-  // Quick and snappy per request -- fast right from the start (no more
-  // slow-then-fast ramp-up), decelerating smoothly into the landing. A
-  // shorter total distance (CLONE_LOOPS above) to match: the same distance
-  // squeezed into a third of the time would only be a more intense strobe,
-  // not a faster-feeling spin.
-  const GALLERY_SPIN_MS = 3000;
-  const GALLERY_SPIN_EASE = 'cubic-bezier(.16,1,.3,1)'; // easeOutExpo-style: fast out of the gate, smooth long tail to a stop
+  // 3 acts: ~2s winding up, a fast confident middle, ~2s decelerating back
+  // down into the landing -- 7s total. A single cubic-bezier can't express
+  // three literal, separately-timed phases, but a strong symmetric
+  // ease-in-out (near-flat close to both ends, steep through the middle)
+  // reads as exactly that: a real ~2s ramp on each side of a fast middle,
+  // for a curve this extreme.
+  const GALLERY_SPIN_MS = 7000;
+  const GALLERY_SPIN_EASE = 'cubic-bezier(.83,0,.17,1)';
   let gallerySpinCleanup = null; // non-null only while a spin (or its post-landing pause) is in flight
   let galleryRafId = null;
   let litCard = null;
@@ -147,7 +148,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     osc.type = 'square';
     osc.frequency.value = freq;
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.18, now + 0.003);
+    gain.gain.exponentialRampToValueAtTime(0.09, now + 0.003); // half of the previous peak volume (0.18)
     gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
     osc.connect(gain);
     gain.connect(ctx.destination);
