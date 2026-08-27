@@ -664,14 +664,15 @@
   .rank-stat{background:rgba(255,255,255,0.03); border:1px solid rgba(111,207,58,0.1); border-radius:12px; padding:12px; text-align:left; min-width:0;}
   .rank-stat-label{font-size:13px; color:var(--ink-dim); margin-bottom:5px;}
   .rank-stat-value{color:var(--cream2); font-size:17px; font-weight:500; word-break:break-word;}
-  .rank-stat-unit{font-size:12px; font-weight:400; color:var(--ink-dim);}
+  /* Sits right after the balance digits in place of a "$HOODFACE" label --
+     nudged down to sit on the digits' baseline rather than their top. */
+  .rank-stat-coin{width:18px; height:18px; object-fit:contain; vertical-align:-3px; margin-left:2px;}
   /* Digits in the site's serif face read as slightly stylized -- switched to
      the monospace already used for every other number on the site (the
      wallet address right beside it, the game's own score/HUD) rather than
      the body's decorative one. Scoped to the id, not .rank-stat-value
-     itself, so $HOODFACE beside it keeps the serif treatment and the
-     tokenomics grid elsewhere on the page (which reuses .rank-stat-value
-     too) is untouched. */
+     itself, so the tokenomics grid elsewhere on the page (which reuses
+     .rank-stat-value too) is untouched. */
   #holderBalance{font-family:'IBM Plex Mono',monospace;}
   /* The wallet tile: address + its own copy button share the row, so the
      address gets a smaller monospace treatment rather than the balance
