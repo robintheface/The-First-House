@@ -365,7 +365,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     // Three beats after landing, each building on the last: 1s with the
     // winner card lit and sitting still in the gallery -> overlay backdrop
     // appears (card still hidden) -> 0.5s later the card fades in showing
-    // the mood -> 1s after that, flips to the joke.
+    // the mood -> 1.5s after that, flips to the joke.
     spinGallery(winnerIdx, (addedClones) => {
       const overlayDelay = setTimeout(() => {
         cleanupGallerySpin(addedClones);
@@ -382,7 +382,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
           cardEl.classList.remove('is-revealing');
 
           clearTimeout(revealTimer);
-          revealTimer = setTimeout(triggerFlip, 1000);
+          revealTimer = setTimeout(triggerFlip, 1500);
         }, 500);
         // Overlay's already up and the gallery's already restored at this
         // point -- closing mid-fade just needs to cancel the pending flip.
