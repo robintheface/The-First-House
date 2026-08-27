@@ -553,7 +553,11 @@
   .face-draw-card.rarity-legendary .face-draw-front::after{
     /* A bright core line flanked by soft falloff on each side, instead of
        one flat soft band -- reads as an actual reflected-light streak off
-       foil rather than a gradient wash sliding across. */
+       foil rather than a gradient wash sliding across. opacity:0.5 on
+       this and the other rarity layers below halves the whole effect's
+       intensity -- simpler and more consistent than re-tuning every
+       rgba alpha by hand. */
+    opacity:0.5;
     background:linear-gradient(115deg,
       transparent 28%, rgba(255,244,200,0.2) 40%, rgba(255,251,235,0.98) 47%,
       rgba(255,215,80,0.98) 50%, rgba(255,244,200,0.2) 60%, transparent 72%);
@@ -564,6 +568,7 @@
      the two-speed pass is what actually sells "foil" over "gradient". */
   .face-draw-card.rarity-legendary .face-draw-front::before{
     content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+    opacity:0.5;
     background:linear-gradient(115deg, transparent 46%, rgba(255,255,255,0.9) 50%, transparent 54%);
     background-size:280% 280%;
     animation:fr-sheen-sweep 2.2s linear infinite .35s;
@@ -583,7 +588,7 @@
        read as a slow single-hue tint drifting rather than an actual
        multi-color rainbow; at 200% (with the keyframe end below matching
        it) about half the spectrum shows simultaneously. */
-    opacity:0.42; mix-blend-mode:screen;
+    opacity:0.21; mix-blend-mode:screen;
     background:linear-gradient(120deg, #ff5e5e, #ffb84d, #fff36e, #6effa1, #5ec8ff, #a26bff, #ff5ec8, #ff5e5e);
     background-size:200% 200%;
     animation:fr-holo-shift 4s linear infinite;
@@ -593,6 +598,7 @@
      what actually makes it catch the light like real holo foil. */
   .face-draw-card.rarity-mythic .face-draw-front::before{
     content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+    opacity:0.5;
     background:linear-gradient(115deg, transparent 44%, rgba(255,255,255,0.85) 50%, transparent 56%);
     background-size:260% 260%;
     animation:fr-sheen-sweep 2.6s linear infinite .5s;
@@ -604,6 +610,7 @@
       0 0 30px -8px rgba(207,216,220,0.65), 0 30px 70px -12px rgba(0,0,0,0.75);
   }
   .face-draw-card.rarity-silver .face-draw-front::after{
+    opacity:0.5;
     background:linear-gradient(115deg,
       transparent 30%, rgba(255,255,255,0.25) 42%, rgba(255,255,255,0.95) 48%,
       rgba(207,216,220,0.9) 51%, rgba(255,255,255,0.25) 60%, transparent 72%);
@@ -616,6 +623,7 @@
       0 0 28px -8px rgba(227,168,102,0.6), 0 30px 70px -12px rgba(0,0,0,0.75);
   }
   .face-draw-card.rarity-bronze .face-draw-front::after{
+    opacity:0.5;
     background:linear-gradient(115deg,
       transparent 30%, rgba(240,205,160,0.2) 42%, rgba(255,235,205,0.9) 48%,
       rgba(227,168,102,0.9) 51%, rgba(240,205,160,0.2) 60%, transparent 72%);
