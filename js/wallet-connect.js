@@ -4,7 +4,7 @@
 // is the one page that actually talks to a wallet, so it's the one most
 // worth protecting from XSS-injected inline scripts that could otherwise
 // hook window.ethereum and tamper with a transaction before the user signs.
-import { tierFor, shortAddr, nextTierInfo, splitTierLabel } from "./wallet-utils.js";
+import { tierFor, shortAddr, nextTierInfo, splitTierLabel, tierColorVar, tierBlurb, tierIconImage, tierHeroImage, DEFAULT_HERO_IMAGE } from "./wallet-utils.js";
 
 const HOODFACE_ADDRESS = "0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274";
 const ROBINHOOD_CHAIN_ID_HEX = "0x1237"; // 4663 in hex
@@ -70,12 +70,21 @@ const addrEl = document.getElementById('holderAddr');
 const balanceEl = document.getElementById('holderBalance');
 const tierEl = document.getElementById('holderTier');
 const tierIconEl = document.getElementById('holderTierIcon');
+const heroArtImg = document.getElementById('heroArtImg');
 const nextTierProgress = document.getElementById('nextTierProgress');
 const nextTierMaxed = document.getElementById('nextTierMaxed');
 const nextTierName = document.getElementById('nextTierName');
 const nextTierFill = document.getElementById('nextTierBarFill');
 const nextTierRemaining = document.getElementById('nextTierRemaining');
+const spinnerGlyph = document.getElementById('modalSpinnerGlyph');
+const explorerLink = document.getElementById('holderExplorerLink');
+const tierBlurbEl = document.getElementById('holderTierBlurb');
+const copyBtn = document.getElementById('holderCopyBtn');
+const switchBtn = document.getElementById('holderSwitchBtn');
 const walletOptionBtns = modal ? modal.querySelectorAll('.wallet-option[data-wallet]') : [];
+// Mirrors the glyphs in the picker list, so the spinner shows what you
+// actually picked instead of a blank ring.
+const WALLET_GLYPHS = { metamask: '🦊', okx: '⬡', walletconnect: '🔗' };
 
 let activeProvider = null; // the specific EIP-1193 provider actually connected
 let activeAddress = null;
@@ -144,7 +153,7 @@ function openModal(){
     clearError();
     loadBalance(activeAddress, activeProvider).catch((err) => {
       console.error(err);
-      showError('Không tải được số dư mới. Thử lại nhé.');
+      showError('Couldn\'t load your balance. Try again.');
     });
   } else {
     clearError();
@@ -162,12 +171,15 @@ function refreshWalletOptionMeta(){
   walletOptionBtns.forEach((btn) => {
     const key = btn.dataset.wallet;
     const meta = btn.querySelector('.wallet-option-meta');
-    // WalletConnect isn't an installed-extension check -- it's always
-    // available, pairs via its own QR modal instead.
+    // Disabled for now -- locked behind a "Soon" pill like the rest of the
+    // site's not-yet-live features, regardless of what's installed. The
+    // connect logic below (getWalletConnectProvider(), connectWith()) is
+    // left in place, just unreachable, so flipping this back on later is a
+    // one-line change.
     if (key === 'walletconnect') {
-      btn.disabled = false;
-      btn.classList.remove('is-unavailable');
-      if (meta) meta.textContent = 'Scan with wallet';
+      btn.disabled = true;
+      btn.classList.add('is-locked');
+      if (meta) meta.textContent = 'Soon';
       return;
     }
     const available = !!providerFor(key);
@@ -208,14 +220,47 @@ async function loadBalance(address, provider){
   const formatted = ethers.formatUnits(rawBalance, decimals);
   const balanceNum = parseFloat(formatted);
   addrEl.textContent = shortAddr(address);
+  addrEl.title = address; // full address on hover -- shortAddr() is display-only
   balanceEl.textContent = balanceNum.toLocaleString(undefined, {maximumFractionDigits: 0});
-  const { icon, name } = splitTierLabel(tierFor(balanceNum));
+  const { name } = splitTierLabel(tierFor(balanceNum));
   tierEl.textContent = name;
-  if (tierIconEl) tierIconEl.textContent = icon;
+  if (tierIconEl) {
+    tierIconEl.src = tierIconImage(balanceNum);
+    tierIconEl.alt = name;
+  }
+  // The right-side hero art follows the same tier -- falls back to the
+  // default character art rather than a broken-image icon if a tier's file
+  // is ever missing/renamed.
+  if (heroArtImg) {
+    heroArtImg.onerror = () => { heroArtImg.onerror = null; heroArtImg.src = DEFAULT_HERO_IMAGE; };
+    heroArtImg.src = tierHeroImage(balanceNum);
+  }
+  // Recolors the icon ring, the title and the "live" dot to match this
+  // tier -- everything below reads it off this one custom property, set on
+  // the whole result panel rather than each element individually.
+  if (resultBox) resultBox.style.setProperty('--tier-color', tierColorVar(balanceNum));
+  if (explorerLink) explorerLink.href = ROBINHOOD_CHAIN_PARAMS.blockExplorerUrls[0] + '/address/' + address;
+  if (tierBlurbEl) tierBlurbEl.textContent = tierBlurb(balanceNum);
+  resetCopyBtn();
   renderNextTier(balanceNum);
   clearError();
   showStep(resultBox);
-  setConnectLabel('Connected ✓', true);
+  // Left enabled on purpose: openModal() already knows to skip straight back
+  // to this result when a session is active (see its activeProvider check
+  // above), which is exactly what clicking this button again should do.
+  // Disabling it here would strand a closed modal with no way back in short
+  // of a page reload -- the trigger is the only door once it's shut.
+  setConnectLabel('Connected ✓', false);
+}
+
+// Back to plain "copy" -- a fresh wallet result shouldn't open on a leftover
+// "Copied ✓" from whatever was connected before.
+function resetCopyBtn(){
+  if (!copyBtn) return;
+  copyBtn.classList.remove('is-copied');
+  copyBtn.setAttribute('aria-label', 'Copy address');
+  const glyph = copyBtn.querySelector('.rank-copy-icon');
+  if (glyph) glyph.textContent = '⧉';
 }
 
 function renderNextTier(balanceNum){
@@ -234,6 +279,7 @@ function renderNextTier(balanceNum){
 }
 
 async function connectWith(walletKey){
+  if (spinnerGlyph) spinnerGlyph.textContent = WALLET_GLYPHS[walletKey] || '';
   let provider;
   if (walletKey === 'walletconnect') {
     clearError();
@@ -244,7 +290,7 @@ async function connectWith(walletKey){
       provider = await getWalletConnectProvider();
     } catch (err) {
       console.error(err);
-      showError('Không mở được WalletConnect. Thử lại nhé.');
+      showError('Couldn\'t open WalletConnect. Try again.');
       showStep(stepPick);
       setConnectLabel(RESTING_LABEL, false);
       return;
@@ -255,7 +301,7 @@ async function connectWith(walletKey){
   } else {
     provider = providerFor(walletKey);
     if (!provider) {
-      showError('Không tìm thấy ví này. Cài đặt extension rồi thử lại nhé.');
+      showError('Wallet not found. Install the extension and try again.');
       return;
     }
     clearError();
@@ -272,7 +318,7 @@ async function connectWith(walletKey){
     attachProviderListeners(provider);
   } catch (err) {
     console.error(err);
-    showError('Kết nối thất bại hoặc bị từ chối. Thử lại nhé.');
+    showError('Connection failed or was rejected. Try again.');
     showStep(stepPick);
     setConnectLabel(RESTING_LABEL, false);
   }
@@ -290,6 +336,7 @@ function attachProviderListeners(provider){
       activeProvider = null;
       activeAddress = null;
       setConnectLabel(RESTING_LABEL, false);
+      resetHeroArt();
       closeModal();
       return;
     }
@@ -309,8 +356,17 @@ function attachProviderListeners(provider){
     activeProvider = null;
     activeAddress = null;
     setConnectLabel(RESTING_LABEL, false);
+    resetHeroArt();
     closeModal();
   });
+}
+
+// Back to the default character art -- called whenever a session ends, so a
+// still-open page doesn't keep showing a tier that's no longer connected.
+function resetHeroArt(){
+  if (!heroArtImg) return;
+  heroArtImg.onerror = null;
+  heroArtImg.src = DEFAULT_HERO_IMAGE;
 }
 
 connectBtns.forEach((btn) => btn.addEventListener('click', openModal));
@@ -326,3 +382,66 @@ if (modal) {
     if (e.key === 'Escape' && !modal.hidden) closeModal();
   });
 }
+
+// ---------- copy address ----------
+async function copyToClipboard(text){
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (err) { /* fall through to the legacy path below */ }
+  // Legacy fallback for a browser (or a non-HTTPS context) without the
+  // async Clipboard API -- an off-screen textarea + the old execCommand.
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch (err) {
+    return false;
+  }
+}
+
+let copyResetTimer = null;
+if (copyBtn) {
+  copyBtn.addEventListener('click', async () => {
+    if (!activeAddress) return;
+    // A failed copy leaves the button exactly as it was -- the full address
+    // is still one tap away via the explorer link, so there's nothing worse
+    // to show than just staying at rest.
+    if (!(await copyToClipboard(activeAddress))) return;
+    copyBtn.classList.add('is-copied');
+    copyBtn.setAttribute('aria-label', 'Copied');
+    const glyph = copyBtn.querySelector('.rank-copy-icon');
+    if (glyph) glyph.textContent = '✓';
+    clearTimeout(copyResetTimer);
+    copyResetTimer = setTimeout(resetCopyBtn, 1600);
+  });
+}
+
+// ---------- disconnect ----------
+if (switchBtn) {
+  switchBtn.addEventListener('click', () => {
+    // Best-effort: only a WalletConnect session can actually be told to end
+    // (it has its own .disconnect()). An injected wallet like MetaMask has
+    // no programmatic disconnect at all -- this just forgets the local
+    // session, same as the accountsChanged/'disconnect' provider events
+    // below do, so all three paths close out to the same resting state.
+    if (activeProvider && typeof activeProvider.disconnect === 'function') {
+      Promise.resolve(activeProvider.disconnect()).catch(() => {});
+    }
+    activeProvider = null;
+    activeAddress = null;
+    setConnectLabel(RESTING_LABEL, false);
+    resetHeroArt();
+    closeModal();
+  });
+}
+

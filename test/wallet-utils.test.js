@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { tierFor, shortAddr, nextTierInfo, splitTierLabel } from "../js/wallet-utils.js";
+import { tierFor, shortAddr, nextTierInfo, splitTierLabel, tierColorVar, tierBlurb, tierIconImage, tierHeroImage, DEFAULT_HERO_IMAGE } from "../js/wallet-utils.js";
 
 describe("tierFor", () => {
   it("returns 'Not in the hood — yet' for a zero balance", () => {
@@ -21,9 +21,9 @@ describe("tierFor", () => {
     expect(tierFor(9999999)).toBe("💎 Diamond Hood");
   });
 
-  it("is Whale at exactly the 10,000,000 boundary and above", () => {
-    expect(tierFor(10000000)).toBe("🐋 Whale");
-    expect(tierFor(50000000)).toBe("🐋 Whale");
+  it("is Absolutely Whale at exactly the 10,000,000 boundary and above", () => {
+    expect(tierFor(10000000)).toBe("🐋 Absolutely Whale");
+    expect(tierFor(50000000)).toBe("🐋 Absolutely Whale");
   });
 
   it("treats a negative balance the same as zero", () => {
@@ -83,7 +83,7 @@ describe("nextTierInfo", () => {
 
 describe("splitTierLabel", () => {
   it("splits a single-word tier name off its leading emoji", () => {
-    expect(splitTierLabel("🐋 Whale")).toEqual({ icon: "🐋", name: "Whale" });
+    expect(splitTierLabel("🐋 Absolutely Whale")).toEqual({ icon: "🐋", name: "Absolutely Whale" });
   });
 
   it("keeps a multi-word tier name intact, em dash included", () => {
@@ -95,5 +95,95 @@ describe("splitTierLabel", () => {
 
   it("falls back to an empty name when there's no space to split on", () => {
     expect(splitTierLabel("—")).toEqual({ icon: "—", name: "" });
+  });
+});
+
+describe("tierColorVar", () => {
+  it("matches the same boundaries as tierFor, tier by tier", () => {
+    expect(tierColorVar(0)).toBe("var(--ink-dim)");
+    expect(tierColorVar(1)).toBe("var(--cream2)");
+    expect(tierColorVar(99999)).toBe("var(--cream2)");
+    expect(tierColorVar(100000)).toBe("var(--bronze)");
+    expect(tierColorVar(999999)).toBe("var(--bronze)");
+    expect(tierColorVar(1000000)).toBe("var(--green-bright)");
+    expect(tierColorVar(9999999)).toBe("var(--green-bright)");
+    expect(tierColorVar(10000000)).toBe("var(--gold)");
+    expect(tierColorVar(50000000)).toBe("var(--gold)");
+  });
+
+  it("treats a negative balance the same as zero", () => {
+    expect(tierColorVar(-5)).toBe("var(--ink-dim)");
+  });
+});
+
+describe("tierBlurb", () => {
+  it("matches the same boundaries as tierFor, tier by tier", () => {
+    expect(tierBlurb(0)).toBe("Still watching from outside. There's room for one more.");
+    expect(tierBlurb(1)).toBe("First candle's always the hardest. Welcome to the hood.");
+    expect(tierBlurb(99999)).toBe("First candle's always the hardest. Welcome to the hood.");
+    expect(tierBlurb(100000)).toBe("Not new, not soft. You know how this goes by now.");
+    expect(tierBlurb(999999)).toBe("Not new, not soft. You know how this goes by now.");
+    expect(tierBlurb(1000000)).toBe("Been through every dip and never once looked away.");
+    expect(tierBlurb(9999999)).toBe("Been through every dip and never once looked away.");
+    expect(tierBlurb(10000000)).toBe("The tide doesn't move without you. Green days, you did that.");
+    expect(tierBlurb(50000000)).toBe("The tide doesn't move without you. Green days, you did that.");
+  });
+
+  it("treats a negative balance the same as zero", () => {
+    expect(tierBlurb(-5)).toBe("Still watching from outside. There's room for one more.");
+  });
+
+  // The ladder page (explore/wallet/ladder) prints these same five lines as
+  // static HTML, one per row. This is the guard against them drifting apart:
+  // if either copy changes without the other, this fails rather than the
+  // wallet result quietly saying something the ladder no longer does.
+  it("matches the blurb text live on the ladder page, word for word", async () => {
+    const fs = await import("node:fs/promises");
+    const html = await fs.readFile(new URL("../explore/wallet/ladder/index.html", import.meta.url), "utf8");
+    const onLadder = [...html.matchAll(/hood-ladder-blurb">([^<]+)</g)].map((m) => m[1]);
+    const fromTierBlurb = [10000000, 1000000, 100000, 1, 0].map(tierBlurb);
+    expect(onLadder).toEqual(fromTierBlurb);
+  });
+});
+
+describe("tierIconImage", () => {
+  it("matches the same boundaries as tierFor, tier by tier", () => {
+    expect(tierIconImage(0)).toBe("/icons/tiers/none.webp");
+    expect(tierIconImage(1)).toBe("/icons/tiers/fresh.webp");
+    expect(tierIconImage(99999)).toBe("/icons/tiers/fresh.webp");
+    expect(tierIconImage(100000)).toBe("/icons/tiers/hood.webp");
+    expect(tierIconImage(999999)).toBe("/icons/tiers/hood.webp");
+    expect(tierIconImage(1000000)).toBe("/icons/tiers/diamond.webp");
+    expect(tierIconImage(9999999)).toBe("/icons/tiers/diamond.webp");
+    expect(tierIconImage(10000000)).toBe("/icons/tiers/whale.webp");
+    expect(tierIconImage(50000000)).toBe("/icons/tiers/whale.webp");
+  });
+
+  it("treats a negative balance the same as zero", () => {
+    expect(tierIconImage(-5)).toBe("/icons/tiers/none.webp");
+  });
+});
+
+describe("tierHeroImage", () => {
+  it("matches the same boundaries as tierFor, tier by tier", () => {
+    expect(tierHeroImage(0)).toBe("/images/tiers/not_in_hood_yet.webp");
+    expect(tierHeroImage(1)).toBe("/images/tiers/fresh_face.webp");
+    expect(tierHeroImage(99999)).toBe("/images/tiers/fresh_face.webp");
+    expect(tierHeroImage(100000)).toBe("/images/tiers/hood_member.webp");
+    expect(tierHeroImage(999999)).toBe("/images/tiers/hood_member.webp");
+    expect(tierHeroImage(1000000)).toBe("/images/tiers/diamond_hood.webp");
+    expect(tierHeroImage(9999999)).toBe("/images/tiers/diamond_hood.webp");
+    expect(tierHeroImage(10000000)).toBe("/images/tiers/whale.webp");
+    expect(tierHeroImage(50000000)).toBe("/images/tiers/whale.webp");
+  });
+
+  it("treats a negative balance the same as zero", () => {
+    expect(tierHeroImage(-5)).toBe("/images/tiers/not_in_hood_yet.webp");
+  });
+});
+
+describe("DEFAULT_HERO_IMAGE", () => {
+  it("matches the page's own initial hero image", () => {
+    expect(DEFAULT_HERO_IMAGE).toBe("/logo-main-rank.webp");
   });
 });

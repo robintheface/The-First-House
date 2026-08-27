@@ -52,8 +52,8 @@
       </div>
 
       <div class="cta-row" style="justify-content:flex-start;">
-        <span class="btn btn-primary is-locked" aria-disabled="true">See your rank<span class="lock-tag">Soon</span></span>
-        <span class="btn btn-ghost is-locked" aria-disabled="true">Leaderboard<span class="lock-tag">Soon</span></span>
+        <button type="button" class="btn btn-primary btn-connect-trigger">See your rank</button>
+        <span class="btn btn-ghost is-locked" aria-disabled="true">Your perks<span class="lock-tag">Soon</span></span>
       </div>
     </div>
 
@@ -62,7 +62,7 @@
       <span class="hero-sparkle" style="top:16%; right:16%; animation-delay:0.6s;">✦</span>
       <span class="hero-sparkle" style="bottom:22%; left:10%; animation-delay:1.2s;">✦</span>
       <span class="hero-sparkle" style="bottom:14%; right:12%; animation-delay:1.8s;">✦</span>
-      <img src="/logo-main-rank.webp" alt="Robin The Face">
+      <img id="heroArtImg" src="/logo-main-rank.webp" alt="Robin The Face">
     </div>
   </div>
 
@@ -113,45 +113,69 @@
       <p class="wallet-modal-sub">We only read your public $HOODFACE balance. No signatures, no approvals, no KYC.</p>
       <div class="wallet-option-list">
         <button type="button" class="wallet-option" data-wallet="metamask">
-          <span class="wallet-option-glyph">🦊</span>
-          <span class="wallet-option-name">MetaMask</span>
+          <span class="wallet-option-icon"><img src="/icons/wallets/metamask.webp" alt="" width="24" height="24"></span>
+          <span class="wallet-option-body">
+            <span class="wallet-option-name">MetaMask</span>
+            <span class="wallet-option-hint">Browser extension</span>
+          </span>
           <span class="wallet-option-meta">Checking…</span>
         </button>
         <button type="button" class="wallet-option" data-wallet="okx">
-          <span class="wallet-option-glyph">⬡</span>
-          <span class="wallet-option-name">OKX Wallet</span>
+          <span class="wallet-option-icon"><img src="/icons/wallets/okx.webp" alt="" width="24" height="24"></span>
+          <span class="wallet-option-body">
+            <span class="wallet-option-name">OKX Wallet</span>
+            <span class="wallet-option-hint">Browser extension</span>
+          </span>
           <span class="wallet-option-meta">Checking…</span>
         </button>
-        <button type="button" class="wallet-option" data-wallet="walletconnect">
-          <span class="wallet-option-glyph">🔗</span>
-          <span class="wallet-option-name">WalletConnect</span>
-          <span class="wallet-option-meta">Scan with wallet</span>
+        <button type="button" class="wallet-option is-locked" data-wallet="walletconnect" disabled>
+          <span class="wallet-option-icon"><img src="/icons/wallets/walletconnect.webp" alt="" width="24" height="24"></span>
+          <span class="wallet-option-body">
+            <span class="wallet-option-name">WalletConnect</span>
+            <span class="wallet-option-hint">Scan with your phone</span>
+          </span>
+          <span class="wallet-option-meta">Soon</span>
         </button>
       </div>
     </div>
 
     <div id="modalStepLoading" class="wallet-modal-step" hidden>
-      <div class="wallet-modal-spinner"></div>
+      <div class="wallet-modal-spinner"><span id="modalSpinnerGlyph" class="wallet-modal-spinner-glyph" aria-hidden="true"></span></div>
       <h3 class="wallet-modal-title">Reading the chain…</h3>
       <p class="wallet-modal-sub" id="modalLoadingLine">Pinging Robinhood Chain…</p>
     </div>
 
     <div id="holderResult" class="wallet-modal-step" hidden>
       <div class="rank-hero">
-        <span class="rank-hero-icon"><span id="holderTierIcon" class="rank-hero-icon-inner">—</span></span>
-        <span id="holderTier" class="rank-hero-title">—</span>
+        <span class="rank-hero-icon"><span class="rank-hero-icon-inner"><img id="holderTierIcon" class="rank-hero-icon-img" src="/icons/tiers/none.webp" alt=""></span></span>
+        <span class="rank-hero-copy">
+          <span id="holderTier" class="rank-hero-title">—</span>
+          <span class="rank-hero-live"><span class="rank-hero-live-dot"></span>Live on Robinhood Chain</span>
+        </span>
       </div>
-      <div id="holderAddr" class="holder-addr"></div>
+
       <div class="rank-stats">
         <div class="rank-stat">
           <div class="rank-stat-label">Balance</div>
-          <div class="rank-stat-value" id="holderBalance">0</div>
+          <div class="rank-stat-value"><span id="holderBalance">0</span> <span class="rank-stat-unit">$HOODFACE</span></div>
         </div>
         <div class="rank-stat">
-          <div class="rank-stat-label">Symbol</div>
-          <div class="rank-stat-value">$HOODFACE</div>
+          <div class="rank-stat-label">Wallet</div>
+          <div class="rank-stat-value-row">
+            <span id="holderAddr" class="rank-stat-value"></span>
+            <button type="button" id="holderCopyBtn" class="rank-copy-btn" aria-label="Copy address">
+              <span class="rank-copy-icon" aria-hidden="true">⧉</span>
+            </button>
+          </div>
         </div>
       </div>
+
+      <div class="rank-explorer-row">
+        <a id="holderExplorerLink" class="rank-explorer-link" href="#" target="_blank" rel="noopener noreferrer">View on Explorer <span aria-hidden="true">↗</span></a>
+        <button type="button" id="holderSwitchBtn" class="rank-switch-link">Disconnect</button>
+      </div>
+
+      <p id="holderTierBlurb" class="rank-tier-blurb"></p>
 
       <div class="hood-next-tier">
         <div id="nextTierProgress" class="next-tier-progress">
@@ -161,8 +185,6 @@
         </div>
         <div id="nextTierMaxed" class="next-tier-maxed" style="display:none;">You're at the top of the hood. Nowhere left to climb. 🐋</div>
       </div>
-
-      <p class="hood-soon-note" style="text-align:left; margin:16px 0 0;">🚧 Hood leaderboard rank — coming soon.</p>
     </div>
 
     <div id="holderError" class="holder-error"></div>
