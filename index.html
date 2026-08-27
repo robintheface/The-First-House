@@ -335,6 +335,9 @@
 </div>
   </div>
   <div class="gallery-note">+ 13 more faces revealed as the chart moves</div>
+  <div class="fod-row">
+    <button type="button" id="faceOfDayBtn" class="btn btn-primary">Face of the Day</button>
+  </div>
 </section>
 
 <section id="roadmap">
@@ -428,6 +431,17 @@
   <div class="face-draw-backdrop" data-draw-close></div>
   <div class="face-draw-stage">
     <button type="button" class="face-draw-close" data-draw-close aria-label="Close">✕</button>
+
+    <!-- Face of the Day only: a case-opening-style reel: faces race past a
+         centered highlight zone and decelerate to a stop; whichever one is
+         under the zone when it stops is the winner (see js/face-draw.js). -->
+    <div id="faceDrawReel" class="face-draw-reel" hidden>
+      <div class="face-draw-reel-viewport">
+        <div class="face-draw-reel-zone"></div>
+        <div id="faceDrawReelTrack" class="face-draw-reel-track"></div>
+      </div>
+    </div>
+
     <div id="faceDrawCard" class="face-draw-card">
       <div class="face-draw-card-inner">
         <div class="face-draw-face face-draw-front">
@@ -437,7 +451,10 @@
         <div class="face-draw-face face-draw-back">
           <span class="face-draw-back-kicker">The hood knows</span>
           <p id="faceDrawJoke" class="face-draw-joke"></p>
-          <button type="button" id="faceDrawAgainBtn" class="face-draw-again">Draw again ↻</button>
+          <div class="face-draw-actions">
+            <button type="button" id="faceDrawAgainBtn" class="face-draw-again">Draw again ↻</button>
+            <button type="button" id="faceDrawShareBtn" class="face-draw-share">Share on 𝕏</button>
+          </div>
         </div>
       </div>
     </div>

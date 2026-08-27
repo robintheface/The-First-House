@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { FACE_JOKES, jokeOfTheDay, nextJoke } from "../js/face-jokes.js";
+import { FACE_JOKES, jokeOfTheDay, randomJoke, nextJoke } from "../js/face-jokes.js";
 
 describe("FACE_JOKES", () => {
   it("has a pool of 3-5 jokes for every mood", () => {
@@ -51,6 +51,21 @@ describe("jokeOfTheDay", () => {
 
   it("returns an empty string for an unknown mood", () => {
     expect(jokeOfTheDay("Not A Mood", new Date(2026, 0, 1))).toBe("");
+  });
+});
+
+describe("randomJoke", () => {
+  it("returns the first joke when rng returns 0", () => {
+    expect(randomJoke("OG", () => 0)).toBe(FACE_JOKES["OG"][0]);
+  });
+
+  it("returns the last joke when rng returns just under 1", () => {
+    const pool = FACE_JOKES["OG"];
+    expect(randomJoke("OG", () => 0.999999)).toBe(pool[pool.length - 1]);
+  });
+
+  it("returns an empty string for an unknown mood", () => {
+    expect(randomJoke("Not A Mood", () => 0)).toBe("");
   });
 });
 

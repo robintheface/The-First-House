@@ -441,6 +441,7 @@
     transition:color .25s ease;
   }
   .gallery-note{text-align:center; margin-top:18px; font-size:13px; color:var(--ink-dim); font-family:'IM Fell English',serif;}
+  .fod-row{display:flex; justify-content:center; margin-top:22px;}
 
   /* ---------- face draw overlay ----------
      Clicking a face card in the gallery above opens this: the clicked
@@ -502,13 +503,46 @@
     font-family:'IM Fell English',serif; font-style:italic; font-size:19px; line-height:1.45; color:var(--ink);
     margin:0;
   }
-  .face-draw-again{
-    margin-top:6px; padding:9px 18px; border-radius:999px; cursor:pointer;
-    font-family:'IM Fell English',serif; font-size:14px; color:var(--gold);
-    background:rgba(232,212,77,0.1); border:1px solid rgba(232,212,77,0.4);
+  .face-draw-actions{display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:6px;}
+  .face-draw-again, .face-draw-share{
+    padding:9px 16px; border-radius:999px; cursor:pointer;
+    font-family:'IM Fell English',serif; font-size:14px;
     transition:border-color .15s ease, background .15s ease, color .15s ease, opacity .15s ease;
   }
+  .face-draw-again{
+    color:var(--gold);
+    background:rgba(232,212,77,0.1); border:1px solid rgba(232,212,77,0.4);
+  }
   .face-draw-again:disabled{opacity:0.5; cursor:not-allowed;}
+  .face-draw-share{
+    color:var(--cream2);
+    background:rgba(238,244,234,0.06); border:1px solid rgba(238,244,234,0.25);
+  }
+
+  /* ---------- face draw reel (Face of the Day) ----------
+     A strip of faces races past a centered highlight zone and decelerates
+     to a stop (js/face-draw.js: spinReel()); whichever slot the live rAF
+     tracking finds under the zone gets .is-lit, so the highlight itself
+     travels with the spin rather than sitting on a fixed marker line. */
+  .face-draw-reel{position:relative; width:min(420px, 92vw);}
+  .face-draw-reel-viewport{position:relative; overflow:hidden; border-radius:20px; padding:14px 0;}
+  .face-draw-reel-zone{
+    position:absolute; top:8px; bottom:8px; left:50%; width:88px; transform:translateX(-50%);
+    border:2px solid var(--gold); border-radius:16px;
+    background:rgba(232,212,77,0.08); box-shadow:0 0 26px -4px rgba(232,212,77,0.55);
+    pointer-events:none; z-index:2;
+  }
+  .face-draw-reel-track{display:flex; gap:10px; width:max-content;}
+  .face-draw-reel-slot{
+    flex:0 0 auto; width:84px; height:84px; border-radius:14px;
+    background:rgba(255,255,255,0.03); border:1px solid rgba(111,207,58,0.16);
+    display:flex; align-items:center; justify-content:center;
+    transition:border-color .12s ease, box-shadow .12s ease, transform .12s ease;
+  }
+  .face-draw-reel-slot img{width:70%; height:70%; object-fit:contain;}
+  .face-draw-reel-slot.is-lit{
+    border-color:var(--gold); box-shadow:0 0 20px -2px rgba(232,212,77,0.7); transform:scale(1.08);
+  }
 
   /* ---------- ledger / tokenomics ---------- */
   .ledger{
@@ -1850,6 +1884,7 @@
     .rank-switch-link:hover{color:var(--cream2); text-decoration-color:rgba(238,244,234,0.6);}
     .face-draw-close:hover{border-color:rgba(111,207,58,0.5); color:var(--cream2);}
     .face-draw-again:not(:disabled):hover{border-color:var(--gold); background:rgba(232,212,77,0.18);}
+    .face-draw-share:hover{border-color:rgba(238,244,234,0.5); background:rgba(238,244,234,0.12);}
     .hood-ladder-item:hover{
       border-color:rgba(111,207,58,0.35);
       box-shadow:0 0 24px -6px rgba(111,207,58,0.35);

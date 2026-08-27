@@ -107,6 +107,22 @@ export function jokeOfTheDay(mood, date = new Date()) {
 }
 
 /**
+ * A fresh random joke for a mood, independent of the day-of calendar pick
+ * above -- used by the "Face of the Day" button (a real reroll every click)
+ * and as the seed pick for a reroll chain. rng is injectable (defaults to
+ * Math.random) so a test can drive it deterministically.
+ * @param {string} mood
+ * @param {() => number} rng
+ * @returns {string} a joke, or "" if the mood has no pool
+ */
+export function randomJoke(mood, rng = Math.random) {
+  const pool = FACE_JOKES[mood];
+  if (!pool || pool.length === 0) return "";
+  const idx = Math.min(pool.length - 1, Math.floor(rng() * pool.length));
+  return pool[idx];
+}
+
+/**
  * Pick a random joke different from the one last shown (when the pool has
  * more than one option), so hitting "Draw again" doesn't have a 1-in-N
  * chance of silently reshowing the same line.
