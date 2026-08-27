@@ -970,7 +970,12 @@ if (canvas) {
     if (!ctx) return;
     resumeCtx();
     const buf = await loadBuffer(RUN_SFX_FILE);
-    if (!buf || live.muted || runSource) return;
+    // Re-check state after the await, not just mute/runSource: a run that
+    // ends (or a jump that lifts off) while this buffer was still loading
+    // must not have the loop start anyway once it resolves -- endRun()'s
+    // stopRunSfx() already ran and won't run again, so a source started
+    // here would loop forever with nothing left to stop it.
+    if (!buf || live.muted || runSource || state !== STATE.PLAYING || !player.grounded) return;
     const src = ctx.createBufferSource();
     src.buffer = buf;
     src.loop = true;
