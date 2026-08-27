@@ -139,6 +139,9 @@
     <p class="section-desc">Swipe through the moods. You've made at least three of these this week.</p>
   </div>
   <div class="gallery-wrap">
+    <!-- Face of the Day only: spins .gallery-track itself to a stop under
+         this bar (see js/face-draw.js) -- hidden until then. -->
+    <div class="gallery-marker" hidden></div>
     <div class="gallery-track">
                 <div class="face-card">
           <img class="face-img" src="images/face-01.webp" alt="OG" loading="lazy" decoding="async">
@@ -338,6 +341,7 @@
   <div class="fod-row">
     <button type="button" id="faceOfDayBtn" class="btn btn-primary">Face of the Day</button>
   </div>
+  <p id="fodMessage" class="fod-message" hidden></p>
 </section>
 
 <section id="roadmap">
@@ -431,16 +435,6 @@
   <div class="face-draw-backdrop" data-draw-close></div>
   <div class="face-draw-stage">
     <button type="button" class="face-draw-close" data-draw-close aria-label="Close">✕</button>
-
-    <!-- Face of the Day only: a case-opening-style reel: faces race past a
-         centered marker bar and decelerate to a stop; whichever one is
-         under the bar when it stops is the winner (see js/face-draw.js). -->
-    <div id="faceDrawReel" class="face-draw-reel" hidden>
-      <div class="face-draw-reel-viewport">
-        <div class="face-draw-reel-marker"></div>
-        <div id="faceDrawReelTrack" class="face-draw-reel-track"></div>
-      </div>
-    </div>
 
     <div id="faceDrawCard" class="face-draw-card">
       <div class="face-draw-card-inner">

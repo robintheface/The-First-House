@@ -417,6 +417,15 @@
   }
   .gallery-wrap::before{left:0; background:linear-gradient(90deg, var(--bg), transparent);}
   .gallery-wrap::after{right:0; background:linear-gradient(270deg, var(--bg), transparent);}
+  /* Face of the Day only: js/face-draw.js spins .gallery-track itself to a
+     stop under this bar -- thin and glowing on purpose, the cards passing
+     under it stay exactly as they always look (no per-card highlight). */
+  .gallery-marker{
+    position:absolute; top:0; bottom:0; left:50%; width:3px; transform:translateX(-50%);
+    background:var(--gold); border-radius:2px;
+    box-shadow:0 0 14px 2px rgba(232,212,77,0.75);
+    pointer-events:none; z-index:40;
+  }
   .gallery-track{
     display:flex; gap:26px; width:max-content;
     animation:gscroll 42s linear infinite;
@@ -425,13 +434,12 @@
   .gallery-wrap:hover .gallery-track, .gallery-wrap:active .gallery-track{animation-play-state:paused;}
   @keyframes gscroll{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
   .face-card{
-    width:188px; flex:0 0 auto; cursor:pointer;
+    width:188px; flex:0 0 auto;
     background:rgba(111,207,58,0.04); border:1px solid rgba(232,212,77,0.4); border-radius:24px;
     box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(111,207,58,0.28);
     padding:18px 14px 16px; text-align:center; position:relative; z-index:1;
     transition:border-color .25s ease, box-shadow .25s ease, transform .3s cubic-bezier(.34,1.56,.64,1);
   }
-  .face-card:focus-visible{outline:2px solid var(--green-bright); outline-offset:3px;}
   .face-img{
     display:block; width:100%; aspect-ratio:1/1; object-fit:contain;
     margin-bottom:10px;
@@ -442,16 +450,17 @@
   }
   .gallery-note{text-align:center; margin-top:18px; font-size:13px; color:var(--ink-dim); font-family:'IM Fell English',serif;}
   .fod-row{display:flex; justify-content:center; margin-top:22px;}
+  .fod-message{
+    text-align:center; margin-top:12px; font-size:13px; color:var(--ink-dim); font-family:'IM Fell English',serif;
+  }
 
   /* ---------- face draw overlay ----------
-     Clicking a face card in the gallery above opens this: the clicked
-     card's own image flies from its on-screen position up to center stage
-     (fd-spin-in, driven by --fd-start-* custom properties set in
-     js/face-draw.js) and lands, then face-draw.js flips .face-draw-card-inner
-     to reveal the joke on the back. Structurally a near-twin of
-     .wallet-modal (fixed overlay, backdrop blur, X to close, Escape,
-     backdrop click) so it reads as the same kind of surface as the rest of
-     the site rather than a one-off. */
+     Opened by the Face of the Day button once its gallery spin (see
+     .gallery-marker below) lands on a winner; face-draw.js then flips
+     .face-draw-card-inner to reveal the joke on the back. Structurally a
+     near-twin of .wallet-modal (fixed overlay, backdrop blur, X to close,
+     Escape, backdrop click) so it reads as the same kind of surface as the
+     rest of the site rather than a one-off. */
   .face-draw-overlay{position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center; padding:20px;}
   .face-draw-overlay[hidden]{display:none;}
   .face-draw-backdrop{position:absolute; inset:0; background:rgba(2,6,3,0.82); backdrop-filter:blur(8px);}
@@ -466,13 +475,6 @@
 
   .face-draw-card{
     position:relative; width:min(300px, 78vw); aspect-ratio:3/4;
-    --fd-start-x:0px; --fd-start-y:0px; --fd-start-scale:0.3;
-  }
-  .face-draw-card.is-spinning{animation:fd-spin-in .6s cubic-bezier(.22,.85,.25,1) both;}
-  @keyframes fd-spin-in{
-    0%{transform:translate(var(--fd-start-x),var(--fd-start-y)) scale(var(--fd-start-scale)) rotate(-16deg); opacity:.4;}
-    58%{transform:translate(0,0) scale(1.07) rotate(5deg); opacity:1;}
-    100%{transform:translate(0,0) scale(1) rotate(0deg); opacity:1;}
   }
   .face-draw-card-inner{
     position:relative; width:100%; height:100%;
@@ -489,6 +491,77 @@
     border:1px solid rgba(232,212,77,0.45);
   }
   .face-draw-img{width:78%; aspect-ratio:1/1; object-fit:contain; margin:14px 0 16px;}
+
+  /* ---------- Face of the Day rarity shine (front face only) ----------
+     js/face-draw.js sets one of these on .face-draw-card (via
+     js/face-rarity.js's mood -> tier map) once a draw lands; a "normal"
+     pull gets none of them and the front face looks exactly as it always
+     has. Scoped to .face-draw-front only -- the back (the joke itself)
+     stays the same gold quote-card regardless of what was pulled. */
+  .face-draw-front::after{
+    content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  }
+  .face-draw-card.rarity-legendary .face-draw-front,
+  .face-draw-card.rarity-mythic .face-draw-front,
+  .face-draw-card.rarity-silver .face-draw-front,
+  .face-draw-card.rarity-bronze .face-draw-front{
+    border-width:2px;
+  }
+  .face-draw-card.rarity-legendary .face-draw-front{
+    border-color:var(--gold);
+    box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(232,212,77,0.45),
+      0 0 40px -6px rgba(232,212,77,0.85), 0 30px 70px -12px rgba(0,0,0,0.75);
+  }
+  .face-draw-card.rarity-legendary .face-draw-front::after{
+    background:linear-gradient(115deg, transparent 30%, rgba(255,241,168,0.85) 48%, rgba(255,215,80,0.55) 54%, transparent 70%);
+    background-size:220% 220%;
+    animation:fr-sheen-sweep 2.2s linear infinite;
+  }
+  .face-draw-card.rarity-mythic .face-draw-front{
+    border-color:transparent;
+    box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(255,255,255,0.32),
+      0 0 44px -6px rgba(180,120,255,0.75), 0 30px 70px -12px rgba(0,0,0,0.75);
+  }
+  .face-draw-card.rarity-mythic .face-draw-front::after{
+    /* screen only ever brightens (never darkens), so the art's own shapes
+       stay legible while the rainbow still actually reads as a rainbow --
+       overlay at higher opacity looked more like a plain tinted glow. */
+    opacity:0.35; mix-blend-mode:screen;
+    background:linear-gradient(120deg, #ff5e5e, #ffb84d, #fff36e, #6effa1, #5ec8ff, #a26bff, #ff5ec8, #ff5e5e);
+    background-size:400% 400%;
+    animation:fr-holo-shift 4s linear infinite;
+  }
+  .face-draw-card.rarity-silver .face-draw-front{
+    border-color:#cfd8dc;
+    box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(207,216,220,0.4),
+      0 0 30px -8px rgba(207,216,220,0.65), 0 30px 70px -12px rgba(0,0,0,0.75);
+  }
+  .face-draw-card.rarity-silver .face-draw-front::after{
+    background:linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.55) 50%, transparent 65%);
+    background-size:220% 220%;
+    animation:fr-sheen-sweep 2.6s linear infinite;
+  }
+  .face-draw-card.rarity-bronze .face-draw-front{
+    border-color:var(--bronze);
+    box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(227,168,102,0.4),
+      0 0 28px -8px rgba(227,168,102,0.6), 0 30px 70px -12px rgba(0,0,0,0.75);
+  }
+  .face-draw-card.rarity-bronze .face-draw-front::after{
+    background:linear-gradient(115deg, transparent 35%, rgba(227,168,102,0.55) 50%, transparent 65%);
+    background-size:220% 220%;
+    animation:fr-sheen-sweep 3s linear infinite;
+  }
+  /* Same lesson as btn-shine-sweep: a continuous one-directional sweep, no
+     hold in the middle -- a dwell on a visible mid-sweep frame reads as the
+     animation stalling, not resting. */
+  @keyframes fr-sheen-sweep{
+    0%{background-position:130% 0;}
+    100%{background-position:-130% 0;}
+  }
+  @keyframes fr-holo-shift{
+    0%{background-position:0% 50%;}
+    100%{background-position:400% 50%;}
+  }
   .face-draw-mood{font-family:'IM Fell English',serif; font-size:22px; color:var(--cream2);}
   .face-draw-back{
     transform:rotateY(180deg);
@@ -519,30 +592,6 @@
     background:rgba(238,244,234,0.06); border:1px solid rgba(238,244,234,0.25);
   }
 
-  /* ---------- face draw reel (Face of the Day) ----------
-     A strip of faces races past a centered marker bar and decelerates to a
-     stop (js/face-draw.js: spinReel()); whichever slot the live rAF
-     tracking finds under the bar gets .is-lit, so the highlight itself
-     travels with the spin. Once it lands, that's the winner. */
-  .face-draw-reel{position:relative; width:min(420px, 92vw);}
-  .face-draw-reel-viewport{position:relative; overflow:hidden; border-radius:20px; padding:14px 0;}
-  .face-draw-reel-marker{
-    position:absolute; top:0; bottom:0; left:50%; width:3px; transform:translateX(-50%);
-    background:var(--gold); border-radius:2px;
-    box-shadow:0 0 14px 2px rgba(232,212,77,0.75);
-    pointer-events:none; z-index:2;
-  }
-  .face-draw-reel-track{display:flex; gap:10px; width:max-content;}
-  .face-draw-reel-slot{
-    flex:0 0 auto; width:84px; height:84px; border-radius:14px;
-    background:rgba(255,255,255,0.03); border:1px solid rgba(111,207,58,0.16);
-    display:flex; align-items:center; justify-content:center;
-    transition:border-color .12s ease, box-shadow .12s ease, transform .12s ease;
-  }
-  .face-draw-reel-slot img{width:70%; height:70%; object-fit:contain;}
-  .face-draw-reel-slot.is-lit{
-    border-color:var(--gold); box-shadow:0 0 20px -2px rgba(232,212,77,0.7); transform:scale(1.08);
-  }
 
   /* ---------- ledger / tokenomics ---------- */
   .ledger{
