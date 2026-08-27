@@ -94,7 +94,12 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   const LAND_LOOP = CLONE_LOOPS; // land in the last appended loop -- maximum room to travel
   // Slow to start, fastest through the middle, long decelerating tail to
   // land -- not the instant-top-speed-then-brake curve this had before.
-  const GALLERY_SPIN_MS = 5400;
+  // The travel distance is fixed by real gallery geometry (see spinGallery
+  // below), so for a fixed easing curve, speed at every point in the spin
+  // scales as 1/duration -- stretching the duration by 1/0.7 cuts the peak
+  // (mid-spin) speed to 70% of what it was, a flat 30% reduction, same
+  // curve shape either way.
+  const GALLERY_SPIN_MS = 7700; // was 5400 -- 5400/7700 ≈ 0.70x peak speed
   const GALLERY_SPIN_EASE = 'cubic-bezier(.76,0,.24,1)';
   let gallerySpinCleanup = null; // non-null only while a spin (or its post-landing pause) is in flight
   let galleryRafId = null;
