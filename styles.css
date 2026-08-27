@@ -522,7 +522,18 @@
     position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
     border-radius:26px; padding:26px 22px; display:flex; flex-direction:column; align-items:center; text-align:center;
     box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(232,212,77,0.4), 0 30px 70px -12px rgba(0,0,0,0.75);
+    /* Safety net on top of backface-visibility above: .face-draw-card's own
+       opacity transition (the fade-in) sits directly above this 3D-rotated
+       pair, and an ancestor's opacity is a known trigger for some WebKit
+       builds to render the "hidden" face's mirrored content through
+       instead of actually hiding it. visibility:hidden is a hard guarantee
+       backface-visibility alone apparently isn't everywhere -- delayed so
+       it only kicks in once the flip has genuinely carried the face past
+       edge-on, not cutting into the normal rotation partway through. */
+    transition:visibility 0s linear .2s;
   }
+  .face-draw-card-inner.is-flipped .face-draw-front{ visibility:hidden; }
+  .face-draw-card-inner:not(.is-flipped) .face-draw-back{ visibility:hidden; }
   .face-draw-front{
     justify-content:flex-start;
     background:radial-gradient(120% 90% at 50% 0%, rgba(111,207,58,0.13), #071009);
@@ -588,10 +599,13 @@
        read as a slow single-hue tint drifting rather than an actual
        multi-color rainbow; at 200% (with the keyframe end below matching
        it) about half the spectrum shows simultaneously. */
+    /* Static now -- no left/right color-shift animation, just a fixed
+       multi-hue slice of the rainbow. The glint below still moves, so the
+       card isn't inert, just the color itself doesn't travel anymore. */
     opacity:0.21; mix-blend-mode:screen;
     background:linear-gradient(120deg, #ff5e5e, #ffb84d, #fff36e, #6effa1, #5ec8ff, #a26bff, #ff5ec8, #ff5e5e);
     background-size:200% 200%;
-    animation:fr-holo-shift 4s linear infinite;
+    background-position:30% 50%;
   }
   /* A sharp white glint chasing the rainbow, same two-speed trick as
      legendary above -- the rainbow alone read as a tinted glow; this is
@@ -636,10 +650,6 @@
   @keyframes fr-sheen-sweep{
     0%{background-position:130% 0;}
     100%{background-position:-130% 0;}
-  }
-  @keyframes fr-holo-shift{
-    0%{background-position:0% 50%;}
-    100%{background-position:200% 50%;}
   }
   .face-draw-mood{font-family:'IM Fell English',serif; font-size:22px; color:var(--cream2);}
   /* Tap-to-reveal replaced the old auto-flip timer -- the whole card is
