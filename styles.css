@@ -365,7 +365,7 @@
   /* Per request, "See your rank" keeps its full active look (green fill,
      left-to-right shine sweep, pulsing glow) even locked -- only the
      cursor changes, plus the "Soon" tag sitting on top makes clear it's
-     not clickable. Unlike .btn-ghost.is-locked (Leaderboard), which stays
+     not clickable. Unlike .btn-ghost.is-locked (Your perks), which stays
      visually muted. */
   .btn-primary.is-locked{cursor:not-allowed;}
   /* The default .lock-tag (near-white at low opacity) all but disappears
@@ -504,7 +504,7 @@
 
   /* ---------- wallet page hero (functions/wallet.html) ---------- */
   .rank-hero-section{max-width:1000px; margin:0 auto;}
-  /* Below ~480px the "See your rank"/"Leaderboard" pair no longer fits on
+  /* Below ~480px the "See your rank"/"Your perks" pair no longer fits on
      one line and wraps to two short, left-aligned pills with a lot of
      dead space beside each -- stack them full-width instead, which also
      gives each a bigger, easier tap target. */
@@ -916,7 +916,7 @@
   .quicklink-card.is-disabled{
     cursor:not-allowed; opacity:0.85;
   }
-  .ql-icon{width:56px; height:56px; object-fit:contain; margin-bottom:14px;}
+  .ql-icon{width:72px; height:72px; object-fit:contain; margin-bottom:14px;}
   .ql-name{font-family:'IM Fell English',serif; font-weight:400; font-size:21px; margin-bottom:8px; color:var(--cream2);}
   .ql-desc{font-family:'IM Fell English',serif; font-size:14px; color:var(--ink-dim); line-height:1.4;}
   .ql-desc .accent{color:var(--green-bright);}
@@ -925,11 +925,6 @@
   }
   .ql-divider-line{flex:1; height:1px; background:rgba(111,207,58,0.3);}
   .ql-divider-icon{width:16px; height:16px; object-fit:contain;}
-  .quicklink-soon-line{
-    text-align:center; margin-top:30px;
-    font-family:'IM Fell English',serif; font-size:22px; letter-spacing:0.04em;
-    color:#9be89b;
-  }
 
   /* ---------- footer ---------- */
   footer{

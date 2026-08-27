@@ -152,7 +152,7 @@ function openModal(){
     clearError();
     loadBalance(activeAddress, activeProvider).catch((err) => {
       console.error(err);
-      showError('Không tải được số dư mới. Thử lại nhé.');
+      showError('Couldn\'t load your balance. Try again.');
     });
   } else {
     clearError();
@@ -170,12 +170,15 @@ function refreshWalletOptionMeta(){
   walletOptionBtns.forEach((btn) => {
     const key = btn.dataset.wallet;
     const meta = btn.querySelector('.wallet-option-meta');
-    // WalletConnect isn't an installed-extension check -- it's always
-    // available, pairs via its own QR modal instead.
+    // Disabled for now -- locked behind a "Soon" pill like the rest of the
+    // site's not-yet-live features, regardless of what's installed. The
+    // connect logic below (getWalletConnectProvider(), connectWith()) is
+    // left in place, just unreachable, so flipping this back on later is a
+    // one-line change.
     if (key === 'walletconnect') {
-      btn.disabled = false;
-      btn.classList.remove('is-unavailable');
-      if (meta) meta.textContent = 'Scan with wallet';
+      btn.disabled = true;
+      btn.classList.add('is-locked');
+      if (meta) meta.textContent = 'Soon';
       return;
     }
     const available = !!providerFor(key);
@@ -286,7 +289,7 @@ async function connectWith(walletKey){
       provider = await getWalletConnectProvider();
     } catch (err) {
       console.error(err);
-      showError('Không mở được WalletConnect. Thử lại nhé.');
+      showError('Couldn\'t open WalletConnect. Try again.');
       showStep(stepPick);
       setConnectLabel(RESTING_LABEL, false);
       return;
@@ -297,7 +300,7 @@ async function connectWith(walletKey){
   } else {
     provider = providerFor(walletKey);
     if (!provider) {
-      showError('Không tìm thấy ví này. Cài đặt extension rồi thử lại nhé.');
+      showError('Wallet not found. Install the extension and try again.');
       return;
     }
     clearError();
@@ -314,7 +317,7 @@ async function connectWith(walletKey){
     attachProviderListeners(provider);
   } catch (err) {
     console.error(err);
-    showError('Kết nối thất bại hoặc bị từ chối. Thử lại nhé.');
+    showError('Connection failed or was rejected. Try again.');
     showStep(stepPick);
     setConnectLabel(RESTING_LABEL, false);
   }
