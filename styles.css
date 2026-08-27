@@ -669,6 +669,17 @@
     text-decoration:none; border-bottom:1px solid rgba(111,207,58,0.35); padding-bottom:1px;
     transition:color .15s ease, border-color .15s ease;
   }
+  /* One line of the same tier philosophy already printed on the ladder page
+     -- wallet-connect.js picks it via tierBlurb() so the two never say
+     something different about the same tier. The left rule takes --tier-
+     color, same as the icon ring and title above, so it reads as one more
+     part of that tier's own color rather than a generic quote treatment. */
+  .rank-tier-blurb{
+    margin:14px 0 0; padding-left:12px;
+    border-left:2px solid var(--tier-color, var(--green-bright));
+    font-family:'IM Fell English',serif; font-style:italic; font-size:14px; line-height:1.45;
+    color:var(--cream2);
+  }
 
   .holder-error{color:#e08a8a; font-size:13px; margin-top:14px; display:none;}
   .holder-error.show{display:block;}

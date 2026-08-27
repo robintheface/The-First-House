@@ -58,6 +58,25 @@ export function tierColorVar(balanceNum) {
   return "var(--ink-dim)";
 }
 
+/**
+ * A line of tier flavor text -- the exact same one already printed next to
+ * each row of the ladder page (explore/wallet/ladder). Copied here rather
+ * than scraped from that page's static HTML, so a connected wallet reads as
+ * a verdict on the same five-tier philosophy the ladder lays out, not a
+ * second, separately-worded one that happens to use the same tier names.
+ * Same boundaries as tierFor(), same reasoning as tierColorVar() for
+ * keeping its own copy of them.
+ * @param {number} balanceNum
+ * @returns {string}
+ */
+export function tierBlurb(balanceNum) {
+  if (balanceNum >= 10000000) return "The tide doesn't move without you. Green days, you did that.";
+  if (balanceNum >= 1000000) return "Been through every dip and never once looked away.";
+  if (balanceNum >= 100000) return "Not new, not soft. You know how this goes by now.";
+  if (balanceNum > 0) return "First candle's always the hardest. Welcome to the hood.";
+  return "Still watching from outside. There's room for one more.";
+}
+
 // Same thresholds as tierFor() above, in climbing order -- kept separate
 // (rather than deriving one from the other) since tierFor's early-return
 // ladder and this ascending list read clearest each in their own shape.

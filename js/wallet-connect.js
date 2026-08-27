@@ -4,7 +4,7 @@
 // is the one page that actually talks to a wallet, so it's the one most
 // worth protecting from XSS-injected inline scripts that could otherwise
 // hook window.ethereum and tamper with a transaction before the user signs.
-import { tierFor, shortAddr, nextTierInfo, splitTierLabel, tierColorVar } from "./wallet-utils.js";
+import { tierFor, shortAddr, nextTierInfo, splitTierLabel, tierColorVar, tierBlurb } from "./wallet-utils.js";
 
 const HOODFACE_ADDRESS = "0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274";
 const ROBINHOOD_CHAIN_ID_HEX = "0x1237"; // 4663 in hex
@@ -77,6 +77,7 @@ const nextTierFill = document.getElementById('nextTierBarFill');
 const nextTierRemaining = document.getElementById('nextTierRemaining');
 const spinnerGlyph = document.getElementById('modalSpinnerGlyph');
 const explorerLink = document.getElementById('holderExplorerLink');
+const tierBlurbEl = document.getElementById('holderTierBlurb');
 const copyBtn = document.getElementById('holderCopyBtn');
 const walletOptionBtns = modal ? modal.querySelectorAll('.wallet-option[data-wallet]') : [];
 // Mirrors the glyphs in the picker list, so the spinner shows what you
@@ -224,6 +225,7 @@ async function loadBalance(address, provider){
   // the whole result panel rather than each element individually.
   if (resultBox) resultBox.style.setProperty('--tier-color', tierColorVar(balanceNum));
   if (explorerLink) explorerLink.href = ROBINHOOD_CHAIN_PARAMS.blockExplorerUrls[0] + '/address/' + address;
+  if (tierBlurbEl) tierBlurbEl.textContent = tierBlurb(balanceNum);
   resetCopyBtn();
   renderNextTier(balanceNum);
   clearError();

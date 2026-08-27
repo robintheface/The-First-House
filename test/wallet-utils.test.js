@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { tierFor, shortAddr, nextTierInfo, splitTierLabel, tierColorVar } from "../js/wallet-utils.js";
+import { tierFor, shortAddr, nextTierInfo, splitTierLabel, tierColorVar, tierBlurb } from "../js/wallet-utils.js";
 
 describe("tierFor", () => {
   it("returns 'Not in the hood — yet' for a zero balance", () => {
@@ -113,5 +113,35 @@ describe("tierColorVar", () => {
 
   it("treats a negative balance the same as zero", () => {
     expect(tierColorVar(-5)).toBe("var(--ink-dim)");
+  });
+});
+
+describe("tierBlurb", () => {
+  it("matches the same boundaries as tierFor, tier by tier", () => {
+    expect(tierBlurb(0)).toBe("Still watching from outside. There's room for one more.");
+    expect(tierBlurb(1)).toBe("First candle's always the hardest. Welcome to the hood.");
+    expect(tierBlurb(99999)).toBe("First candle's always the hardest. Welcome to the hood.");
+    expect(tierBlurb(100000)).toBe("Not new, not soft. You know how this goes by now.");
+    expect(tierBlurb(999999)).toBe("Not new, not soft. You know how this goes by now.");
+    expect(tierBlurb(1000000)).toBe("Been through every dip and never once looked away.");
+    expect(tierBlurb(9999999)).toBe("Been through every dip and never once looked away.");
+    expect(tierBlurb(10000000)).toBe("The tide doesn't move without you. Green days, you did that.");
+    expect(tierBlurb(50000000)).toBe("The tide doesn't move without you. Green days, you did that.");
+  });
+
+  it("treats a negative balance the same as zero", () => {
+    expect(tierBlurb(-5)).toBe("Still watching from outside. There's room for one more.");
+  });
+
+  // The ladder page (explore/wallet/ladder) prints these same five lines as
+  // static HTML, one per row. This is the guard against them drifting apart:
+  // if either copy changes without the other, this fails rather than the
+  // wallet result quietly saying something the ladder no longer does.
+  it("matches the blurb text live on the ladder page, word for word", async () => {
+    const fs = await import("node:fs/promises");
+    const html = await fs.readFile(new URL("../explore/wallet/ladder/index.html", import.meta.url), "utf8");
+    const onLadder = [...html.matchAll(/hood-ladder-blurb">([^<]+)</g)].map((m) => m[1]);
+    const fromTierBlurb = [10000000, 1000000, 100000, 1, 0].map(tierBlurb);
+    expect(onLadder).toEqual(fromTierBlurb);
   });
 });
