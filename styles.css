@@ -670,16 +670,8 @@
     transition:color .15s ease, border-color .15s ease;
   }
 
-  .wallet-switch-link{
-    display:block; width:100%; margin-top:18px; padding:16px 0 0;
-    border:none; border-top:1px dashed var(--line); background:none;
-    text-align:center; font-family:'IM Fell English',serif; font-size:13px; letter-spacing:0.03em;
-    color:var(--ink-dim); cursor:pointer; transition:color .15s ease;
-  }
-
   .holder-error{color:#e08a8a; font-size:13px; margin-top:14px; display:none;}
   .holder-error.show{display:block;}
-  .hood-soon-note{font-family:'IM Fell English',serif; font-size:13px; color:var(--ink-dim);}
 
   /* ---------- wallet connect modal ---------- */
   .wallet-modal{
@@ -1730,7 +1722,6 @@
     .wallet-modal-close:hover{border-color:rgba(111,207,58,0.5); color:var(--cream2);}
     .rank-copy-btn:hover{background:rgba(111,207,58,0.18); border-color:rgba(111,207,58,0.5);}
     .rank-explorer-link:hover{color:#8ade56; border-color:#8ade56;}
-    .wallet-switch-link:hover{color:var(--cream2);}
     .hood-ladder-item:hover{
       border-color:rgba(111,207,58,0.35);
       box-shadow:0 0 24px -6px rgba(111,207,58,0.35);
