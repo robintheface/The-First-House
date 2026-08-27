@@ -229,7 +229,12 @@ async function loadBalance(address, provider){
   renderNextTier(balanceNum);
   clearError();
   showStep(resultBox);
-  setConnectLabel('Connected ✓', true);
+  // Left enabled on purpose: openModal() already knows to skip straight back
+  // to this result when a session is active (see its activeProvider check
+  // above), which is exactly what clicking this button again should do.
+  // Disabling it here would strand a closed modal with no way back in short
+  // of a page reload -- the trigger is the only door once it's shut.
+  setConnectLabel('Connected ✓', false);
 }
 
 // Back to plain "copy" -- a fresh wallet result shouldn't open on a leftover

@@ -295,8 +295,16 @@
     padding:14px 26px; border-radius:12px; text-decoration:none;
     display:inline-flex; align-items:center; gap:8px;
     border:1px solid transparent; transition:transform .15s ease, box-shadow .15s ease;
+    /* .btn was always an <a> before the wallet-connect trigger -- these
+       reset a real <button>'s browser chrome (font/background/cursor)
+       back to matching an anchor, so it's pixel-identical either way. */
+    background:none; cursor:pointer;
   }
   .btn:active{transform:scale(0.97);}
+  /* Only meaningful for the one <button> among .btn's uses -- setConnectLabel()
+     disables it for "Connecting…"/"Connected ✓". Dims it the same way
+     .wallet-option:disabled already dims an unavailable wallet row. */
+  .btn:disabled{opacity:0.6; cursor:not-allowed;}
   .btn-primary{
     color:#0d1a0f;
     /* No border -- tried a gold one at 2px then 1px, dropped per feedback.
@@ -1678,8 +1686,8 @@
       box-shadow:0 0 20px 2px rgba(232,212,77,0.55), 0 0 40px 4px rgba(232,212,77,0.25);
       transform:translateY(-1px);
     }
-    .btn:hover{transform:translateY(-2px);}
-    .btn-primary:hover{
+    .btn:not(:disabled):hover{transform:translateY(-2px);}
+    .btn-primary:not(:disabled):hover{
       box-shadow:0 10px 24px -10px rgba(111,207,58,0.55), 0 0 24px 4px rgba(111,207,58,0.5), 0 0 46px 8px rgba(111,207,58,0.25);
     }
     .btn-ghost:hover{
