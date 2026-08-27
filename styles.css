@@ -657,9 +657,17 @@
     .rank-stats{grid-template-columns:1fr;}
   }
   .rank-stat{background:rgba(255,255,255,0.03); border:1px solid rgba(111,207,58,0.1); border-radius:12px; padding:12px; text-align:left; min-width:0;}
-  .rank-stat-label{font-size:11px; color:var(--ink-dim); margin-bottom:5px;}
-  .rank-stat-value{color:var(--cream2); font-size:20px; font-weight:500; word-break:break-word;}
-  .rank-stat-unit{font-size:13px; font-weight:400; color:var(--ink-dim);}
+  .rank-stat-label{font-size:13px; color:var(--ink-dim); margin-bottom:5px;}
+  .rank-stat-value{color:var(--cream2); font-size:17px; font-weight:500; word-break:break-word;}
+  .rank-stat-unit{font-size:12px; font-weight:400; color:var(--ink-dim);}
+  /* Digits in the site's serif face read as slightly stylized -- switched to
+     the monospace already used for every other number on the site (the
+     wallet address right beside it, the game's own score/HUD) rather than
+     the body's decorative one. Scoped to the id, not .rank-stat-value
+     itself, so $HOODFACE beside it keeps the serif treatment and the
+     tokenomics grid elsewhere on the page (which reuses .rank-stat-value
+     too) is untouched. */
+  #holderBalance{font-family:'IBM Plex Mono',monospace;}
   /* The wallet tile: address + its own copy button share the row, so the
      address gets a smaller monospace treatment rather than the balance
      tile's larger serif number -- two classes beat .rank-stat-value's one,
@@ -673,7 +681,7 @@
      take whatever the copy button (flex:0 0 auto below) doesn't need. */
   .rank-stat-value-row .rank-stat-value{
     flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis;
-    font-family:'IBM Plex Mono',monospace; font-size:16px; font-weight:400; white-space:nowrap;
+    font-family:'IBM Plex Mono',monospace; font-size:14px; font-weight:400; white-space:nowrap;
   }
   .rank-copy-btn{
     flex:0 0 auto; width:26px; height:26px; padding:0; border-radius:8px;
@@ -843,7 +851,12 @@
     transition:width .5s ease;
   }
   .next-tier-remaining{margin-top:8px; font-family:'IM Fell English',serif; font-size:13px; color:var(--ink-dim);}
-  .next-tier-maxed{margin-top:18px; padding-top:16px; border-top:1px dashed var(--line); font-family:'IM Fell English',serif; font-size:14px; color:var(--gold); text-align:center;}
+  /* No border-top/margin-top of its own -- it's a sibling of #nextTierProgress
+     inside the same .hood-next-tier wrapper, which already draws the one
+     dashed divider above this whole section. Adding a second here (the
+     original bug) drew two stacked dashed lines with a doubled gap between
+     them once #nextTierProgress hid rather than one clean divider. */
+  .next-tier-maxed{font-family:'IM Fell English',serif; font-size:14px; color:var(--gold); text-align:center;}
 
   .hood-faq-list{max-width:680px; margin:0 auto; display:flex; flex-direction:column; gap:10px;}
   .hood-faq-item{
