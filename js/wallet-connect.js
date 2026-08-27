@@ -4,7 +4,7 @@
 // is the one page that actually talks to a wallet, so it's the one most
 // worth protecting from XSS-injected inline scripts that could otherwise
 // hook window.ethereum and tamper with a transaction before the user signs.
-import { tierFor, shortAddr, nextTierInfo, splitTierLabel } from "./wallet-utils.js";
+import { tierFor, shortAddr, nextTierInfo, splitTierLabel, tierColorVar } from "./wallet-utils.js";
 
 const HOODFACE_ADDRESS = "0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274";
 const ROBINHOOD_CHAIN_ID_HEX = "0x1237"; // 4663 in hex
@@ -75,7 +75,14 @@ const nextTierMaxed = document.getElementById('nextTierMaxed');
 const nextTierName = document.getElementById('nextTierName');
 const nextTierFill = document.getElementById('nextTierBarFill');
 const nextTierRemaining = document.getElementById('nextTierRemaining');
+const spinnerGlyph = document.getElementById('modalSpinnerGlyph');
+const explorerLink = document.getElementById('holderExplorerLink');
+const copyBtn = document.getElementById('holderCopyBtn');
+const switchBtn = document.getElementById('holderSwitchBtn');
 const walletOptionBtns = modal ? modal.querySelectorAll('.wallet-option[data-wallet]') : [];
+// Mirrors the glyphs in the picker list, so the spinner shows what you
+// actually picked instead of a blank ring.
+const WALLET_GLYPHS = { metamask: '🦊', okx: '⬡', walletconnect: '🔗' };
 
 let activeProvider = null; // the specific EIP-1193 provider actually connected
 let activeAddress = null;
@@ -208,14 +215,31 @@ async function loadBalance(address, provider){
   const formatted = ethers.formatUnits(rawBalance, decimals);
   const balanceNum = parseFloat(formatted);
   addrEl.textContent = shortAddr(address);
+  addrEl.title = address; // full address on hover -- shortAddr() is display-only
   balanceEl.textContent = balanceNum.toLocaleString(undefined, {maximumFractionDigits: 0});
   const { icon, name } = splitTierLabel(tierFor(balanceNum));
   tierEl.textContent = name;
   if (tierIconEl) tierIconEl.textContent = icon;
+  // Recolors the icon ring, the title and the "live" dot to match this
+  // tier -- everything below reads it off this one custom property, set on
+  // the whole result panel rather than each element individually.
+  if (resultBox) resultBox.style.setProperty('--tier-color', tierColorVar(balanceNum));
+  if (explorerLink) explorerLink.href = ROBINHOOD_CHAIN_PARAMS.blockExplorerUrls[0] + '/address/' + address;
+  resetCopyBtn();
   renderNextTier(balanceNum);
   clearError();
   showStep(resultBox);
   setConnectLabel('Connected ✓', true);
+}
+
+// Back to plain "copy" -- a fresh wallet result shouldn't open on a leftover
+// "Copied ✓" from whatever was connected before.
+function resetCopyBtn(){
+  if (!copyBtn) return;
+  copyBtn.classList.remove('is-copied');
+  copyBtn.setAttribute('aria-label', 'Copy address');
+  const glyph = copyBtn.querySelector('.rank-copy-icon');
+  if (glyph) glyph.textContent = '⧉';
 }
 
 function renderNextTier(balanceNum){
@@ -234,6 +258,7 @@ function renderNextTier(balanceNum){
 }
 
 async function connectWith(walletKey){
+  if (spinnerGlyph) spinnerGlyph.textContent = WALLET_GLYPHS[walletKey] || '';
   let provider;
   if (walletKey === 'walletconnect') {
     clearError();
@@ -324,5 +349,68 @@ if (modal) {
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !modal.hidden) closeModal();
+  });
+}
+
+// ---------- copy address ----------
+async function copyToClipboard(text){
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (err) { /* fall through to the legacy path below */ }
+  // Legacy fallback for a browser (or a non-HTTPS context) without the
+  // async Clipboard API -- an off-screen textarea + the old execCommand.
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch (err) {
+    return false;
+  }
+}
+
+let copyResetTimer = null;
+if (copyBtn) {
+  copyBtn.addEventListener('click', async () => {
+    if (!activeAddress) return;
+    // A failed copy leaves the button exactly as it was -- the full address
+    // is still one tap away via the explorer link, so there's nothing worse
+    // to show than just staying at rest.
+    if (!(await copyToClipboard(activeAddress))) return;
+    copyBtn.classList.add('is-copied');
+    copyBtn.setAttribute('aria-label', 'Copied');
+    const glyph = copyBtn.querySelector('.rank-copy-icon');
+    if (glyph) glyph.textContent = '✓';
+    clearTimeout(copyResetTimer);
+    copyResetTimer = setTimeout(resetCopyBtn, 1600);
+  });
+}
+
+// ---------- switch wallet ----------
+if (switchBtn) {
+  switchBtn.addEventListener('click', () => {
+    // Best-effort: only a WalletConnect session can actually be told to end
+    // (it has its own .disconnect()). An injected wallet like MetaMask has
+    // no programmatic disconnect at all -- this just forgets the local
+    // session and brings the picker back, which is what actually matters
+    // when more than one wallet extension is installed.
+    if (activeProvider && typeof activeProvider.disconnect === 'function') {
+      Promise.resolve(activeProvider.disconnect()).catch(() => {});
+    }
+    activeProvider = null;
+    activeAddress = null;
+    setConnectLabel(RESTING_LABEL, false);
+    clearError();
+    showStep(stepPick);
+    refreshWalletOptionMeta();
   });
 }

@@ -596,28 +596,78 @@
     50%{ filter:drop-shadow(0 0 40px rgba(232,212,77,0.55)); }
   }
 
-  /* ---------- holder check (result panel, shown inside the wallet modal) ---------- */
+  /* ---------- holder check (result panel, shown inside the wallet modal) ----------
+     --tier-color is set inline on #holderResult by wallet-connect.js, from
+     wallet-utils.js's tierColorVar() -- the same gold/green/bronze/cream/dim
+     ladder already used to color each row of the ladder page (explore/wallet
+     /ladder), so a connected wallet reads as the same rank system rather
+     than a different one that happens to share tier names. Every rule below
+     falls back to the plain green theme when it's unset, so nothing here
+     depends on the property actually being there. */
   .rank-hero{
     padding:6px 0 14px;
-    display:flex; align-items:center; gap:14px; margin-bottom:6px;
+    display:flex; align-items:center; gap:16px; margin-bottom:18px;
   }
   .rank-hero-icon{
-    flex:0 0 auto; width:52px; height:52px; padding:3px; border-radius:50%; box-sizing:border-box;
-    background:conic-gradient(from 200deg, var(--green-bright), rgba(255,255,255,0.12), var(--green-bright));
+    flex:0 0 auto; width:56px; height:56px; padding:3px; border-radius:50%; box-sizing:border-box;
+    background:conic-gradient(from 200deg, var(--tier-color, var(--green-bright)), rgba(255,255,255,0.12), var(--tier-color, var(--green-bright)));
   }
   .rank-hero-icon-inner{
     width:100%; height:100%; border-radius:50%; background:#07150c;
-    display:flex; align-items:center; justify-content:center; font-size:23px;
+    display:flex; align-items:center; justify-content:center; font-size:24px;
   }
-  .rank-hero-title{font-family:'IM Fell English',serif; font-size:28px; font-weight:400; color:var(--cream2);}
-  .holder-addr{
-    font-family:'IM Fell English',serif; font-size:11px; color:var(--ink-dim);
-    word-break:break-all; margin-bottom:12px;
+  .rank-hero-copy{display:flex; flex-direction:column; gap:5px; min-width:0;}
+  .rank-hero-title{
+    font-family:'IM Fell English',serif; font-size:26px; font-weight:400; line-height:1.15;
+    color:var(--tier-color, var(--cream2));
   }
+  /* Echoes the "Token live" badge elsewhere on this page (same dot, same
+     pulse) -- reads as the same "this is live, not a snapshot" signal. */
+  .rank-hero-live{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.04em; text-transform:uppercase;
+    color:var(--ink-dim);
+  }
+  .rank-hero-live-dot{
+    width:6px; height:6px; border-radius:50%; flex:none;
+    background:var(--tier-color, var(--green-bright));
+    box-shadow:0 0 6px var(--tier-color, rgba(111,207,58,0.85));
+    animation:rank-live-pulse 1.6s ease-in-out infinite;
+  }
+
   .rank-stats{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
   .rank-stat{background:rgba(255,255,255,0.03); border:1px solid rgba(111,207,58,0.1); border-radius:12px; padding:12px; text-align:left;}
   .rank-stat-label{font-size:10px; color:var(--ink-dim); margin-bottom:4px;}
   .rank-stat-value{color:var(--cream2); font-size:16px; font-weight:500; word-break:break-word;}
+  .rank-stat-unit{font-size:11px; font-weight:400; color:var(--ink-dim);}
+  /* The wallet tile: address + its own copy button share the row, so the
+     address gets a smaller monospace treatment rather than the balance
+     tile's larger serif number -- two classes beat .rank-stat-value's one,
+     so this wins regardless of source order. */
+  .rank-stat-value-row{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+  .rank-stat-value-row .rank-stat-value{font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:400;}
+  .rank-copy-btn{
+    flex:0 0 auto; width:26px; height:26px; padding:0; border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(111,207,58,0.08); border:1px solid rgba(111,207,58,0.22); color:var(--green-bright);
+    cursor:pointer; transition:background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .rank-copy-icon{font-size:12px; line-height:1;}
+  .rank-copy-btn.is-copied{background:rgba(111,207,58,0.24); border-color:var(--green-bright); color:#8ade56;}
+
+  .rank-explorer-link{
+    display:inline-flex; align-items:center; gap:5px; margin-top:14px;
+    font-family:'IM Fell English',serif; font-size:13px; color:var(--green-bright);
+    text-decoration:none; border-bottom:1px solid rgba(111,207,58,0.35); padding-bottom:1px;
+    transition:color .15s ease, border-color .15s ease;
+  }
+
+  .wallet-switch-link{
+    display:block; width:100%; margin-top:18px; padding:16px 0 0;
+    border:none; border-top:1px dashed var(--line); background:none;
+    text-align:center; font-family:'IM Fell English',serif; font-size:13px; letter-spacing:0.03em;
+    color:var(--ink-dim); cursor:pointer; transition:color .15s ease;
+  }
 
   .holder-error{color:#e08a8a; font-size:13px; margin-top:14px; display:none;}
   .holder-error.show{display:block;}
@@ -644,34 +694,64 @@
     display:flex; align-items:center; justify-content:center;
     background:transparent; border:1px solid rgba(111,207,58,0.25); color:var(--ink-dim);
     font-size:15px; line-height:1; cursor:pointer;
+    transition:border-color .15s ease, color .15s ease;
   }
   .wallet-modal-title{font-family:'IM Fell English',serif; font-weight:400; font-size:26px; color:var(--cream2); margin:10px 0 8px;}
   .wallet-modal-sub{color:var(--ink-dim); font-size:15px; line-height:1.5; margin:0 0 22px;}
 
   .wallet-option-list{display:flex; flex-direction:column; gap:10px;}
   .wallet-option{
-    display:flex; align-items:center; gap:14px; width:100%;
-    padding:14px 16px; border-radius:13px; text-align:left; cursor:pointer;
+    display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; width:100%;
+    padding:13px 14px; border-radius:14px; text-align:left; cursor:pointer;
     background:rgba(255,255,255,0.02); border:1px solid rgba(111,207,58,0.16); color:var(--ink);
     font-family:'IM Fell English',serif;
-    transition:border-color .15s ease, background .15s ease;
+    transition:border-color .15s ease, background .15s ease, box-shadow .15s ease;
   }
-  .wallet-option-glyph{font-size:22px; line-height:1; flex:0 0 auto;}
-  .wallet-option-name{flex:1; font-size:18px;}
+  /* The glyph used to float bare in the row; giving it its own tinted,
+     bordered square reads as a proper wallet icon rather than a stray
+     emoji, and gives the row a second thing (icon vs. status pill) to
+     recolor when a wallet isn't available. */
+  .wallet-option-icon{
+    flex:0 0 auto; width:42px; height:42px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px; line-height:1;
+    background:rgba(111,207,58,0.08); border:1px solid rgba(111,207,58,0.18);
+    transition:background .15s ease, border-color .15s ease;
+  }
+  /* A 120px floor, not 0 -- with flex-wrap on the row above, this is what
+     makes the status pill drop to its own line under a narrow phone's
+     width instead of both being squeezed onto one line together. Without a
+     floor here the body was free to shrink all the way to 0 while the pill
+     (flex-shrink:0) held its full width, and the name/hint text -- unbound
+     by its collapsed parent -- rendered on top of the pill instead of
+     wrapping under it. */
+  .wallet-option-body{flex:1 1 120px; min-width:120px; display:flex; flex-direction:column; gap:2px;}
+  .wallet-option-name{font-size:17px; color:var(--cream2);}
+  .wallet-option-hint{font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.02em; color:var(--ink-dim);}
   .wallet-option-meta{
-    flex:0 0 auto; font-family:'IM Fell English',serif; font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase;
-    color:var(--green-bright);
+    flex:0 0 auto; margin-left:auto; white-space:nowrap;
+    font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:0.06em; text-transform:uppercase;
+    padding:3px 9px; border-radius:999px;
+    color:var(--green-bright); background:rgba(111,207,58,0.1); border:1px solid rgba(111,207,58,0.28);
   }
   .wallet-option:disabled{cursor:not-allowed; opacity:0.55;}
-  .wallet-option.is-unavailable .wallet-option-meta{color:rgba(238,244,234,0.35);}
-  .wallet-option.is-locked .wallet-option-meta{color:rgba(238,244,234,0.32);}
+  .wallet-option.is-unavailable .wallet-option-icon{background:rgba(238,244,234,0.04); border-color:rgba(238,244,234,0.1);}
+  .wallet-option.is-unavailable .wallet-option-meta,
+  .wallet-option.is-locked .wallet-option-meta{
+    color:rgba(238,244,234,0.4); background:rgba(238,244,234,0.04); border-color:rgba(238,244,234,0.12);
+  }
 
   .wallet-modal-spinner{
-    width:70px; height:70px; margin:0 auto 22px; border-radius:50%;
+    position:relative; width:70px; height:70px; margin:0 auto 22px; border-radius:50%;
     border:2px solid rgba(111,207,58,0.18); border-top-color:var(--green-bright);
+    display:flex; align-items:center; justify-content:center;
     animation:wm-spin 1s linear infinite;
   }
+  /* Counter-spins against the ring's own rotation so the wallet's glyph
+     sits still at the center instead of visibly spinning with it. */
+  .wallet-modal-spinner-glyph{font-size:24px; line-height:1; animation:wm-spin-reverse 1s linear infinite;}
   @keyframes wm-spin{ to{transform:rotate(360deg);} }
+  @keyframes wm-spin-reverse{ to{transform:rotate(-360deg);} }
   #modalStepLoading{text-align:center;}
   #modalStepLoading .wallet-modal-title{margin-top:0;}
 
@@ -1634,7 +1714,15 @@
     }
     .wallet-option:not(:disabled):hover{
       border-color:rgba(111,207,58,0.4); background:rgba(111,207,58,0.07);
+      box-shadow:0 0 20px -6px rgba(111,207,58,0.4);
     }
+    .wallet-option:not(:disabled):hover .wallet-option-icon{
+      border-color:rgba(111,207,58,0.4); background:rgba(111,207,58,0.16);
+    }
+    .wallet-modal-close:hover{border-color:rgba(111,207,58,0.5); color:var(--cream2);}
+    .rank-copy-btn:hover{background:rgba(111,207,58,0.18); border-color:rgba(111,207,58,0.5);}
+    .rank-explorer-link:hover{color:#8ade56; border-color:#8ade56;}
+    .wallet-switch-link:hover{color:var(--cream2);}
     .hood-ladder-item:hover{
       border-color:rgba(111,207,58,0.35);
       box-shadow:0 0 24px -6px rgba(111,207,58,0.35);

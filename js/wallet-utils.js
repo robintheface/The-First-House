@@ -39,6 +39,25 @@ export function splitTierLabel(tierLabel) {
   return { icon: tierLabel.slice(0, spaceAt), name: tierLabel.slice(spaceAt + 1) };
 }
 
+/**
+ * Which theme color a tier's badge/ring should use -- the same color
+ * already assigned to each row of the ladder page (explore/wallet/ladder),
+ * so a connected wallet's result reads as the same rank system rather than
+ * a different one that happens to share the tier names. Same boundaries as
+ * tierFor(), kept as their own ladder rather than derived from it: parsing
+ * a color back out of an emoji-prefixed label is more fragile than just
+ * repeating five numbers.
+ * @param {number} balanceNum
+ * @returns {string} a `var(--token)` reference, ready to drop into inline style
+ */
+export function tierColorVar(balanceNum) {
+  if (balanceNum >= 10000000) return "var(--gold)";
+  if (balanceNum >= 1000000) return "var(--green-bright)";
+  if (balanceNum >= 100000) return "var(--bronze)";
+  if (balanceNum > 0) return "var(--cream2)";
+  return "var(--ink-dim)";
+}
+
 // Same thresholds as tierFor() above, in climbing order -- kept separate
 // (rather than deriving one from the other) since tierFor's early-return
 // ladder and this ascending list read clearest each in their own shape.

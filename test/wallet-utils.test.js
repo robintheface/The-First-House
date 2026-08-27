@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { tierFor, shortAddr, nextTierInfo, splitTierLabel } from "../js/wallet-utils.js";
+import { tierFor, shortAddr, nextTierInfo, splitTierLabel, tierColorVar } from "../js/wallet-utils.js";
 
 describe("tierFor", () => {
   it("returns 'Not in the hood — yet' for a zero balance", () => {
@@ -95,5 +95,23 @@ describe("splitTierLabel", () => {
 
   it("falls back to an empty name when there's no space to split on", () => {
     expect(splitTierLabel("—")).toEqual({ icon: "—", name: "" });
+  });
+});
+
+describe("tierColorVar", () => {
+  it("matches the same boundaries as tierFor, tier by tier", () => {
+    expect(tierColorVar(0)).toBe("var(--ink-dim)");
+    expect(tierColorVar(1)).toBe("var(--cream2)");
+    expect(tierColorVar(99999)).toBe("var(--cream2)");
+    expect(tierColorVar(100000)).toBe("var(--bronze)");
+    expect(tierColorVar(999999)).toBe("var(--bronze)");
+    expect(tierColorVar(1000000)).toBe("var(--green-bright)");
+    expect(tierColorVar(9999999)).toBe("var(--green-bright)");
+    expect(tierColorVar(10000000)).toBe("var(--gold)");
+    expect(tierColorVar(50000000)).toBe("var(--gold)");
+  });
+
+  it("treats a negative balance the same as zero", () => {
+    expect(tierColorVar(-5)).toBe("var(--ink-dim)");
   });
 });
