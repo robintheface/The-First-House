@@ -77,17 +77,32 @@ export const FACE_JOKES = {
   ]
 };
 
+// djb2 -- small, dependency-free string hash. Only needs to spread mood+day
+// combinations across a pool index well, not resist attack, so this is
+// plenty; not used anywhere security-sensitive.
+function hashString(str) {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 33) ^ str.charCodeAt(i);
+  }
+  return hash >>> 0; // unsigned, so the modulo below is never negative
+}
+
 /**
- * Pick a random joke for a mood. rng is injectable (defaults to Math.random)
- * so a test can drive it deterministically.
+ * The "joke of the day" for a mood -- same mood + same calendar day (in the
+ * visitor's local time) always lands on the same joke, so everyone drawing
+ * that mood on a given day sees the same default line, and it rotates the
+ * next day. Hashed rather than a plain day-number modulo so different moods
+ * don't all happen to land on "joke #0" on the same days as each other.
  * @param {string} mood
- * @param {() => number} rng
+ * @param {Date} date
  * @returns {string} a joke, or "" if the mood has no pool
  */
-export function randomJoke(mood, rng = Math.random) {
+export function jokeOfTheDay(mood, date = new Date()) {
   const pool = FACE_JOKES[mood];
   if (!pool || pool.length === 0) return "";
-  const idx = Math.min(pool.length - 1, Math.floor(rng() * pool.length));
+  const dayKey = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+  const idx = hashString(mood + "|" + dayKey) % pool.length;
   return pool[idx];
 }
 
