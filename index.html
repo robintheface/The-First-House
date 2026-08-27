@@ -334,7 +334,10 @@
         </div>
 </div>
   </div>
-  <div class="gallery-note">+ 13 more faces revealed as the chart moves</div>
+  <div class="fod-row">
+    <button type="button" id="faceOfDayBtn" class="btn btn-spin">SPIN</button>
+  </div>
+  <p id="fodMessage" class="fod-message" hidden></p>
 </section>
 
 <section id="roadmap">
@@ -427,7 +430,6 @@
 <div id="faceDrawOverlay" class="face-draw-overlay" hidden>
   <div class="face-draw-backdrop" data-draw-close></div>
   <div class="face-draw-stage">
-    <button type="button" class="face-draw-close" data-draw-close aria-label="Close">✕</button>
     <div id="faceDrawCard" class="face-draw-card">
       <div class="face-draw-card-inner">
         <div class="face-draw-face face-draw-front">
@@ -437,7 +439,9 @@
         <div class="face-draw-face face-draw-back">
           <span class="face-draw-back-kicker">The hood knows</span>
           <p id="faceDrawJoke" class="face-draw-joke"></p>
-          <button type="button" id="faceDrawAgainBtn" class="face-draw-again">Draw again ↻</button>
+          <div class="face-draw-actions">
+            <button type="button" id="faceDrawShareBtn" class="face-draw-share">Share on 𝕏</button>
+          </div>
         </div>
       </div>
     </div>
