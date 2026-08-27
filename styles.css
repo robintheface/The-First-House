@@ -425,12 +425,13 @@
   .gallery-wrap:hover .gallery-track, .gallery-wrap:active .gallery-track{animation-play-state:paused;}
   @keyframes gscroll{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
   .face-card{
-    width:188px; flex:0 0 auto;
+    width:188px; flex:0 0 auto; cursor:pointer;
     background:rgba(111,207,58,0.04); border:1px solid rgba(232,212,77,0.4); border-radius:24px;
     box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(111,207,58,0.28);
     padding:18px 14px 16px; text-align:center; position:relative; z-index:1;
     transition:border-color .25s ease, box-shadow .25s ease, transform .3s cubic-bezier(.34,1.56,.64,1);
   }
+  .face-card:focus-visible{outline:2px solid var(--green-bright); outline-offset:3px;}
   .face-img{
     display:block; width:100%; aspect-ratio:1/1; object-fit:contain;
     margin-bottom:10px;
@@ -440,6 +441,74 @@
     transition:color .25s ease;
   }
   .gallery-note{text-align:center; margin-top:18px; font-size:13px; color:var(--ink-dim); font-family:'IM Fell English',serif;}
+
+  /* ---------- face draw overlay ----------
+     Clicking a face card in the gallery above opens this: the clicked
+     card's own image flies from its on-screen position up to center stage
+     (fd-spin-in, driven by --fd-start-* custom properties set in
+     js/face-draw.js) and lands, then face-draw.js flips .face-draw-card-inner
+     to reveal the joke on the back. Structurally a near-twin of
+     .wallet-modal (fixed overlay, backdrop blur, X to close, Escape,
+     backdrop click) so it reads as the same kind of surface as the rest of
+     the site rather than a one-off. */
+  .face-draw-overlay{position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center; padding:20px;}
+  .face-draw-overlay[hidden]{display:none;}
+  .face-draw-backdrop{position:absolute; inset:0; background:rgba(2,6,3,0.82); backdrop-filter:blur(8px);}
+  .face-draw-stage{position:relative; z-index:1; perspective:1400px;}
+  .face-draw-close{
+    position:absolute; top:-46px; right:0; width:32px; height:32px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    background:transparent; border:1px solid rgba(111,207,58,0.25); color:var(--ink-dim);
+    font-size:15px; line-height:1; cursor:pointer; z-index:2;
+    transition:border-color .15s ease, color .15s ease;
+  }
+
+  .face-draw-card{
+    position:relative; width:min(300px, 78vw); aspect-ratio:3/4;
+    --fd-start-x:0px; --fd-start-y:0px; --fd-start-scale:0.3;
+  }
+  .face-draw-card.is-spinning{animation:fd-spin-in .6s cubic-bezier(.22,.85,.25,1) both;}
+  @keyframes fd-spin-in{
+    0%{transform:translate(var(--fd-start-x),var(--fd-start-y)) scale(var(--fd-start-scale)) rotate(-16deg); opacity:.4;}
+    58%{transform:translate(0,0) scale(1.07) rotate(5deg); opacity:1;}
+    100%{transform:translate(0,0) scale(1) rotate(0deg); opacity:1;}
+  }
+  .face-draw-card-inner{
+    position:relative; width:100%; height:100%;
+    transform-style:preserve-3d; transition:transform .5s cubic-bezier(.4,.1,.2,1);
+  }
+  .face-draw-face{
+    position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
+    border-radius:26px; padding:26px 22px; display:flex; flex-direction:column; align-items:center; text-align:center;
+    box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(232,212,77,0.4), 0 30px 70px -12px rgba(0,0,0,0.75);
+  }
+  .face-draw-front{
+    justify-content:flex-start;
+    background:radial-gradient(120% 90% at 50% 0%, rgba(111,207,58,0.13), #071009);
+    border:1px solid rgba(232,212,77,0.45);
+  }
+  .face-draw-img{width:78%; aspect-ratio:1/1; object-fit:contain; margin:14px 0 16px;}
+  .face-draw-mood{font-family:'IM Fell English',serif; font-size:22px; color:var(--cream2);}
+  .face-draw-back{
+    transform:rotateY(180deg);
+    justify-content:center; gap:14px;
+    background:radial-gradient(120% 90% at 50% 100%, rgba(232,212,77,0.16), #0c1710);
+    border:1px solid var(--gold);
+  }
+  .face-draw-back-kicker{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold);
+  }
+  .face-draw-joke{
+    font-family:'IM Fell English',serif; font-style:italic; font-size:19px; line-height:1.45; color:var(--ink);
+    margin:0;
+  }
+  .face-draw-again{
+    margin-top:6px; padding:9px 18px; border-radius:999px; cursor:pointer;
+    font-family:'IM Fell English',serif; font-size:14px; color:var(--gold);
+    background:rgba(232,212,77,0.1); border:1px solid rgba(232,212,77,0.4);
+    transition:border-color .15s ease, background .15s ease, color .15s ease, opacity .15s ease;
+  }
+  .face-draw-again:disabled{opacity:0.5; cursor:not-allowed;}
 
   /* ---------- ledger / tokenomics ---------- */
   .ledger{
@@ -1779,6 +1848,8 @@
     .rank-copy-btn:hover{background:rgba(111,207,58,0.18); border-color:rgba(111,207,58,0.5);}
     .rank-explorer-link:hover{color:#8ade56; border-color:#8ade56;}
     .rank-switch-link:hover{color:var(--cream2); text-decoration-color:rgba(238,244,234,0.6);}
+    .face-draw-close:hover{border-color:rgba(111,207,58,0.5); color:var(--cream2);}
+    .face-draw-again:not(:disabled):hover{border-color:var(--gold); background:rgba(232,212,77,0.18);}
     .hood-ladder-item:hover{
       border-color:rgba(111,207,58,0.35);
       box-shadow:0 0 24px -6px rgba(111,207,58,0.35);

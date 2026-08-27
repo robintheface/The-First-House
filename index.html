@@ -423,8 +423,30 @@
   <div class="foot-brand">🏹 ROBIN THE FACE — Every Candle Has a Face.</div>
 </footer>
 
+<!-- FACE DRAW OVERLAY -->
+<div id="faceDrawOverlay" class="face-draw-overlay" hidden>
+  <div class="face-draw-backdrop" data-draw-close></div>
+  <div class="face-draw-stage">
+    <button type="button" class="face-draw-close" data-draw-close aria-label="Close">✕</button>
+    <div id="faceDrawCard" class="face-draw-card">
+      <div class="face-draw-card-inner">
+        <div class="face-draw-face face-draw-front">
+          <img id="faceDrawImg" class="face-draw-img" src="images/face-01.webp" alt="">
+          <span id="faceDrawLabel" class="face-draw-mood">—</span>
+        </div>
+        <div class="face-draw-face face-draw-back">
+          <span class="face-draw-back-kicker">The hood knows</span>
+          <p id="faceDrawJoke" class="face-draw-joke"></p>
+          <button type="button" id="faceDrawAgainBtn" class="face-draw-again">Draw again ↻</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script type="module" src="js/topbar-menus.js"></script>
 <script src="js/copy.js"></script>
 <script type="module" src="js/dino-game.js"></script>
+<script type="module" src="js/face-draw.js"></script>
 </body>
 </html>
