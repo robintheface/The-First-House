@@ -9,7 +9,7 @@
  * @returns {string}
  */
 export function tierFor(balanceNum) {
-  if (balanceNum >= 10000000) return "🐋 Whale";
+  if (balanceNum >= 10000000) return "🐋 Absolutely Whale";
   if (balanceNum >= 1000000) return "💎 Diamond Hood";
   if (balanceNum >= 100000) return "🧢 Hood Member";
   if (balanceNum > 0) return "🌱 Fresh Face";
@@ -119,7 +119,7 @@ export function tierHeroImage(balanceNum) {
 const NEXT_TIERS = [
   { name: "Hood Member", min: 100000 },
   { name: "Diamond Hood", min: 1000000 },
-  { name: "Whale", min: 10000000 }
+  { name: "Absolutely Whale", min: 10000000 }
 ];
 
 /**

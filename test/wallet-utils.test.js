@@ -21,9 +21,9 @@ describe("tierFor", () => {
     expect(tierFor(9999999)).toBe("💎 Diamond Hood");
   });
 
-  it("is Whale at exactly the 10,000,000 boundary and above", () => {
-    expect(tierFor(10000000)).toBe("🐋 Whale");
-    expect(tierFor(50000000)).toBe("🐋 Whale");
+  it("is Absolutely Whale at exactly the 10,000,000 boundary and above", () => {
+    expect(tierFor(10000000)).toBe("🐋 Absolutely Whale");
+    expect(tierFor(50000000)).toBe("🐋 Absolutely Whale");
   });
 
   it("treats a negative balance the same as zero", () => {
@@ -83,7 +83,7 @@ describe("nextTierInfo", () => {
 
 describe("splitTierLabel", () => {
   it("splits a single-word tier name off its leading emoji", () => {
-    expect(splitTierLabel("🐋 Whale")).toEqual({ icon: "🐋", name: "Whale" });
+    expect(splitTierLabel("🐋 Absolutely Whale")).toEqual({ icon: "🐋", name: "Absolutely Whale" });
   });
 
   it("keeps a multi-word tier name intact, em dash included", () => {
