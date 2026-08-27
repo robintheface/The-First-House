@@ -362,20 +362,33 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     // the actual gallery, not behind a dialog. fodBtn is already disabled
     // (set above, before the allowance check), so a second spin can't
     // start before this one lands and fight it for control of the track.
+    // Three beats after landing, each building on the last: 1s with the
+    // winner card lit and sitting still in the gallery -> overlay backdrop
+    // appears (card still hidden) -> 0.5s later the card fades in showing
+    // the mood -> 1s after that, flips to the joke.
     spinGallery(winnerIdx, (addedClones) => {
-      // A beat with the winner card lit and sitting still (the "what face"
-      // reveal) before the overlay takes over for the "what joke" reveal.
-      const revealDelay = setTimeout(() => {
+      const overlayDelay = setTimeout(() => {
         cleanupGallerySpin(addedClones);
         overlay.hidden = false;
         document.body.style.overflow = 'hidden';
-        cardEl.hidden = false;
-        setCardContent(winnerMood, winnerJoke, winnerImgSrc);
-        resetCardToFront();
-        clearTimeout(revealTimer);
-        revealTimer = setTimeout(triggerFlip, 2000);
-      }, 700);
-      gallerySpinCleanup = () => { clearTimeout(revealDelay); cleanupGallerySpin(addedClones); };
+        cardEl.hidden = true;
+
+        const fadeDelay = setTimeout(() => {
+          setCardContent(winnerMood, winnerJoke, winnerImgSrc);
+          resetCardToFront();
+          cardEl.hidden = false;
+          cardEl.classList.add('is-revealing');
+          void cardEl.offsetWidth; // force a reflow so the class removal below actually transitions
+          cardEl.classList.remove('is-revealing');
+
+          clearTimeout(revealTimer);
+          revealTimer = setTimeout(triggerFlip, 1000);
+        }, 500);
+        // Overlay's already up and the gallery's already restored at this
+        // point -- closing mid-fade just needs to cancel the pending flip.
+        gallerySpinCleanup = () => { clearTimeout(fadeDelay); };
+      }, 1000);
+      gallerySpinCleanup = () => { clearTimeout(overlayDelay); cleanupGallerySpin(addedClones); };
     });
   }
 
