@@ -282,11 +282,6 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
       });
     }
     const winnerClone = addedClones[(LAND_LOOP - 1) * realCards.length + winnerIdx];
-    // Only the clone that will actually land face-down for the whole spin
-    // -- everything else, real cards and every other clone, keeps showing
-    // its normal face throughout. Flipped back to front in onEnd() below,
-    // right as the spin visually stops.
-    winnerClone.classList.add('is-flipped');
 
     const card0 = galleryTrack.children[0];
     const card1 = galleryTrack.children[1];
@@ -322,8 +317,6 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
       // explicitly -- rounding across many frames of a multi-lap spin is
       // the kind of thing that's cheap to just guarantee outright.
       setLitCard(winnerClone);
-      // Flip face-down -> face-up right as the spin stops -- the reveal.
-      winnerClone.classList.remove('is-flipped');
       onDone(addedClones);
     }
     galleryTrack.addEventListener('transitionend', onEnd);
