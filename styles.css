@@ -697,7 +697,7 @@
   .rank-copy-icon{font-size:12px; line-height:1;}
   .rank-copy-btn.is-copied{background:rgba(111,207,58,0.24); border-color:var(--green-bright); color:#8ade56;}
 
-  /* Holds "View on Explorer" and "Switch wallet" side by side -- wraps to
+  /* Holds "View on Explorer" and "Disconnect" side by side -- wraps to
      two lines below ~360px (each still left-aligned) rather than forcing
      the explorer link to shrink. */
   .rank-explorer-row{display:flex; align-items:baseline; flex-wrap:wrap; column-gap:18px;}
@@ -707,8 +707,8 @@
     text-decoration:none; border-bottom:1px solid rgba(111,207,58,0.35); padding-bottom:1px;
     transition:color .15s ease, border-color .15s ease;
   }
-  /* Quiet on purpose -- reopening the picker is a fallback path, not the
-     main action, so it reads as secondary to the explorer link beside it. */
+  /* Quiet on purpose -- ending the session is a fallback action, not the
+     main one, so it reads as secondary to the explorer link beside it. */
   .rank-switch-link{
     margin-top:14px; padding:0; border:none; background:none; cursor:pointer;
     font-family:'IM Fell English',serif; font-size:13px; color:var(--ink-dim);
