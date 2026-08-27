@@ -643,17 +643,38 @@
     animation:rank-live-pulse 1.6s ease-in-out infinite;
   }
 
-  .rank-stats{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
-  .rank-stat{background:rgba(255,255,255,0.03); border:1px solid rgba(111,207,58,0.1); border-radius:12px; padding:12px; text-align:left;}
-  .rank-stat-label{font-size:10px; color:var(--ink-dim); margin-bottom:4px;}
-  .rank-stat-value{color:var(--cream2); font-size:16px; font-weight:500; word-break:break-word;}
-  .rank-stat-unit{font-size:11px; font-weight:400; color:var(--ink-dim);}
+  /* minmax(0, 1fr), not a bare 1fr -- a bare 1fr track still respects its
+     content's min-content width, so the Wallet tile's nowrap address (once
+     forced onto one line, below) was quietly stealing width from Balance's
+     column on a narrow phone instead of the two staying equal. */
+  .rank-stats{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px;}
+  /* Below this, the modal card itself is narrower than its 420px max (it's
+     min(100vw - 40px, 420px)), and a half-width column can no longer fit
+     the address next to its copy button at a readable size -- every common
+     phone width is under this. One column each gets the card's full
+     interior width instead, which comfortably fits both. */
+  @media (max-width:480px){
+    .rank-stats{grid-template-columns:1fr;}
+  }
+  .rank-stat{background:rgba(255,255,255,0.03); border:1px solid rgba(111,207,58,0.1); border-radius:12px; padding:12px; text-align:left; min-width:0;}
+  .rank-stat-label{font-size:11px; color:var(--ink-dim); margin-bottom:5px;}
+  .rank-stat-value{color:var(--cream2); font-size:20px; font-weight:500; word-break:break-word;}
+  .rank-stat-unit{font-size:13px; font-weight:400; color:var(--ink-dim);}
   /* The wallet tile: address + its own copy button share the row, so the
      address gets a smaller monospace treatment rather than the balance
      tile's larger serif number -- two classes beat .rank-stat-value's one,
      so this wins regardless of source order. */
-  .rank-stat-value-row{display:flex; align-items:center; justify-content:space-between; gap:8px;}
-  .rank-stat-value-row .rank-stat-value{font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:400;}
+  .rank-stat-value-row{display:flex; align-items:center; gap:8px;}
+  /* One line, truncated with an ellipsis rather than wrapped -- shortAddr()
+     already shortens the address, but at 320px there isn't room for even
+     that short form plus the copy button next to it. min-width:0 overrides
+     a flex item's own default "automatic minimum size" (which otherwise
+     ignores overflow/text-overflow and wraps instead), and flex:1 lets it
+     take whatever the copy button (flex:0 0 auto below) doesn't need. */
+  .rank-stat-value-row .rank-stat-value{
+    flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis;
+    font-family:'IBM Plex Mono',monospace; font-size:16px; font-weight:400; white-space:nowrap;
+  }
   .rank-copy-btn{
     flex:0 0 auto; width:26px; height:26px; padding:0; border-radius:8px;
     display:flex; align-items:center; justify-content:center;
