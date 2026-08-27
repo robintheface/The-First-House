@@ -441,11 +441,36 @@
   .gallery-wrap:hover .gallery-track, .gallery-wrap:active .gallery-track{animation-play-state:paused;}
   @keyframes gscroll{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
   .face-card{
-    width:188px; flex:0 0 auto;
+    width:188px; height:226px; flex:0 0 auto;
     background:rgba(111,207,58,0.04); border:1px solid rgba(232,212,77,0.4); border-radius:24px;
     box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(111,207,58,0.28);
-    padding:18px 14px 16px; text-align:center; position:relative; z-index:1;
+    text-align:center; position:relative; z-index:1;
     transition:border-color .25s ease, box-shadow .25s ease, transform .3s cubic-bezier(.34,1.56,.64,1);
+    /* Explicit height (measured from the old padding+content box) because
+       .face-card-front/-back below are absolutely positioned -- taken out
+       of flow, so nothing would otherwise give this box a height. */
+    perspective:800px;
+  }
+  /* Card-back reveal, spin-only: only the one clone that actually becomes
+     the winner ever gets .is-flipped (js/face-draw.js) -- every other
+     card, real or clone, just shows its normal face the whole time. */
+  .face-card-inner{
+    position:relative; width:100%; height:100%;
+    transition:transform .45s cubic-bezier(.4,.1,.2,1);
+    transform-style:preserve-3d;
+  }
+  .face-card.is-flipped .face-card-inner{ transform:rotateY(180deg); }
+  .face-card-front, .face-card-back{
+    position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  }
+  .face-card-front{
+    padding:18px 14px 16px; /* the card's original padding, moved here from .face-card itself */
+  }
+  .face-card-back{
+    transform:rotateY(180deg);
+  }
+  .face-card-back-img{
+    display:block; width:100%; height:100%; object-fit:cover; border-radius:23px;
   }
   .face-img{
     display:block; width:100%; aspect-ratio:1/1; object-fit:contain;
