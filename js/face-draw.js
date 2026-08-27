@@ -4,10 +4,11 @@
 // CS:GO-case-opening style: it races past the dead center of the gallery
 // (no fixed marker -- whichever card is actually passing through center
 // lights up live, tracked every frame) and decelerates to a stop, and
-// whichever face is lit when it lands flips to reveal its joke, with a
-// Share on X control (close via backdrop click or Escape). Kept as an
-// external module, same CSP reason as wallet-connect.js: script-src has
-// no 'unsafe-inline'.
+// whichever face is lit when it lands flips (tap to reveal) to show its
+// joke, with a Share on X control. Backdrop click / Escape only close once
+// the joke's actually revealed, so a stray tap outside can't lose the
+// draw before it gets there. Kept as an external module, same CSP reason
+// as wallet-connect.js: script-src has no 'unsafe-inline'.
 import { randomJoke } from "./face-jokes.js";
 import { rarityFor } from "./face-rarity.js";
 
@@ -422,11 +423,17 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
 
   if (fodBtn) fodBtn.addEventListener('click', openFaceOfTheDay);
   if (cardEl) cardEl.addEventListener('click', tapToReveal);
+  // Backdrop click / Escape only actually close once the joke's been
+  // revealed (is-flipped) -- before that, a stray tap outside the card or
+  // an accidental Escape would dismiss the whole draw before the joke
+  // ever showed, losing the reveal entirely.
   overlay.querySelectorAll('[data-draw-close]').forEach((el) => {
-    el.addEventListener('click', closeDraw);
+    el.addEventListener('click', () => {
+      if (cardInner.classList.contains('is-flipped')) closeDraw();
+    });
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !overlay.hidden) closeDraw();
+    if (e.key === 'Escape' && !overlay.hidden && cardInner.classList.contains('is-flipped')) closeDraw();
   });
   if (shareBtn) shareBtn.addEventListener('click', shareOnX);
 }
