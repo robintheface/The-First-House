@@ -442,8 +442,14 @@
   @keyframes gscroll{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
   .face-card{
     width:188px; height:226px; flex:0 0 auto;
-    background:rgba(111,207,58,0.04); border:1px solid rgba(232,212,77,0.4); border-radius:24px;
-    box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(111,207,58,0.28);
+    /* Both faces share the same hand-drawn frame from images/face-card-
+       back.png as this card's own background -- front and back read as
+       two sides of the same physical card instead of two different
+       border styles. border:1px solid transparent keeps a real border for
+       .is-lit/:hover below to recolor -- without any border-width here,
+       those rules' border-color changes would have nothing to render. */
+    background-image:url('images/face-card-back.png'); background-size:cover; background-position:center;
+    border:1px solid transparent; border-radius:24px; overflow:hidden;
     text-align:center; position:relative; z-index:1;
     transition:border-color .25s ease, box-shadow .25s ease, transform .3s cubic-bezier(.34,1.56,.64,1);
     /* Explicit height (measured from the old padding+content box) because
@@ -463,22 +469,27 @@
   .face-card-front, .face-card-back{
     position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
   }
-  .face-card-front{
-    padding:18px 14px 16px; /* the card's original padding, moved here from .face-card itself */
-  }
   .face-card-back{
     transform:rotateY(180deg);
   }
   .face-card-back-img{
-    display:block; width:100%; height:100%; object-fit:cover; border-radius:23px;
+    display:block; width:100%; height:100%; object-fit:cover;
   }
+  /* Sized and centered to sit inside the frame's own drawn emblem circle
+     (measured directly off a real 188x226 cover-cropped render of
+     face-card-back.png -- the ring sits dead-center, ~80px across). */
   .face-img{
-    display:block; width:100%; aspect-ratio:1/1; object-fit:contain;
-    margin-bottom:10px;
+    display:block; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);
+    width:78px; height:78px; object-fit:contain;
   }
   .face-label{
-    font-family:'IM Fell English',serif; font-size:16px; color:var(--ink-dim); letter-spacing:0.01em;
-    transition:color .25s ease;
+    font-family:'IM Fell English',serif; font-size:13px; color:var(--ink-dim); letter-spacing:0.01em;
+    transition:color .25s ease, background-color .25s ease;
+    /* The frame has its own text/graffiti near the bottom edge -- a small
+       dark pill behind the label keeps it legible over that. */
+    position:absolute; left:50%; bottom:8%; transform:translateX(-50%);
+    display:inline-block; padding:2px 10px; border-radius:999px; white-space:nowrap;
+    background:rgba(12,23,16,0.78);
   }
   /* Face of the Day only: no fixed marker in the gallery -- js/face-draw.js
      tracks whichever card is actually passing through .gallery-wrap's exact
