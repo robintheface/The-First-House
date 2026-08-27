@@ -96,10 +96,11 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   // land -- not the instant-top-speed-then-brake curve this had before.
   // The travel distance is fixed by real gallery geometry (see spinGallery
   // below), so for a fixed easing curve, speed at every point in the spin
-  // scales as 1/duration -- stretching the duration by 1/0.7 cuts the peak
-  // (mid-spin) speed to 70% of what it was, a flat 30% reduction, same
-  // curve shape either way.
-  const GALLERY_SPIN_MS = 7700; // was 5400 -- 5400/7700 ≈ 0.70x peak speed
+  // scales as 1/duration -- stretching the duration cuts the peak (mid-
+  // spin) speed by the same ratio, same curve shape either way.
+  // 5400 (original) -> 7700 (-30% peak) -> 15400 (-50% more on top of
+  // that, i.e. ~35% of the original peak speed).
+  const GALLERY_SPIN_MS = 15400;
   const GALLERY_SPIN_EASE = 'cubic-bezier(.76,0,.24,1)';
   let gallerySpinCleanup = null; // non-null only while a spin (or its post-landing pause) is in flight
   let galleryRafId = null;
@@ -334,9 +335,13 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     if (!currentMood || !currentJoke) return;
     const text = `${currentMood}: "${currentJoke}"`;
     const url = window.location.origin + window.location.pathname;
-    const intent = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text)
+    const intent = 'https://x.com/intent/tweet?text=' + encodeURIComponent(text)
       + '&url=' + encodeURIComponent(url) + '&via=robintheface';
-    window.open(intent, '_blank', 'noopener,noreferrer,width=600,height=420');
+    // Plain new-tab open, no width/height window features -- those mark it
+    // as a "popup" window to the browser (and to ad/popup blockers), which
+    // is blocked far more aggressively than a normal target=_blank tab even
+    // when it's triggered synchronously from a real click, as this is.
+    window.open(intent, '_blank', 'noopener,noreferrer');
   }
 
   if (fodBtn) fodBtn.addEventListener('click', openFaceOfTheDay);
