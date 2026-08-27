@@ -31,7 +31,6 @@ const realCards = [...document.querySelectorAll('.face-card')].filter((c) => c.g
 if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.length) {
   let currentMood = '';
   let currentJoke = '';
-  let revealTimer = null;
 
   function setCardContent(mood, joke, imgSrc){
     currentMood = mood;
@@ -362,20 +361,30 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     // the actual gallery, not behind a dialog. fodBtn is already disabled
     // (set above, before the allowance check), so a second spin can't
     // start before this one lands and fight it for control of the track.
+    // Two beats after landing: 1s with the winner card lit and sitting
+    // still in the gallery -> overlay backdrop appears (card still
+    // hidden) -> 0.5s later the card fades in showing the mood, with a
+    // "tap to reveal" prompt -- the joke flip is now a tap, not a timer.
     spinGallery(winnerIdx, (addedClones) => {
-      // A beat with the winner card lit and sitting still (the "what face"
-      // reveal) before the overlay takes over for the "what joke" reveal.
-      const revealDelay = setTimeout(() => {
+      const overlayDelay = setTimeout(() => {
         cleanupGallerySpin(addedClones);
         overlay.hidden = false;
         document.body.style.overflow = 'hidden';
-        cardEl.hidden = false;
-        setCardContent(winnerMood, winnerJoke, winnerImgSrc);
-        resetCardToFront();
-        clearTimeout(revealTimer);
-        revealTimer = setTimeout(triggerFlip, 2000);
-      }, 700);
-      gallerySpinCleanup = () => { clearTimeout(revealDelay); cleanupGallerySpin(addedClones); };
+        cardEl.hidden = true;
+
+        const fadeDelay = setTimeout(() => {
+          setCardContent(winnerMood, winnerJoke, winnerImgSrc);
+          resetCardToFront();
+          cardEl.hidden = false;
+          cardEl.classList.add('is-revealing');
+          void cardEl.offsetWidth; // force a reflow so the class removal below actually transitions
+          cardEl.classList.remove('is-revealing');
+        }, 500);
+        // Overlay's already up and the gallery's already restored at this
+        // point -- closing mid-fade just needs to cancel the pending reveal.
+        gallerySpinCleanup = () => { clearTimeout(fadeDelay); };
+      }, 1000);
+      gallerySpinCleanup = () => { clearTimeout(overlayDelay); cleanupGallerySpin(addedClones); };
     });
   }
 
@@ -384,8 +393,6 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     overlay.hidden = true;
     document.body.style.overflow = '';
     cardInner.removeEventListener('transitionend', onFlipEnd);
-    clearTimeout(revealTimer);
-    revealTimer = null;
     // Closing mid-spin (or during the post-landing pause, before the
     // overlay even opened) needs the gallery put back exactly as much as
     // closing after the joke's already showing does.
@@ -405,7 +412,16 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     window.open(intent, '_blank', 'noopener,noreferrer');
   }
 
+  // Tap to reveal -- the joke flip used to fire on a timer; now it's the
+  // user's own tap, any time after the mood's shown. Guarded by is-flipped
+  // so a tap on the back (e.g. missing the Share button) can't re-trigger it.
+  function tapToReveal(){
+    if (cardInner.classList.contains('is-flipped')) return;
+    triggerFlip();
+  }
+
   if (fodBtn) fodBtn.addEventListener('click', openFaceOfTheDay);
+  if (cardEl) cardEl.addEventListener('click', tapToReveal);
   overlay.querySelectorAll('[data-draw-close]').forEach((el) => {
     el.addEventListener('click', closeDraw);
   });
