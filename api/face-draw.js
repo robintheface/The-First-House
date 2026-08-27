@@ -10,8 +10,20 @@ const { clientIp, json } = require('./_util.js');
 const MAX_DRAWS_PER_DAY = 3;
 const DAY_SEC = 86400;
 
+// A short, explicit carve-out for specific IPs (comma-separated in the env,
+// never hardcoded here -- an IP is personal enough that it belongs in
+// Vercel's env config, not the public repo) that skip the daily cap
+// entirely. Checked before isConfigured() too, on purpose: a whitelisted
+// caller is meant to be unrestricted, not merely "unrestricted whenever the
+// store happens to be up."
+const WHITELIST = (process.env.FOD_WHITELIST_IPS || '')
+  .split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return json(res, 405, { error: 'method_not_allowed' });
+  if (WHITELIST.includes(clientIp(req).toLowerCase())) {
+    return json(res, 200, { ok: true, remaining: MAX_DRAWS_PER_DAY, limit: MAX_DRAWS_PER_DAY, unlimited: true });
+  }
   // Without a real store there is nowhere to count against -- refusing
   // here (rather than quietly allowing unlimited draws) keeps this
   // endpoint honest about what it can actually enforce, same call

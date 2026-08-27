@@ -5,6 +5,7 @@
 // gets exercised, not a stub.
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import http from "node:http";
+import { execFileSync } from "node:child_process";
 
 let mock, api, base;
 const store = { kv: new Map(), ttl: new Map() };
@@ -105,13 +106,49 @@ describe("POST /api/face-draw", () => {
   });
 });
 
+// FOD_WHITELIST_IPS is read through require() at load time too, same as
+// isConfigured() -- a child process with the env set from the start is
+// what actually observes it (see the "no store attached" block below for
+// why vi.resetModules() can't).
+describe("FOD_WHITELIST_IPS", () => {
+  function runWhitelisted(ip, env) {
+    const script = `
+      const h = require('${process.cwd()}/api/face-draw.js');
+      h({ method: 'POST', headers: { 'x-vercel-forwarded-for': '${ip}' }, url: '/api/face-draw' },
+        { statusCode: 0, setHeader() {}, end(b) { console.log(this.statusCode + ' ' + b); } });
+    `;
+    const out = execFileSync(process.execPath, ["-e", script], { env, encoding: "utf8" }).trim();
+    const spaceAt = out.indexOf(" ");
+    return { status: Number(out.slice(0, spaceAt)), body: JSON.parse(out.slice(spaceAt + 1)) };
+  }
+
+  it("skips the daily cap entirely for a whitelisted IP, even with no store attached", () => {
+    const env = { ...process.env, FOD_WHITELIST_IPS: "7.7.7.7, 8.8.8.8" };
+    delete env.KV_REST_API_URL; delete env.KV_REST_API_TOKEN;
+    delete env.UPSTASH_REDIS_REST_URL; delete env.UPSTASH_REDIS_REST_TOKEN;
+    const r = runWhitelisted("7.7.7.7", env);
+    expect(r.status).toBe(200);
+    expect(r.body).toEqual({ ok: true, remaining: 3, limit: 3, unlimited: true });
+  });
+
+  it("still enforces the cap for an IP not on the list", () => {
+    const env = { ...process.env, FOD_WHITELIST_IPS: "7.7.7.7" };
+    // Not whitelisted, and store not configured in this child env either
+    // -> falls through to the normal fail-closed path, not a free pass.
+    delete env.KV_REST_API_URL; delete env.KV_REST_API_TOKEN;
+    delete env.UPSTASH_REDIS_REST_URL; delete env.UPSTASH_REDIS_REST_TOKEN;
+    const r = runWhitelisted("6.6.6.6", env);
+    expect(r.status).toBe(503);
+  });
+});
+
 // api/_store.js reads its env through require() at load time, which
 // vi.resetModules() cannot reach -- same issue and same fix as
 // leaderboard-api.test.js's "no store attached" describe block: a child
 // process started with the store variables stripped is the only way to
 // actually observe the unconfigured path.
 describe("no store attached", () => {
-  it("fails closed (503) rather than allowing unlimited draws", async () => {
+  it("fails closed (503) rather than allowing unlimited draws", () => {
     const script = `
       const h = require('${process.cwd()}/api/face-draw.js');
       h({ method: 'POST', headers: {}, url: '/api/face-draw' },
@@ -122,7 +159,6 @@ describe("no store attached", () => {
     delete env.KV_REST_API_TOKEN;
     delete env.UPSTASH_REDIS_REST_URL;
     delete env.UPSTASH_REDIS_REST_TOKEN;
-    const { execFileSync } = await import("node:child_process");
     const out = execFileSync(process.execPath, ["-e", script], { env, encoding: "utf8" }).trim();
     const [status, ...rest] = out.split(" ");
     expect(Number(status)).toBe(503);

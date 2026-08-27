@@ -139,9 +139,6 @@
     <p class="section-desc">Swipe through the moods. You've made at least three of these this week.</p>
   </div>
   <div class="gallery-wrap">
-    <!-- Face of the Day only: spins .gallery-track itself to a stop under
-         this bar (see js/face-draw.js) -- hidden until then. -->
-    <div class="gallery-marker" hidden></div>
     <div class="gallery-track">
                 <div class="face-card">
           <img class="face-img" src="images/face-01.webp" alt="OG" loading="lazy" decoding="async">
@@ -337,9 +334,8 @@
         </div>
 </div>
   </div>
-  <div class="gallery-note">+ 13 more faces revealed as the chart moves</div>
   <div class="fod-row">
-    <button type="button" id="faceOfDayBtn" class="btn btn-primary">Face of the Day</button>
+    <button type="button" id="faceOfDayBtn" class="btn btn-spin">SPIN</button>
   </div>
   <p id="fodMessage" class="fod-message" hidden></p>
 </section>
