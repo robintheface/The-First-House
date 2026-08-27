@@ -142,6 +142,49 @@ describe("FOD_WHITELIST_IPS", () => {
   });
 });
 
+// FOD_RATE_LIMIT_DISABLED is a separate, broader lever than the whitelist
+// above -- it's meant to unblock *every* IP at once while the draw flow is
+// being tested end to end. Same require()-time env, same child-process
+// necessity as the whitelist tests above.
+describe("FOD_RATE_LIMIT_DISABLED", () => {
+  function runWithFlag(env) {
+    const script = `
+      const h = require('${process.cwd()}/api/face-draw.js');
+      h({ method: 'POST', headers: { 'x-vercel-forwarded-for': '20.20.20.20' }, url: '/api/face-draw' },
+        { statusCode: 0, setHeader() {}, end(b) { console.log(this.statusCode + ' ' + b); } });
+    `;
+    const out = execFileSync(process.execPath, ["-e", script], { env, encoding: "utf8" }).trim();
+    const spaceAt = out.indexOf(" ");
+    return { status: Number(out.slice(0, spaceAt)), body: JSON.parse(out.slice(spaceAt + 1)) };
+  }
+
+  it("unblocks every IP, even with no store attached, when set", () => {
+    const env = { ...process.env, FOD_RATE_LIMIT_DISABLED: "1" };
+    delete env.KV_REST_API_URL; delete env.KV_REST_API_TOKEN;
+    delete env.UPSTASH_REDIS_REST_URL; delete env.UPSTASH_REDIS_REST_TOKEN;
+    const r = runWithFlag(env);
+    expect(r.status).toBe(200);
+    expect(r.body).toEqual({ ok: true, remaining: 3, limit: 3, unlimited: true });
+  });
+
+  it("has no effect when unset (falls through to normal fail-closed enforcement)", () => {
+    const env = { ...process.env };
+    delete env.FOD_RATE_LIMIT_DISABLED;
+    delete env.KV_REST_API_URL; delete env.KV_REST_API_TOKEN;
+    delete env.UPSTASH_REDIS_REST_URL; delete env.UPSTASH_REDIS_REST_TOKEN;
+    const r = runWithFlag(env);
+    expect(r.status).toBe(503);
+  });
+
+  it("has no effect when explicitly \"0\"", () => {
+    const env = { ...process.env, FOD_RATE_LIMIT_DISABLED: "0" };
+    delete env.KV_REST_API_URL; delete env.KV_REST_API_TOKEN;
+    delete env.UPSTASH_REDIS_REST_URL; delete env.UPSTASH_REDIS_REST_TOKEN;
+    const r = runWithFlag(env);
+    expect(r.status).toBe(503);
+  });
+});
+
 // api/_store.js reads its env through require() at load time, which
 // vi.resetModules() cannot reach -- same issue and same fix as
 // leaderboard-api.test.js's "no store attached" describe block: a child

@@ -19,9 +19,16 @@ const DAY_SEC = 86400;
 const WHITELIST = (process.env.FOD_WHITELIST_IPS || '')
   .split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
 
+// Testing-only lever: any truthy FOD_RATE_LIMIT_DISABLED (Vercel env, e.g.
+// "1") turns off the daily cap for every IP, not just the whitelist --
+// for exercising the whole draw flow repeatedly while testing without
+// tripping the normal 3/day limit. Unset it (or set to "" / "0") to go
+// back to normal enforcement -- nothing else about the endpoint changes.
+const RATE_LIMIT_DISABLED = !!process.env.FOD_RATE_LIMIT_DISABLED && process.env.FOD_RATE_LIMIT_DISABLED !== '0';
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return json(res, 405, { error: 'method_not_allowed' });
-  if (WHITELIST.includes(clientIp(req).toLowerCase())) {
+  if (RATE_LIMIT_DISABLED || WHITELIST.includes(clientIp(req).toLowerCase())) {
     return json(res, 200, { ok: true, remaining: MAX_DRAWS_PER_DAY, limit: MAX_DRAWS_PER_DAY, unlimited: true });
   }
   // Without a real store there is nowhere to count against -- refusing
