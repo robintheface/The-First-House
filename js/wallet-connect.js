@@ -80,6 +80,7 @@ const spinnerGlyph = document.getElementById('modalSpinnerGlyph');
 const explorerLink = document.getElementById('holderExplorerLink');
 const tierBlurbEl = document.getElementById('holderTierBlurb');
 const copyBtn = document.getElementById('holderCopyBtn');
+const switchBtn = document.getElementById('holderSwitchBtn');
 const walletOptionBtns = modal ? modal.querySelectorAll('.wallet-option[data-wallet]') : [];
 // Mirrors the glyphs in the picker list, so the spinner shows what you
 // actually picked instead of a blank ring.
@@ -422,6 +423,27 @@ if (copyBtn) {
     if (glyph) glyph.textContent = '✓';
     clearTimeout(copyResetTimer);
     copyResetTimer = setTimeout(resetCopyBtn, 1600);
+  });
+}
+
+// ---------- switch wallet ----------
+if (switchBtn) {
+  switchBtn.addEventListener('click', () => {
+    // Best-effort: only a WalletConnect session can actually be told to end
+    // (it has its own .disconnect()). An injected wallet like MetaMask has
+    // no programmatic disconnect at all -- this just forgets the local
+    // session and brings the picker back, which is what actually matters
+    // when more than one wallet extension is installed.
+    if (activeProvider && typeof activeProvider.disconnect === 'function') {
+      Promise.resolve(activeProvider.disconnect()).catch(() => {});
+    }
+    activeProvider = null;
+    activeAddress = null;
+    setConnectLabel(RESTING_LABEL, false);
+    resetHeroArt();
+    clearError();
+    showStep(stepPick);
+    refreshWalletOptionMeta();
   });
 }
 
