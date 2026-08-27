@@ -304,7 +304,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
         setCardContent(winnerMood, winnerJoke, winnerImgSrc);
         resetCardToFront();
         clearTimeout(revealTimer);
-        revealTimer = setTimeout(triggerFlip, 550);
+        revealTimer = setTimeout(triggerFlip, 2000);
       }, 700);
       gallerySpinCleanup = () => { clearTimeout(revealDelay); cleanupGallerySpin(addedClones); };
     });
