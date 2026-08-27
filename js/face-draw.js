@@ -113,21 +113,30 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   }
 
   // ---------- spin tick, synthesized mono 8-bit ----------
-  // Back to a synthesized OscillatorNode blip (not the sound-effects/
-  // spin.mp3 file) -- one short click per card the spin's center actually
-  // crosses, fired on every real crossing regardless of whether that card
-  // is currently lit (see the glow gate in trackLitCard below), so the
-  // tick rate always genuinely tracks the spin's real speed instead of
-  // only ticking during the (now much shorter) lit windows. Pitch follows
-  // the real gap since the last tick, the same "rate falls out naturally"
-  // idea as before.
+  // Synthesized freewheel-click, like a bicycle chain/cassette ratcheting
+  // -- one short click per card the spin's center actually crosses, fired
+  // on every real crossing regardless of whether that card is currently
+  // lit (see the glow gate in trackLitCard below), so the tick rate always
+  // genuinely tracks the spin's real speed instead of only ticking during
+  // the (now much shorter) lit windows. A real freewheel click is a short
+  // broadband transient (the pawl clacking against the ratchet gear), not
+  // a pure tone, so this is a burst of noise through a bandpass filter
+  // rather than an oscillator -- reads as a mechanical click, not a beep.
+  // Tone still follows the real gap since the last tick, the same "rate
+  // falls out naturally" idea as before, just shaping the click's timbre
+  // now instead of a tone's pitch.
   let spinAudioCtx = null;
+  let spinClickBuffer = null;
   let lastTickAt = 0;
   function ensureSpinAudio(){
     if (spinAudioCtx) return spinAudioCtx;
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return null;
     spinAudioCtx = new AudioCtx();
+    const len = Math.round(spinAudioCtx.sampleRate * 0.04);
+    spinClickBuffer = spinAudioCtx.createBuffer(1, len, spinAudioCtx.sampleRate);
+    const data = spinClickBuffer.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
     return spinAudioCtx;
   }
   // Must run synchronously inside the real click handler, before any await
@@ -140,20 +149,23 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   }
   function playSpinTick(gapMs){
     const ctx = spinAudioCtx;
-    if (!ctx) return;
-    const freq = Math.max(320, Math.min(1100, 820 - (gapMs - 40) * 4));
+    if (!ctx || !spinClickBuffer) return;
     const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
+    const src = ctx.createBufferSource();
+    src.buffer = spinClickBuffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = Math.max(1600, Math.min(4000, 3000 - (gapMs - 40) * 10));
+    filter.Q.value = 3.2;
     const gain = ctx.createGain();
-    osc.type = 'square';
-    osc.frequency.value = freq;
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.09, now + 0.003); // half of the previous peak volume (0.18)
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
-    osc.connect(gain);
+    gain.gain.exponentialRampToValueAtTime(0.045, now + 0.001); // sharp attack -- a click, not a swell (half of the previous 0.09)
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.02); // short decay, like a pawl clacking a gear
+    src.connect(filter);
+    filter.connect(gain);
     gain.connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.05);
+    src.start(now);
+    src.stop(now + 0.03);
   }
   function stopSpinSound(){
     lastTickAt = 0;

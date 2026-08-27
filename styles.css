@@ -497,20 +497,14 @@
      Opened by the SPIN button once its gallery spin (js/face-draw.js,
      .face-card.is-lit above) lands on a winner, which then flips
      .face-draw-card-inner to reveal the joke on the back. Structurally a
-     near-twin of .wallet-modal (fixed overlay, backdrop blur, X to close,
-     Escape, backdrop click) so it reads as the same kind of surface as the
-     rest of the site rather than a one-off. */
+     near-twin of .wallet-modal (fixed overlay, backdrop blur, Escape,
+     backdrop click) so it reads as the same kind of surface as the rest of
+     the site rather than a one-off -- no X button, closing is backdrop
+     click or Escape only, per request. */
   .face-draw-overlay{position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center; padding:20px;}
   .face-draw-overlay[hidden]{display:none;}
   .face-draw-backdrop{position:absolute; inset:0; background:rgba(2,6,3,0.82); backdrop-filter:blur(8px);}
   .face-draw-stage{position:relative; z-index:1; perspective:1400px;}
-  .face-draw-close{
-    position:absolute; top:-46px; right:0; width:32px; height:32px; border-radius:10px;
-    display:flex; align-items:center; justify-content:center;
-    background:transparent; border:1px solid rgba(111,207,58,0.25); color:var(--ink-dim);
-    font-size:15px; line-height:1; cursor:pointer; z-index:2;
-    transition:border-color .15s ease, color .15s ease;
-  }
 
   .face-draw-card{
     position:relative; width:min(300px, 78vw); aspect-ratio:3/4;
@@ -1970,7 +1964,6 @@
     .rank-copy-btn:hover{background:rgba(111,207,58,0.18); border-color:rgba(111,207,58,0.5);}
     .rank-explorer-link:hover{color:#8ade56; border-color:#8ade56;}
     .rank-switch-link:hover{color:var(--cream2); text-decoration-color:rgba(238,244,234,0.6);}
-    .face-draw-close:hover{border-color:rgba(111,207,58,0.5); color:var(--cream2);}
     .face-draw-again:not(:disabled):hover{border-color:var(--gold); background:rgba(232,212,77,0.18);}
     .face-draw-share:hover{border-color:rgba(238,244,234,0.5); background:rgba(238,244,234,0.12);}
     .hood-ladder-item:hover{
