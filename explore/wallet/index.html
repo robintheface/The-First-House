@@ -62,7 +62,7 @@
       <span class="hero-sparkle" style="top:16%; right:16%; animation-delay:0.6s;">✦</span>
       <span class="hero-sparkle" style="bottom:22%; left:10%; animation-delay:1.2s;">✦</span>
       <span class="hero-sparkle" style="bottom:14%; right:12%; animation-delay:1.8s;">✦</span>
-      <img src="/logo-main-rank.webp" alt="Robin The Face">
+      <img id="heroArtImg" src="/logo-main-rank.webp" alt="Robin The Face">
     </div>
   </div>
 
@@ -113,7 +113,7 @@
       <p class="wallet-modal-sub">We only read your public $HOODFACE balance. No signatures, no approvals, no KYC.</p>
       <div class="wallet-option-list">
         <button type="button" class="wallet-option" data-wallet="metamask">
-          <span class="wallet-option-icon" aria-hidden="true">🦊</span>
+          <span class="wallet-option-icon"><img src="/icons/wallets/metamask.webp" alt="" width="24" height="24"></span>
           <span class="wallet-option-body">
             <span class="wallet-option-name">MetaMask</span>
             <span class="wallet-option-hint">Browser extension</span>
@@ -121,7 +121,7 @@
           <span class="wallet-option-meta">Checking…</span>
         </button>
         <button type="button" class="wallet-option" data-wallet="okx">
-          <span class="wallet-option-icon" aria-hidden="true">⬡</span>
+          <span class="wallet-option-icon"><img src="/icons/wallets/okx.webp" alt="" width="24" height="24"></span>
           <span class="wallet-option-body">
             <span class="wallet-option-name">OKX Wallet</span>
             <span class="wallet-option-hint">Browser extension</span>
@@ -129,7 +129,7 @@
           <span class="wallet-option-meta">Checking…</span>
         </button>
         <button type="button" class="wallet-option" data-wallet="walletconnect">
-          <span class="wallet-option-icon" aria-hidden="true">🔗</span>
+          <span class="wallet-option-icon"><img src="/icons/wallets/walletconnect.webp" alt="" width="24" height="24"></span>
           <span class="wallet-option-body">
             <span class="wallet-option-name">WalletConnect</span>
             <span class="wallet-option-hint">Scan with your phone</span>
@@ -147,7 +147,7 @@
 
     <div id="holderResult" class="wallet-modal-step" hidden>
       <div class="rank-hero">
-        <span class="rank-hero-icon"><span id="holderTierIcon" class="rank-hero-icon-inner">—</span></span>
+        <span class="rank-hero-icon"><span class="rank-hero-icon-inner"><img id="holderTierIcon" class="rank-hero-icon-img" src="/icons/tiers/none.webp" alt=""></span></span>
         <span class="rank-hero-copy">
           <span id="holderTier" class="rank-hero-title">—</span>
           <span class="rank-hero-live"><span class="rank-hero-live-dot"></span>Live on Robinhood Chain</span>

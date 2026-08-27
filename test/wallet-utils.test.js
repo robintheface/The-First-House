@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { tierFor, shortAddr, nextTierInfo, splitTierLabel, tierColorVar, tierBlurb } from "../js/wallet-utils.js";
+import { tierFor, shortAddr, nextTierInfo, splitTierLabel, tierColorVar, tierBlurb, tierIconImage, tierHeroImage, DEFAULT_HERO_IMAGE } from "../js/wallet-utils.js";
 
 describe("tierFor", () => {
   it("returns 'Not in the hood — yet' for a zero balance", () => {
@@ -143,5 +143,47 @@ describe("tierBlurb", () => {
     const onLadder = [...html.matchAll(/hood-ladder-blurb">([^<]+)</g)].map((m) => m[1]);
     const fromTierBlurb = [10000000, 1000000, 100000, 1, 0].map(tierBlurb);
     expect(onLadder).toEqual(fromTierBlurb);
+  });
+});
+
+describe("tierIconImage", () => {
+  it("matches the same boundaries as tierFor, tier by tier", () => {
+    expect(tierIconImage(0)).toBe("/icons/tiers/none.webp");
+    expect(tierIconImage(1)).toBe("/icons/tiers/fresh.webp");
+    expect(tierIconImage(99999)).toBe("/icons/tiers/fresh.webp");
+    expect(tierIconImage(100000)).toBe("/icons/tiers/hood.webp");
+    expect(tierIconImage(999999)).toBe("/icons/tiers/hood.webp");
+    expect(tierIconImage(1000000)).toBe("/icons/tiers/diamond.webp");
+    expect(tierIconImage(9999999)).toBe("/icons/tiers/diamond.webp");
+    expect(tierIconImage(10000000)).toBe("/icons/tiers/whale.webp");
+    expect(tierIconImage(50000000)).toBe("/icons/tiers/whale.webp");
+  });
+
+  it("treats a negative balance the same as zero", () => {
+    expect(tierIconImage(-5)).toBe("/icons/tiers/none.webp");
+  });
+});
+
+describe("tierHeroImage", () => {
+  it("matches the same boundaries as tierFor, tier by tier", () => {
+    expect(tierHeroImage(0)).toBe("/images/tiers/not_in_hood_yet.webp");
+    expect(tierHeroImage(1)).toBe("/images/tiers/fresh_face.webp");
+    expect(tierHeroImage(99999)).toBe("/images/tiers/fresh_face.webp");
+    expect(tierHeroImage(100000)).toBe("/images/tiers/hood_member.webp");
+    expect(tierHeroImage(999999)).toBe("/images/tiers/hood_member.webp");
+    expect(tierHeroImage(1000000)).toBe("/images/tiers/diamond_hood.webp");
+    expect(tierHeroImage(9999999)).toBe("/images/tiers/diamond_hood.webp");
+    expect(tierHeroImage(10000000)).toBe("/images/tiers/whale.webp");
+    expect(tierHeroImage(50000000)).toBe("/images/tiers/whale.webp");
+  });
+
+  it("treats a negative balance the same as zero", () => {
+    expect(tierHeroImage(-5)).toBe("/images/tiers/not_in_hood_yet.webp");
+  });
+});
+
+describe("DEFAULT_HERO_IMAGE", () => {
+  it("matches the page's own initial hero image", () => {
+    expect(DEFAULT_HERO_IMAGE).toBe("/logo-main-rank.webp");
   });
 });

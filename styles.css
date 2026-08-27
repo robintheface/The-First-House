@@ -624,6 +624,11 @@
     width:100%; height:100%; border-radius:50%; background:#07150c;
     display:flex; align-items:center; justify-content:center; font-size:24px;
   }
+  /* 78%, not 100% -- the tier art (icons/tiers/*.webp) is a character
+     illustration with its own transparent margin, drawn to sit inset like
+     the emoji it replaced rather than fill the circle edge-to-edge like an
+     avatar crop. */
+  .rank-hero-icon-img{width:78%; height:78%; object-fit:contain;}
   .rank-hero-copy{display:flex; flex-direction:column; gap:5px; min-width:0;}
   .rank-hero-title{
     font-family:'IM Fell English',serif; font-size:26px; font-weight:400; line-height:1.15;
@@ -758,6 +763,7 @@
     background:rgba(111,207,58,0.08); border:1px solid rgba(111,207,58,0.18);
     transition:background .15s ease, border-color .15s ease;
   }
+  .wallet-option-icon img{width:24px; height:24px; object-fit:contain;}
   /* A 120px floor, not 0 -- with flex-wrap on the row above, this is what
      makes the status pill drop to its own line under a narrow phone's
      width instead of both being squeezed onto one line together. Without a

@@ -77,6 +77,42 @@ export function tierBlurb(balanceNum) {
   return "Still watching from outside. There's room for one more.";
 }
 
+/**
+ * The small tier badge shown in the connect-wallet result's icon ring.
+ * Same boundaries as tierFor(), same reasoning as tierColorVar() for
+ * keeping its own copy of them rather than deriving a path from the label.
+ * @param {number} balanceNum
+ * @returns {string} an absolute path under icons/tiers/
+ */
+export function tierIconImage(balanceNum) {
+  if (balanceNum >= 10000000) return "/icons/tiers/whale.webp";
+  if (balanceNum >= 1000000) return "/icons/tiers/diamond.webp";
+  if (balanceNum >= 100000) return "/icons/tiers/hood.webp";
+  if (balanceNum > 0) return "/icons/tiers/fresh.webp";
+  return "/icons/tiers/none.webp";
+}
+
+// Shown before a wallet is connected, and restored on disconnect --
+// exported so wallet-connect.js resets to the exact same path the page's
+// own initial HTML already uses, rather than a second copy of the string.
+export const DEFAULT_HERO_IMAGE = "/logo-main-rank.webp";
+
+/**
+ * The large hero illustration on the wallet page (explore/wallet), swapped
+ * in once a connected wallet's tier is known -- replaces DEFAULT_HERO_IMAGE.
+ * Same boundaries as tierFor(); kept as its own copy for the same reason
+ * tierIconImage() is.
+ * @param {number} balanceNum
+ * @returns {string} an absolute path under images/tiers/
+ */
+export function tierHeroImage(balanceNum) {
+  if (balanceNum >= 10000000) return "/images/tiers/whale.webp";
+  if (balanceNum >= 1000000) return "/images/tiers/diamond_hood.webp";
+  if (balanceNum >= 100000) return "/images/tiers/hood_member.webp";
+  if (balanceNum > 0) return "/images/tiers/fresh_face.webp";
+  return "/images/tiers/not_in_hood_yet.webp";
+}
+
 // Same thresholds as tierFor() above, in climbing order -- kept separate
 // (rather than deriving one from the other) since tierFor's early-return
 // ladder and this ascending list read clearest each in their own shape.

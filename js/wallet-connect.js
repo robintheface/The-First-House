@@ -4,7 +4,7 @@
 // is the one page that actually talks to a wallet, so it's the one most
 // worth protecting from XSS-injected inline scripts that could otherwise
 // hook window.ethereum and tamper with a transaction before the user signs.
-import { tierFor, shortAddr, nextTierInfo, splitTierLabel, tierColorVar, tierBlurb } from "./wallet-utils.js";
+import { tierFor, shortAddr, nextTierInfo, splitTierLabel, tierColorVar, tierBlurb, tierIconImage, tierHeroImage, DEFAULT_HERO_IMAGE } from "./wallet-utils.js";
 
 const HOODFACE_ADDRESS = "0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274";
 const ROBINHOOD_CHAIN_ID_HEX = "0x1237"; // 4663 in hex
@@ -70,6 +70,7 @@ const addrEl = document.getElementById('holderAddr');
 const balanceEl = document.getElementById('holderBalance');
 const tierEl = document.getElementById('holderTier');
 const tierIconEl = document.getElementById('holderTierIcon');
+const heroArtImg = document.getElementById('heroArtImg');
 const nextTierProgress = document.getElementById('nextTierProgress');
 const nextTierMaxed = document.getElementById('nextTierMaxed');
 const nextTierName = document.getElementById('nextTierName');
@@ -217,9 +218,19 @@ async function loadBalance(address, provider){
   addrEl.textContent = shortAddr(address);
   addrEl.title = address; // full address on hover -- shortAddr() is display-only
   balanceEl.textContent = balanceNum.toLocaleString(undefined, {maximumFractionDigits: 0});
-  const { icon, name } = splitTierLabel(tierFor(balanceNum));
+  const { name } = splitTierLabel(tierFor(balanceNum));
   tierEl.textContent = name;
-  if (tierIconEl) tierIconEl.textContent = icon;
+  if (tierIconEl) {
+    tierIconEl.src = tierIconImage(balanceNum);
+    tierIconEl.alt = name;
+  }
+  // The right-side hero art follows the same tier -- falls back to the
+  // default character art rather than a broken-image icon if a tier's file
+  // is ever missing/renamed.
+  if (heroArtImg) {
+    heroArtImg.onerror = () => { heroArtImg.onerror = null; heroArtImg.src = DEFAULT_HERO_IMAGE; };
+    heroArtImg.src = tierHeroImage(balanceNum);
+  }
   // Recolors the icon ring, the title and the "live" dot to match this
   // tier -- everything below reads it off this one custom property, set on
   // the whole result panel rather than each element individually.
@@ -321,6 +332,7 @@ function attachProviderListeners(provider){
       activeProvider = null;
       activeAddress = null;
       setConnectLabel(RESTING_LABEL, false);
+      resetHeroArt();
       closeModal();
       return;
     }
@@ -340,8 +352,17 @@ function attachProviderListeners(provider){
     activeProvider = null;
     activeAddress = null;
     setConnectLabel(RESTING_LABEL, false);
+    resetHeroArt();
     closeModal();
   });
+}
+
+// Back to the default character art -- called whenever a session ends, so a
+// still-open page doesn't keep showing a tier that's no longer connected.
+function resetHeroArt(){
+  if (!heroArtImg) return;
+  heroArtImg.onerror = null;
+  heroArtImg.src = DEFAULT_HERO_IMAGE;
 }
 
 connectBtns.forEach((btn) => btn.addEventListener('click', openModal));
