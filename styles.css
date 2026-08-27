@@ -610,17 +610,10 @@
     margin:0;
   }
   .face-draw-actions{display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:6px;}
-  .face-draw-again, .face-draw-share{
+  .face-draw-share{
     padding:9px 16px; border-radius:999px; cursor:pointer;
     font-family:'IM Fell English',serif; font-size:14px;
     transition:border-color .15s ease, background .15s ease, color .15s ease, opacity .15s ease;
-  }
-  .face-draw-again{
-    color:var(--gold);
-    background:rgba(232,212,77,0.1); border:1px solid rgba(232,212,77,0.4);
-  }
-  .face-draw-again:disabled{opacity:0.5; cursor:not-allowed;}
-  .face-draw-share{
     color:var(--cream2);
     background:rgba(238,244,234,0.06); border:1px solid rgba(238,244,234,0.25);
   }
@@ -1964,7 +1957,6 @@
     .rank-copy-btn:hover{background:rgba(111,207,58,0.18); border-color:rgba(111,207,58,0.5);}
     .rank-explorer-link:hover{color:#8ade56; border-color:#8ade56;}
     .rank-switch-link:hover{color:var(--cream2); text-decoration-color:rgba(238,244,234,0.6);}
-    .face-draw-again:not(:disabled):hover{border-color:var(--gold); background:rgba(232,212,77,0.18);}
     .face-draw-share:hover{border-color:rgba(238,244,234,0.5); background:rgba(238,244,234,0.12);}
     .hood-ladder-item:hover{
       border-color:rgba(111,207,58,0.35);

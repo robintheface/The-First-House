@@ -4,10 +4,11 @@
 // CS:GO-case-opening style: it races past the dead center of the gallery
 // (no fixed marker -- whichever card is actually passing through center
 // lights up live, tracked every frame) and decelerates to a stop, and
-// whichever face is lit when it lands flips to reveal its joke, with Draw
-// again / Share / close controls. Kept as an external module, same CSP
-// reason as wallet-connect.js: script-src has no 'unsafe-inline'.
-import { randomJoke, nextJoke } from "./face-jokes.js";
+// whichever face is lit when it lands flips to reveal its joke, with a
+// Share on X control (close via backdrop click or Escape). Kept as an
+// external module, same CSP reason as wallet-connect.js: script-src has
+// no 'unsafe-inline'.
+import { randomJoke } from "./face-jokes.js";
 import { rarityFor } from "./face-rarity.js";
 
 const RARITY_CLASSES = ["rarity-legendary", "rarity-mythic", "rarity-silver", "rarity-bronze"]; // "normal" gets none
@@ -18,7 +19,6 @@ const cardInner = cardEl ? cardEl.querySelector('.face-draw-card-inner') : null;
 const imgEl = document.getElementById('faceDrawImg');
 const labelEl = document.getElementById('faceDrawLabel');
 const jokeEl = document.getElementById('faceDrawJoke');
-const againBtn = document.getElementById('faceDrawAgainBtn');
 const shareBtn = document.getElementById('faceDrawShareBtn');
 const fodBtn = document.getElementById('faceOfDayBtn');
 const fodMessage = document.getElementById('fodMessage');
@@ -31,10 +31,6 @@ const realCards = [...document.querySelectorAll('.face-card')].filter((c) => c.g
 if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.length) {
   let currentMood = '';
   let currentJoke = '';
-  // Odd = back (joke) showing, even = front (face) showing. Only ever
-  // climbs -- every reroll/reveal spins the same direction rather than
-  // snapping back to 0, so each one reads as forward motion.
-  let flipTurns = 0;
   let revealTimer = null;
 
   function setCardContent(mood, joke, imgSrc){
@@ -52,32 +48,23 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     if (tier !== 'normal') cardEl.classList.add('rarity-' + tier);
   }
 
-  // Shared by every path that lands on the back face (the reveal flip and
-  // every "Draw again" reroll) -- re-enabling the button here (rather than
-  // the moment a flip starts) means it can't be clicked again mid-flip,
-  // which matters since a reroll mid-flight would restart a fresh
-  // transition on top of one that never got to finish.
   function onFlipEnd(e){
     if (e.target !== cardInner || e.propertyName !== 'transform') return;
     cardInner.removeEventListener('transitionend', onFlipEnd);
     jokeEl.textContent = currentJoke;
-    if (againBtn) againBtn.disabled = false;
   }
 
   function triggerFlip(){
-    flipTurns += flipTurns % 2 === 0 ? 1 : 2; // land on an odd multiple (back showing) either way
     cardInner.classList.add('is-flipped');
     cardInner.removeEventListener('transitionend', onFlipEnd);
-    cardInner.style.transform = `rotateY(${flipTurns * 180}deg)`;
+    cardInner.style.transform = 'rotateY(180deg)';
     cardInner.addEventListener('transitionend', onFlipEnd);
   }
 
   function resetCardToFront(){
-    flipTurns = 0;
     cardInner.classList.remove('is-flipped');
     cardInner.removeEventListener('transitionend', onFlipEnd);
     cardInner.style.transform = 'rotateY(0deg)';
-    if (againBtn) { againBtn.disabled = true; againBtn.textContent = 'Draw again ↻'; }
   }
 
   // ---------- Face of the Day spins the live gallery itself ----------
@@ -159,7 +146,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     filter.Q.value = 3.2;
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.045, now + 0.001); // sharp attack -- a click, not a swell (half of the previous 0.09)
+    gain.gain.exponentialRampToValueAtTime(0.063, now + 0.001); // sharp attack -- a click, not a swell (0.045 + 40%)
     gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.02); // short decay, like a pawl clacking a gear
     src.connect(filter);
     filter.connect(gain);
@@ -373,9 +360,8 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
 
     // No overlay/backdrop yet -- the spin plays out on the page itself, in
     // the actual gallery, not behind a dialog. fodBtn is already disabled
-    // (set above, before the allowance check) -- same reason a card
-    // mid-flip disables Draw again: a second spin starting before this one
-    // lands would fight it for control of the track.
+    // (set above, before the allowance check), so a second spin can't
+    // start before this one lands and fight it for control of the track.
     spinGallery(winnerIdx, (addedClones) => {
       // A beat with the winner card lit and sitting still (the "what face"
       // reveal) before the overlay takes over for the "what joke" reveal.
@@ -393,7 +379,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     });
   }
 
-  // ---------- shared: close / reroll / share ----------
+  // ---------- shared: close / share ----------
   function closeDraw(){
     overlay.hidden = true;
     document.body.style.overflow = '';
@@ -404,13 +390,6 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     // overlay even opened) needs the gallery put back exactly as much as
     // closing after the joke's already showing does.
     if (gallerySpinCleanup) gallerySpinCleanup();
-  }
-
-  function drawAgain(){
-    if (!currentMood || (againBtn && againBtn.disabled)) return;
-    currentJoke = nextJoke(currentMood, currentJoke);
-    if (againBtn) againBtn.disabled = true;
-    triggerFlip();
   }
 
   function shareOnX(){
@@ -433,6 +412,5 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !overlay.hidden) closeDraw();
   });
-  if (againBtn) againBtn.addEventListener('click', drawAgain);
   if (shareBtn) shareBtn.addEventListener('click', shareOnX);
 }
