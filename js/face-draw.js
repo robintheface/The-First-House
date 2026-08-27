@@ -105,6 +105,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   let gallerySpinCleanup = null; // non-null only while a spin (or its post-landing pause) is in flight
   let galleryRafId = null;
   let litCard = null;
+  let glowActive = true; // spin always starts slow, so it starts lit
 
   function readTranslateX(el){
     const m = getComputedStyle(el).transform;
@@ -120,8 +121,10 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   // "tempo follows the spin" idea an earlier synthesized tick had, now
   // driven by a real recording instead.
   const SPIN_SOUND_SRC = '/sound-effects/spin.mp3';
-  const SPIN_RATE_MIN = 0.55;
-  const SPIN_RATE_MAX = 1.7;
+  // Wider than the first pass (0.55-1.7) so the tempo change actually
+  // reads as "synced to the spin" by ear, not just a subtle wobble.
+  const SPIN_RATE_MIN = 0.45;
+  const SPIN_RATE_MAX = 2.0;
   // Empirically measured against this exact easing curve: peak
   // instantaneous speed during a spin ≈ (travel distance / duration) *
   // this factor, fairly consistent across the different durations and
@@ -129,12 +132,19 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   // the real distance/duration below rather than hardcoded, so it stays
   // right if either changes again later.
   const SPIN_SOUND_PEAK_FACTOR = 5.95;
+  // Below this fraction of the spin's peak speed, the passing card
+  // actually lights up; at or above it, no card lights (see trackLitCard).
+  // The fast cruise in the middle whips past many cards a second -- lighting
+  // every one of them, each with its own glow/scale pop, reads as a strobe
+  // rather than a highlight. Gating it to the slow start and the (long)
+  // decelerating tail keeps the glow meaningful without the flicker.
+  const GLOW_SPEED_RATIO = 0.18;
 
   let spinSoundEl = null;
   let spinSoundPrimed = false;
   let spinSoundPeakSpeed = 1;
-  let lastSpeedX = 0;
-  let lastSpeedT = 0;
+  let lastTrackX = 0;
+  let lastTrackT = 0;
 
   function ensureSpinSound(){
     if (!spinSoundEl) {
@@ -163,8 +173,6 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   function startSpinSound(peakSpeedPxMs){
     const el = ensureSpinSound();
     spinSoundPeakSpeed = peakSpeedPxMs || 1;
-    lastSpeedX = readTranslateX(galleryTrack);
-    lastSpeedT = performance.now();
     el.currentTime = 0;
     el.volume = 0.55;
     el.playbackRate = SPIN_RATE_MIN;
@@ -172,17 +180,13 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     if (p && p.catch) p.catch(() => {});
   }
 
-  function updateSpinSoundRate(x){
+  // speed is px/ms, the same live measurement trackLitCard already takes
+  // each frame -- one measurement drives both the sound's tempo and the
+  // glow gate below, so they can't drift out of sync with each other.
+  function updateSpinSoundRate(speed){
     if (!spinSoundEl) return;
-    const now = performance.now();
-    const dt = now - lastSpeedT;
-    if (dt > 0) {
-      const speed = Math.abs(x - lastSpeedX) / dt;
-      const ratio = Math.min(1, speed / spinSoundPeakSpeed);
-      spinSoundEl.playbackRate = SPIN_RATE_MIN + ratio * (SPIN_RATE_MAX - SPIN_RATE_MIN);
-    }
-    lastSpeedX = x;
-    lastSpeedT = now;
+    const ratio = Math.min(1, speed / spinSoundPeakSpeed);
+    spinSoundEl.playbackRate = SPIN_RATE_MIN + ratio * (SPIN_RATE_MAX - SPIN_RATE_MIN);
   }
 
   // A quick fade rather than an abrupt cut when the spin stops or the
@@ -212,10 +216,33 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
 
   function trackLitCard(step, cardWidth, centerX, totalCount){
     const trackX = readTranslateX(galleryTrack);
+    const now = performance.now();
+    const dt = now - lastTrackT;
+    const speed = dt > 0 ? Math.abs(trackX - lastTrackX) / dt : 0;
+    lastTrackX = trackX;
+    lastTrackT = now;
+
     const centerInTrack = centerX - trackX;
     const idx = Math.max(0, Math.min(totalCount - 1, Math.round((centerInTrack - cardWidth / 2) / step)));
-    setLitCard(galleryTrack.children[idx]);
-    updateSpinSoundRate(trackX);
+    // Hysteresis around the threshold -- crossing a single speed value
+    // right at the boundary between the fast cruise and the slow tail lets
+    // measurement noise flicker glowActive on/off several times in as many
+    // frames. A gap between the "turn off" and "turn on" speeds keeps that
+    // crossing a single, clean transition instead of a mini strobe burst.
+    const threshold = spinSoundPeakSpeed * GLOW_SPEED_RATIO;
+    if (glowActive) {
+      if (speed > threshold * 1.3) glowActive = false;
+    } else if (speed <= threshold * 0.75) {
+      glowActive = true;
+    }
+    if (glowActive) {
+      setLitCard(galleryTrack.children[idx]);
+    } else if (litCard) {
+      // Too fast to track by eye right now -- go dark rather than strobe.
+      litCard.classList.remove('is-lit');
+      litCard = null;
+    }
+    updateSpinSoundRate(speed);
     galleryRafId = requestAnimationFrame(() => trackLitCard(step, cardWidth, centerX, totalCount));
   }
 
@@ -274,6 +301,9 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     const targetX = currentX + (centerX - winnerCenter) + jitter;
 
     stopLitTracking();
+    lastTrackX = currentX;
+    lastTrackT = performance.now();
+    glowActive = true;
     trackLitCard(step, cardWidth, centerX, galleryTrack.children.length);
     startSpinSound((Math.abs(targetX - currentX) / GALLERY_SPIN_MS) * SPIN_SOUND_PEAK_FACTOR);
 

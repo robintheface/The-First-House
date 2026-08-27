@@ -412,11 +412,16 @@
 
   /* ---------- gallery ---------- */
   .gallery-wrap{overflow-x:hidden; overflow-y:visible; position:relative;}
+  /* Widened from a thin 60px edge hint to a real vignette -- a whole row of
+     bright cards whipping by (especially mid-spin) reads as busy/glare-y;
+     fading everything outside roughly the middle 3 cards down toward the
+     page background keeps focus on the center without hard-cutting
+     anything (still just a color wash, so nothing is actually clipped). */
   .gallery-wrap::before, .gallery-wrap::after{
-    content:""; position:absolute; top:0; bottom:0; width:60px; z-index:2; pointer-events:none;
+    content:""; position:absolute; top:0; bottom:0; width:32%; z-index:2; pointer-events:none;
   }
-  .gallery-wrap::before{left:0; background:linear-gradient(90deg, var(--bg), transparent);}
-  .gallery-wrap::after{right:0; background:linear-gradient(270deg, var(--bg), transparent);}
+  .gallery-wrap::before{left:0; background:linear-gradient(90deg, var(--bg) 0%, var(--bg) 45%, transparent 100%);}
+  .gallery-wrap::after{right:0; background:linear-gradient(270deg, var(--bg) 0%, var(--bg) 45%, transparent 100%);}
   .gallery-track{
     display:flex; gap:26px; width:max-content;
     animation:gscroll 42s linear infinite;
