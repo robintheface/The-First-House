@@ -124,9 +124,9 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && cards.length
   let reelRafId = null;
   let litSlotIndex = -1;
 
-  // No fixed marker line -- instead, whichever slot is actually passing
-  // under the (always-visible) center zone gets lit up live as the reel
-  // spins, so the highlight itself is what's traveling.
+  // The marker bar itself is fixed (CSS, .face-draw-reel-marker) -- this
+  // just tracks which slot is actually passing under it, live, and lights
+  // that one up (.is-lit) as the reel spins.
   function setLitSlot(idx){
     if (idx === litSlotIndex) return;
     const slots = reelTrackEl.children;

@@ -520,16 +520,16 @@
   }
 
   /* ---------- face draw reel (Face of the Day) ----------
-     A strip of faces races past a centered highlight zone and decelerates
-     to a stop (js/face-draw.js: spinReel()); whichever slot the live rAF
-     tracking finds under the zone gets .is-lit, so the highlight itself
-     travels with the spin rather than sitting on a fixed marker line. */
+     A strip of faces races past a centered marker bar and decelerates to a
+     stop (js/face-draw.js: spinReel()); whichever slot the live rAF
+     tracking finds under the bar gets .is-lit, so the highlight itself
+     travels with the spin. Once it lands, that's the winner. */
   .face-draw-reel{position:relative; width:min(420px, 92vw);}
   .face-draw-reel-viewport{position:relative; overflow:hidden; border-radius:20px; padding:14px 0;}
-  .face-draw-reel-zone{
-    position:absolute; top:8px; bottom:8px; left:50%; width:88px; transform:translateX(-50%);
-    border:2px solid var(--gold); border-radius:16px;
-    background:rgba(232,212,77,0.08); box-shadow:0 0 26px -4px rgba(232,212,77,0.55);
+  .face-draw-reel-marker{
+    position:absolute; top:0; bottom:0; left:50%; width:3px; transform:translateX(-50%);
+    background:var(--gold); border-radius:2px;
+    box-shadow:0 0 14px 2px rgba(232,212,77,0.75);
     pointer-events:none; z-index:2;
   }
   .face-draw-reel-track{display:flex; gap:10px; width:max-content;}
