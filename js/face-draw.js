@@ -3,7 +3,7 @@
 // pull, then flips it to reveal a random joke for that mood on the back.
 // Kept as an external module, same CSP reason as wallet-connect.js:
 // script-src has no 'unsafe-inline'.
-import { randomJoke, nextJoke } from "./face-jokes.js";
+import { jokeOfTheDay, nextJoke } from "./face-jokes.js";
 
 const overlay = document.getElementById('faceDrawOverlay');
 const cardEl = document.getElementById('faceDrawCard');
@@ -26,11 +26,26 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && cards.length
     const img = card.querySelector('.face-img');
     const label = card.querySelector('.face-label');
     currentMood = label ? label.textContent.trim() : '';
-    currentJoke = randomJoke(currentMood);
+    // The default reveal is "joke of the day" -- same for every visitor
+    // drawing this mood today, rotates tomorrow. Draw again (below) is the
+    // one that's actually random.
+    currentJoke = jokeOfTheDay(currentMood);
     imgEl.src = img ? img.src : '';
     imgEl.alt = '';
     labelEl.textContent = currentMood;
     jokeEl.textContent = currentJoke;
+  }
+
+  // Shared by the initial reveal flip and every "Draw again" reroll --
+  // re-enabling the button here (rather than the moment the flip starts)
+  // means it can't be clicked again mid-flip, which matters since a reroll
+  // mid-flight would restart a fresh 500ms transition on top of one that
+  // never got to finish.
+  function onFlipEnd(e){
+    if (e.target !== cardInner || e.propertyName !== 'transform') return;
+    cardInner.removeEventListener('transitionend', onFlipEnd);
+    jokeEl.textContent = currentJoke;
+    if (againBtn) againBtn.disabled = false;
   }
 
   function onSpinInEnd(e){
@@ -38,8 +53,9 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && cards.length
     cardEl.removeEventListener('animationend', onSpinInEnd);
     flipTurns = 1;
     cardInner.classList.add('is-flipped');
+    cardInner.removeEventListener('transitionend', onFlipEnd);
     cardInner.style.transform = 'rotateY(180deg)';
-    if (againBtn) againBtn.disabled = false;
+    cardInner.addEventListener('transitionend', onFlipEnd);
   }
 
   function openDraw(card){
@@ -62,6 +78,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && cards.length
 
     flipTurns = 0;
     cardInner.classList.remove('is-flipped');
+    cardInner.removeEventListener('transitionend', onFlipEnd);
     cardInner.style.transform = 'rotateY(0deg)';
     if (againBtn) { againBtn.disabled = true; againBtn.textContent = 'Draw again ↻'; }
 
@@ -77,13 +94,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && cards.length
     document.body.style.overflow = '';
     cardEl.classList.remove('is-spinning');
     cardEl.removeEventListener('animationend', onSpinInEnd);
-  }
-
-  function onRerollFlipEnd(e){
-    if (e.target !== cardInner || e.propertyName !== 'transform') return;
-    cardInner.removeEventListener('transitionend', onRerollFlipEnd);
-    jokeEl.textContent = currentJoke;
-    if (againBtn) againBtn.disabled = false;
+    cardInner.removeEventListener('transitionend', onFlipEnd);
   }
 
   function drawAgain(){
@@ -91,9 +102,9 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && cards.length
     currentJoke = nextJoke(currentMood, currentJoke);
     if (againBtn) againBtn.disabled = true;
     flipTurns += 2; // stays on an odd multiple -- back still faces forward
-    cardInner.removeEventListener('transitionend', onRerollFlipEnd);
+    cardInner.removeEventListener('transitionend', onFlipEnd);
     cardInner.style.transform = `rotateY(${flipTurns * 180}deg)`;
-    cardInner.addEventListener('transitionend', onRerollFlipEnd);
+    cardInner.addEventListener('transitionend', onFlipEnd);
   }
 
   cards.forEach((card) => {
