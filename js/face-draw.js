@@ -13,18 +13,6 @@ import { randomJoke } from "./face-jokes.js";
 import { rarityFor } from "./face-rarity.js";
 
 const RARITY_CLASSES = ["rarity-legendary", "rarity-mythic", "rarity-silver", "rarity-bronze"]; // "normal" gets none
-// One full sheen pass's real-world length per tier (styles.css's rarity
-// shine block) -- the longer of its layers, i.e. the animated layer's own
-// duration plus whatever fixed chase offset it starts with (legendary/mythic
-// have a second glint layer offset .35s/.5s after the first; silver/bronze
-// only have the one layer). Mirrored here so JS knows when a pass has
-// actually finished and it's time to roll a new random gap before the next.
-const SHEEN_PASS_MS = {
-  legendary: (2.2 + 0.35) * 1000,
-  mythic: (2.6 + 0.5) * 1000,
-  silver: 2.6 * 1000,
-  bronze: 3 * 1000,
-};
 
 const overlay = document.getElementById('faceDrawOverlay');
 const cardEl = document.getElementById('faceDrawCard');
@@ -44,36 +32,6 @@ const realCards = [...document.querySelectorAll('.face-card')].filter((c) => c.g
 if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.length) {
   let currentMood = '';
   let currentJoke = '';
-  let sheenTimer = null;
-
-  function stopSheenLoop(){
-    if (sheenTimer) { clearTimeout(sheenTimer); sheenTimer = null; }
-  }
-
-  // Retriggers the CSS sweep (styles.css: animation-iteration-count:1, so it
-  // parks off-canvas once a pass finishes rather than looping on its own)
-  // after a random 0.6-1s gap -- toggling the rarity class off/on forces the
-  // pseudo-elements' animation to actually restart with the new --sheen-delay,
-  // just changing the custom property alone wouldn't replay a finished
-  // single-iteration animation.
-  // currentDelayMs is the --sheen-delay this cycle is *currently* running
-  // with (0 for the very first pass, otherwise the random gap set on the
-  // last restart) -- the wait before the *next* restart has to be that
-  // delay plus the pass's own sweep duration, not just the sweep duration
-  // alone, or the timer fires while the sweep is still sitting in its own
-  // leading delay and cuts it off partway through instead of after it.
-  function scheduleNextSheen(tier, currentDelayMs){
-    const passMs = SHEEN_PASS_MS[tier];
-    if (!passMs) return;
-    sheenTimer = setTimeout(() => {
-      const gapMs = 600 + Math.random() * 400; // next pass's --sheen-delay, 0.6-1s
-      cardEl.classList.remove('rarity-' + tier);
-      void cardEl.offsetWidth; // reflow -- forces the next class-add to restart the animation
-      cardEl.style.setProperty('--sheen-delay', (gapMs / 1000).toFixed(3) + 's');
-      cardEl.classList.add('rarity-' + tier);
-      scheduleNextSheen(tier, gapMs);
-    }, currentDelayMs + passMs);
-  }
 
   function setCardContent(mood, joke, imgSrc){
     currentMood = mood;
@@ -84,15 +42,12 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     jokeEl.textContent = joke;
     // Legendary/mythic/silver/bronze shine on the front face, matching how
     // "big" this mood reads (see js/face-rarity.js) -- a plain "normal"
-    // pull gets none of these classes.
-    stopSheenLoop();
+    // pull gets none of these classes. The sweep/pause loop itself is pure
+    // CSS now (styles.css's fr-sheen-sweep-* keyframes) -- setting the
+    // class is all it takes, no JS timer driving it.
     cardEl.classList.remove(...RARITY_CLASSES);
     const tier = rarityFor(mood);
-    if (tier !== 'normal') {
-      cardEl.style.setProperty('--sheen-delay', '0s'); // first pass plays immediately, no gap
-      cardEl.classList.add('rarity-' + tier);
-      scheduleNextSheen(tier, 0);
-    }
+    if (tier !== 'normal') cardEl.classList.add('rarity-' + tier);
   }
 
   function onFlipEnd(e){
@@ -440,7 +395,6 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   function closeDraw(){
     overlay.hidden = true;
     document.body.style.overflow = '';
-    stopSheenLoop();
     cardInner.removeEventListener('transitionend', onFlipEnd);
     // Closing mid-spin (or during the post-landing pause, before the
     // overlay even opened) needs the gallery put back exactly as much as

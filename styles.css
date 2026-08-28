@@ -509,11 +509,6 @@
   .face-draw-card{
     position:relative; width:min(300px, 78vw); aspect-ratio:3/4;
     opacity:1; transition:opacity .4s ease;
-    /* js/face-draw.js drives this per sweep: 0s for the very first pass,
-       then a random 0.6-1s gap before every pass after that (see the
-       rarity sheen block below) -- default here just covers the moment
-       before JS has set it. */
-    --sheen-delay:0s;
   }
   /* Toggled on/off around a reflow (js/face-draw.js) to fade the card in
      once the overlay backdrop's already up -- a beat of empty backdrop
@@ -552,10 +547,15 @@
      pull gets none of them and the front face looks exactly as it always
      has. Scoped to .face-draw-front only -- the back (the joke itself)
      stays the same gold quote-card regardless of what was pulled.
-     Each sweep below runs once per --sheen-delay activation, not on an
-     infinite loop -- js/face-draw.js retriggers it after every pass with a
-     fresh random 0.6-1s --sheen-delay, so the light glints past on an
-     uneven beat instead of ticking by like a metronome. */
+     Reset back to a plain, single continuous CSS animation per layer --
+     no JS restart/reflow trick driving it. A prior version tried to
+     randomize the pause between sweeps by having JS retrigger a
+     single-shot animation, which read as a visible hitch/stutter on every
+     restart. Simpler and smoother: each keyframe rule below travels the
+     light across in its own sweep time, then *holds* parked off-canvas
+     (same background-position as the sweep's last frame) for a fixed
+     1.5s before the infinite loop starts the next sweep -- one seamless
+     animation, no JS involved once the rarity class is set. */
   .face-draw-front::after{
     content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
   }
@@ -576,34 +576,28 @@
        foil rather than a gradient wash sliding across. opacity:0.5 on
        this and the other rarity layers below halves the whole effect's
        intensity -- simpler and more consistent than re-tuning every
-       rgba alpha by hand. */
+       rgba alpha by hand. Band narrowed to well under half its old spread
+       (was transparent 28%..72%, a 44-point band; now 41%..59%, an
+       18-point band) -- a tighter streak reads more like an actual glint
+       than a wide gradient wash. */
     opacity:0.5;
     background:linear-gradient(115deg,
-      transparent 28%, rgba(255,244,200,0.2) 40%, rgba(255,251,235,0.98) 47%,
-      rgba(255,215,80,0.98) 50%, rgba(255,244,200,0.2) 60%, transparent 72%);
+      transparent 41%, rgba(255,244,200,0.2) 45%, rgba(255,251,235,0.98) 48%,
+      rgba(255,215,80,0.98) 50%, rgba(255,244,200,0.2) 55%, transparent 59%);
     background-size:220% 220%;
-    /* One pass per activation (not infinite) -- js/face-draw.js retriggers
-       this after each pass completes, with a random 0.6-1s --sheen-delay
-       so the light doesn't sweep on a metronome. fill-mode:forwards parks
-       it off-canvas (background-position from the keyframe's 100% frame)
-       during that gap instead of snapping back to a visible mid-band. */
-    animation-name:fr-sheen-sweep; animation-duration:2.2s; animation-timing-function:linear;
-    animation-iteration-count:1; animation-fill-mode:forwards;
-    animation-delay:var(--sheen-delay);
+    animation:fr-sheen-sweep-2200 3.7s linear infinite;
   }
   /* A second, faster and much thinner glint chasing the main sheen --
      the two-speed pass is what actually sells "foil" over "gradient". */
   .face-draw-card.rarity-legendary .face-draw-front::before{
     content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
     opacity:0.5;
-    background:linear-gradient(115deg, transparent 46%, rgba(255,255,255,0.9) 50%, transparent 54%);
+    background:linear-gradient(115deg, transparent 48.5%, rgba(255,255,255,0.9) 50%, transparent 51.5%);
     background-size:280% 280%;
-    /* .35s on top of --sheen-delay keeps this glint chasing the main sheen
-       above by the same fixed gap as before -- only the pause *between*
-       passes is randomized, not the relationship within one pass. */
-    animation-name:fr-sheen-sweep; animation-duration:2.2s; animation-timing-function:linear;
-    animation-iteration-count:1; animation-fill-mode:forwards;
-    animation-delay:calc(var(--sheen-delay) + .35s);
+    /* Same 3.7s cycle as the layer above (2.2s sweep + 1.5s hold) so the
+       two stay locked in step forever -- only phase-shifted .35s later,
+       same fixed chase gap as before. */
+    animation:fr-sheen-sweep-2200 3.7s linear infinite .35s;
     mix-blend-mode:screen;
   }
   .face-draw-card.rarity-mythic .face-draw-front{
@@ -634,11 +628,9 @@
   .face-draw-card.rarity-mythic .face-draw-front::before{
     content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
     opacity:0.5;
-    background:linear-gradient(115deg, transparent 44%, rgba(255,255,255,0.85) 50%, transparent 56%);
+    background:linear-gradient(115deg, transparent 47.5%, rgba(255,255,255,0.85) 50%, transparent 52.5%);
     background-size:260% 260%;
-    animation-name:fr-sheen-sweep; animation-duration:2.6s; animation-timing-function:linear;
-    animation-iteration-count:1; animation-fill-mode:forwards;
-    animation-delay:calc(var(--sheen-delay) + .5s);
+    animation:fr-sheen-sweep-2600 4.1s linear infinite .5s;
     mix-blend-mode:screen;
   }
   .face-draw-card.rarity-silver .face-draw-front{
@@ -649,12 +641,10 @@
   .face-draw-card.rarity-silver .face-draw-front::after{
     opacity:0.5;
     background:linear-gradient(115deg,
-      transparent 30%, rgba(255,255,255,0.25) 42%, rgba(255,255,255,0.95) 48%,
-      rgba(207,216,220,0.9) 51%, rgba(255,255,255,0.25) 60%, transparent 72%);
+      transparent 41%, rgba(255,255,255,0.25) 45%, rgba(255,255,255,0.95) 48%,
+      rgba(207,216,220,0.9) 50%, rgba(255,255,255,0.25) 55%, transparent 59%);
     background-size:220% 220%;
-    animation-name:fr-sheen-sweep; animation-duration:2.6s; animation-timing-function:linear;
-    animation-iteration-count:1; animation-fill-mode:forwards;
-    animation-delay:var(--sheen-delay);
+    animation:fr-sheen-sweep-2600 4.1s linear infinite;
   }
   .face-draw-card.rarity-bronze .face-draw-front{
     border-color:var(--bronze);
@@ -664,18 +654,31 @@
   .face-draw-card.rarity-bronze .face-draw-front::after{
     opacity:0.5;
     background:linear-gradient(115deg,
-      transparent 30%, rgba(240,205,160,0.2) 42%, rgba(255,235,205,0.9) 48%,
-      rgba(227,168,102,0.9) 51%, rgba(240,205,160,0.2) 60%, transparent 72%);
+      transparent 41%, rgba(240,205,160,0.2) 45%, rgba(255,235,205,0.9) 48%,
+      rgba(227,168,102,0.9) 50%, rgba(240,205,160,0.2) 55%, transparent 59%);
     background-size:220% 220%;
-    animation-name:fr-sheen-sweep; animation-duration:3s; animation-timing-function:linear;
-    animation-iteration-count:1; animation-fill-mode:forwards;
-    animation-delay:var(--sheen-delay);
+    animation:fr-sheen-sweep-3000 4.5s linear infinite;
   }
-  /* Same lesson as btn-shine-sweep: a continuous one-directional sweep, no
-     hold in the middle -- a dwell on a visible mid-sweep frame reads as the
-     animation stalling, not resting. */
-  @keyframes fr-sheen-sweep{
+  /* One keyframe rule per distinct sweep length -- each travels the light
+     fully across (0% to the "sweep done" mark below) then holds parked at
+     that same off-canvas position for the rest of the cycle, i.e. a fixed
+     1.5s pause, before the infinite loop starts the next sweep from
+     scratch. The "sweep done" percentage is just sweepDuration /
+     (sweepDuration + 1.5s): 2200 -> 2.2/3.7 = 59.46%, 2600 -> 2.6/4.1 =
+     63.41%, 3000 -> 3/4.5 = 66.67%. */
+  @keyframes fr-sheen-sweep-2200{
     0%{background-position:130% 0;}
+    59.46%{background-position:-130% 0;}
+    100%{background-position:-130% 0;}
+  }
+  @keyframes fr-sheen-sweep-2600{
+    0%{background-position:130% 0;}
+    63.41%{background-position:-130% 0;}
+    100%{background-position:-130% 0;}
+  }
+  @keyframes fr-sheen-sweep-3000{
+    0%{background-position:130% 0;}
+    66.67%{background-position:-130% 0;}
     100%{background-position:-130% 0;}
   }
   .face-draw-mood{font-family:'IM Fell English',serif; font-size:22px; color:var(--cream2);}
