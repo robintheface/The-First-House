@@ -56,17 +56,23 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   // pseudo-elements' animation to actually restart with the new --sheen-delay,
   // just changing the custom property alone wouldn't replay a finished
   // single-iteration animation.
-  function scheduleNextSheen(tier){
+  // currentDelayMs is the --sheen-delay this cycle is *currently* running
+  // with (0 for the very first pass, otherwise the random gap set on the
+  // last restart) -- the wait before the *next* restart has to be that
+  // delay plus the pass's own sweep duration, not just the sweep duration
+  // alone, or the timer fires while the sweep is still sitting in its own
+  // leading delay and cuts it off partway through instead of after it.
+  function scheduleNextSheen(tier, currentDelayMs){
     const passMs = SHEEN_PASS_MS[tier];
     if (!passMs) return;
     sheenTimer = setTimeout(() => {
-      const gapS = (0.6 + Math.random() * 0.4).toFixed(3);
+      const gapMs = 600 + Math.random() * 400; // next pass's --sheen-delay, 0.6-1s
       cardEl.classList.remove('rarity-' + tier);
       void cardEl.offsetWidth; // reflow -- forces the next class-add to restart the animation
-      cardEl.style.setProperty('--sheen-delay', gapS + 's');
+      cardEl.style.setProperty('--sheen-delay', (gapMs / 1000).toFixed(3) + 's');
       cardEl.classList.add('rarity-' + tier);
-      scheduleNextSheen(tier);
-    }, passMs);
+      scheduleNextSheen(tier, gapMs);
+    }, currentDelayMs + passMs);
   }
 
   function setCardContent(mood, joke, imgSrc){
@@ -85,7 +91,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     if (tier !== 'normal') {
       cardEl.style.setProperty('--sheen-delay', '0s'); // first pass plays immediately, no gap
       cardEl.classList.add('rarity-' + tier);
-      scheduleNextSheen(tier);
+      scheduleNextSheen(tier, 0);
     }
   }
 
