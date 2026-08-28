@@ -547,15 +547,14 @@
      pull gets none of them and the front face looks exactly as it always
      has. Scoped to .face-draw-front only -- the back (the joke itself)
      stays the same gold quote-card regardless of what was pulled.
-     Reset back to a plain, single continuous CSS animation per layer --
-     no JS restart/reflow trick driving it. A prior version tried to
-     randomize the pause between sweeps by having JS retrigger a
-     single-shot animation, which read as a visible hitch/stutter on every
-     restart. Simpler and smoother: each keyframe rule below travels the
-     light across in its own sweep time, then *holds* parked off-canvas
-     (same background-position as the sweep's last frame) for a fixed
-     1.5s before the infinite loop starts the next sweep -- one seamless
-     animation, no JS involved once the rarity class is set. */
+     The animated sweep (the moving light streak) is TEMPORARILY DISABLED
+     -- reports of visible stutter/hitching survived a full reset to a
+     single continuous CSS animation, so it's off for now rather than
+     kept half-working. The border-color/box-shadow "big deal" glow per
+     tier stays -- only the moving streak itself is off. The sweep rules
+     (background/background-size/animation) are commented out below,
+     along with their now-unused @keyframes, so re-enabling later is a
+     matter of un-commenting rather than rebuilding from scratch. */
   .face-draw-front::after{
     content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
   }
@@ -570,16 +569,8 @@
     box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(232,212,77,0.45),
       0 0 40px -6px rgba(232,212,77,0.85), 0 30px 70px -12px rgba(0,0,0,0.75);
   }
+  /* Sweep layer disabled -- see the note above the rarity shine block.
   .face-draw-card.rarity-legendary .face-draw-front::after{
-    /* A bright core line flanked by soft falloff on each side, instead of
-       one flat soft band -- reads as an actual reflected-light streak off
-       foil rather than a gradient wash sliding across. opacity:0.5 on
-       this and the other rarity layers below halves the whole effect's
-       intensity -- simpler and more consistent than re-tuning every
-       rgba alpha by hand. Band narrowed to well under half its old spread
-       (was transparent 28%..72%, a 44-point band; now 41%..59%, an
-       18-point band) -- a tighter streak reads more like an actual glint
-       than a wide gradient wash. */
     opacity:0.5;
     background:linear-gradient(115deg,
       transparent 41%, rgba(255,244,200,0.2) 45%, rgba(255,251,235,0.98) 48%,
@@ -587,19 +578,15 @@
     background-size:220% 220%;
     animation:fr-sheen-sweep-2200 3.7s linear infinite;
   }
-  /* A second, faster and much thinner glint chasing the main sheen --
-     the two-speed pass is what actually sells "foil" over "gradient". */
   .face-draw-card.rarity-legendary .face-draw-front::before{
     content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
     opacity:0.5;
     background:linear-gradient(115deg, transparent 48.5%, rgba(255,255,255,0.9) 50%, transparent 51.5%);
     background-size:280% 280%;
-    /* Same 3.7s cycle as the layer above (2.2s sweep + 1.5s hold) so the
-       two stay locked in step forever -- only phase-shifted .35s later,
-       same fixed chase gap as before. */
     animation:fr-sheen-sweep-2200 3.7s linear infinite .35s;
     mix-blend-mode:screen;
   }
+  */
   .face-draw-card.rarity-mythic .face-draw-front{
     border-color:transparent;
     box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(255,255,255,0.32),
@@ -613,18 +600,14 @@
        the gradient's color range ever fits in the card at once, so it
        read as a slow single-hue tint drifting rather than an actual
        multi-color rainbow; at 200% (with the keyframe end below matching
-       it) about half the spectrum shows simultaneously. */
-    /* Static now -- no left/right color-shift animation, just a fixed
-       multi-hue slice of the rainbow. The glint below still moves, so the
-       card isn't inert, just the color itself doesn't travel anymore. */
+       it) about half the spectrum shows simultaneously. Static -- not a
+       sweep -- so this layer is unaffected by the sweep disable above. */
     opacity:0.21; mix-blend-mode:screen;
     background:linear-gradient(120deg, #ff5e5e, #ffb84d, #fff36e, #6effa1, #5ec8ff, #a26bff, #ff5ec8, #ff5e5e);
     background-size:200% 200%;
     background-position:30% 50%;
   }
-  /* A sharp white glint chasing the rainbow, same two-speed trick as
-     legendary above -- the rainbow alone read as a tinted glow; this is
-     what actually makes it catch the light like real holo foil. */
+  /* Sweep layer disabled -- see the note above the rarity shine block.
   .face-draw-card.rarity-mythic .face-draw-front::before{
     content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
     opacity:0.5;
@@ -633,11 +616,13 @@
     animation:fr-sheen-sweep-2600 4.1s linear infinite .5s;
     mix-blend-mode:screen;
   }
+  */
   .face-draw-card.rarity-silver .face-draw-front{
     border-color:#cfd8dc;
     box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(207,216,220,0.4),
       0 0 30px -8px rgba(207,216,220,0.65), 0 30px 70px -12px rgba(0,0,0,0.75);
   }
+  /* Sweep layer disabled -- see the note above the rarity shine block.
   .face-draw-card.rarity-silver .face-draw-front::after{
     opacity:0.5;
     background:linear-gradient(115deg,
@@ -646,11 +631,13 @@
     background-size:220% 220%;
     animation:fr-sheen-sweep-2600 4.1s linear infinite;
   }
+  */
   .face-draw-card.rarity-bronze .face-draw-front{
     border-color:var(--bronze);
     box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(227,168,102,0.4),
       0 0 28px -8px rgba(227,168,102,0.6), 0 30px 70px -12px rgba(0,0,0,0.75);
   }
+  /* Sweep layer disabled -- see the note above the rarity shine block.
   .face-draw-card.rarity-bronze .face-draw-front::after{
     opacity:0.5;
     background:linear-gradient(115deg,
@@ -659,13 +646,6 @@
     background-size:220% 220%;
     animation:fr-sheen-sweep-3000 4.5s linear infinite;
   }
-  /* One keyframe rule per distinct sweep length -- each travels the light
-     fully across (0% to the "sweep done" mark below) then holds parked at
-     that same off-canvas position for the rest of the cycle, i.e. a fixed
-     1.5s pause, before the infinite loop starts the next sweep from
-     scratch. The "sweep done" percentage is just sweepDuration /
-     (sweepDuration + 1.5s): 2200 -> 2.2/3.7 = 59.46%, 2600 -> 2.6/4.1 =
-     63.41%, 3000 -> 3/4.5 = 66.67%. */
   @keyframes fr-sheen-sweep-2200{
     0%{background-position:130% 0;}
     59.46%{background-position:-130% 0;}
@@ -681,6 +661,7 @@
     66.67%{background-position:-130% 0;}
     100%{background-position:-130% 0;}
   }
+  */
   .face-draw-mood{font-family:'IM Fell English',serif; font-size:22px; color:var(--cream2);}
   /* Tap-to-reveal replaced the old auto-flip timer -- the whole card is
      clickable (js/face-draw.js), this is just the visible cue for that. */
