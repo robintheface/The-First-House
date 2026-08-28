@@ -926,6 +926,15 @@ if (canvas) {
     if (musicFadeTimer) { clearInterval(musicFadeTimer); musicFadeTimer = null; }
     pendingFadeMs = 0;
     musicAudible = false;
+    // Belt-and-suspenders on top of pause() below: some mobile browsers
+    // keep audio already queued in the <audio> element's own hardware
+    // pipeline, which can keep trailing on audibly for a couple seconds
+    // after game over even though pause() was called right away.
+    // Zeroing the Web Audio gain (or the element's own volume, when
+    // routed doesn't apply) cuts the actual output at the graph level
+    // immediately, independent of whatever the element itself is still
+    // doing internally.
+    setMusicLevel(0, true);
     if (musicEl) musicEl.pause();
   }
 

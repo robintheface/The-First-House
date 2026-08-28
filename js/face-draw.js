@@ -132,9 +132,26 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   // -- resuming here unlocks the context on strict browsers (notably
   // Safari/iOS) that would otherwise refuse audio started outside a user
   // gesture. Same reason as js/dino-game.js's primeAudio().
+  //
+  // resume() alone wasn't enough on mobile: on a *freshly created* context
+  // (which this always is -- ensureSpinAudio() only ever makes one, on
+  // this very first call), iOS Safari and some Android browsers report
+  // resume() as successful but keep actual audio output muted until a
+  // real buffer has been started within a user gesture. The spin's first
+  // real tick fires a few animation frames later, which some of those
+  // browsers no longer count as "within" the gesture -- so the click was
+  // silent on the first SPIN press and only ever worked from the second
+  // one onward, once the *previous* press's ticks had already unlocked
+  // it. Starting an actual (silent, 1-sample) buffer right here forces
+  // the unlock immediately, in the same call stack as the tap.
   function primeSpinSound(){
     const ctx = ensureSpinAudio();
-    if (ctx && ctx.state === 'suspended') ctx.resume();
+    if (!ctx) return;
+    if (ctx.state !== 'running') ctx.resume();
+    const unlock = ctx.createBufferSource();
+    unlock.buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
+    unlock.connect(ctx.destination);
+    unlock.start(0);
   }
   function playSpinTick(gapMs){
     const ctx = spinAudioCtx;
