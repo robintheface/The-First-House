@@ -42,7 +42,9 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     jokeEl.textContent = joke;
     // Legendary/mythic/silver/bronze shine on the front face, matching how
     // "big" this mood reads (see js/face-rarity.js) -- a plain "normal"
-    // pull gets none of these classes.
+    // pull gets none of these classes. The sweep/pause loop itself is pure
+    // CSS now (styles.css's fr-sheen-sweep-* keyframes) -- setting the
+    // class is all it takes, no JS timer driving it.
     cardEl.classList.remove(...RARITY_CLASSES);
     const tier = rarityFor(mood);
     if (tier !== 'normal') cardEl.classList.add('rarity-' + tier);
@@ -146,7 +148,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     filter.Q.value = 3.2;
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.063, now + 0.001); // sharp attack -- a click, not a swell (0.045 + 40%)
+    gain.gain.exponentialRampToValueAtTime(0.0945, now + 0.001); // sharp attack -- a click, not a swell (0.063 + 50%)
     gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.02); // short decay, like a pawl clacking a gear
     src.connect(filter);
     filter.connect(gain);
