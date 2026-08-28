@@ -509,6 +509,11 @@
   .face-draw-card{
     position:relative; width:min(300px, 78vw); aspect-ratio:3/4;
     opacity:1; transition:opacity .4s ease;
+    /* js/face-draw.js drives this per sweep: 0s for the very first pass,
+       then a random 0.6-1s gap before every pass after that (see the
+       rarity sheen block below) -- default here just covers the moment
+       before JS has set it. */
+    --sheen-delay:0s;
   }
   /* Toggled on/off around a reflow (js/face-draw.js) to fade the card in
      once the overlay backdrop's already up -- a beat of empty backdrop
@@ -546,7 +551,11 @@
      js/face-rarity.js's mood -> tier map) once a draw lands; a "normal"
      pull gets none of them and the front face looks exactly as it always
      has. Scoped to .face-draw-front only -- the back (the joke itself)
-     stays the same gold quote-card regardless of what was pulled. */
+     stays the same gold quote-card regardless of what was pulled.
+     Each sweep below runs once per --sheen-delay activation, not on an
+     infinite loop -- js/face-draw.js retriggers it after every pass with a
+     fresh random 0.6-1s --sheen-delay, so the light glints past on an
+     uneven beat instead of ticking by like a metronome. */
   .face-draw-front::after{
     content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
   }
@@ -573,7 +582,14 @@
       transparent 28%, rgba(255,244,200,0.2) 40%, rgba(255,251,235,0.98) 47%,
       rgba(255,215,80,0.98) 50%, rgba(255,244,200,0.2) 60%, transparent 72%);
     background-size:220% 220%;
-    animation:fr-sheen-sweep 2.2s linear infinite;
+    /* One pass per activation (not infinite) -- js/face-draw.js retriggers
+       this after each pass completes, with a random 0.6-1s --sheen-delay
+       so the light doesn't sweep on a metronome. fill-mode:forwards parks
+       it off-canvas (background-position from the keyframe's 100% frame)
+       during that gap instead of snapping back to a visible mid-band. */
+    animation-name:fr-sheen-sweep; animation-duration:2.2s; animation-timing-function:linear;
+    animation-iteration-count:1; animation-fill-mode:forwards;
+    animation-delay:var(--sheen-delay);
   }
   /* A second, faster and much thinner glint chasing the main sheen --
      the two-speed pass is what actually sells "foil" over "gradient". */
@@ -582,7 +598,12 @@
     opacity:0.5;
     background:linear-gradient(115deg, transparent 46%, rgba(255,255,255,0.9) 50%, transparent 54%);
     background-size:280% 280%;
-    animation:fr-sheen-sweep 2.2s linear infinite .35s;
+    /* .35s on top of --sheen-delay keeps this glint chasing the main sheen
+       above by the same fixed gap as before -- only the pause *between*
+       passes is randomized, not the relationship within one pass. */
+    animation-name:fr-sheen-sweep; animation-duration:2.2s; animation-timing-function:linear;
+    animation-iteration-count:1; animation-fill-mode:forwards;
+    animation-delay:calc(var(--sheen-delay) + .35s);
     mix-blend-mode:screen;
   }
   .face-draw-card.rarity-mythic .face-draw-front{
@@ -615,7 +636,9 @@
     opacity:0.5;
     background:linear-gradient(115deg, transparent 44%, rgba(255,255,255,0.85) 50%, transparent 56%);
     background-size:260% 260%;
-    animation:fr-sheen-sweep 2.6s linear infinite .5s;
+    animation-name:fr-sheen-sweep; animation-duration:2.6s; animation-timing-function:linear;
+    animation-iteration-count:1; animation-fill-mode:forwards;
+    animation-delay:calc(var(--sheen-delay) + .5s);
     mix-blend-mode:screen;
   }
   .face-draw-card.rarity-silver .face-draw-front{
@@ -629,7 +652,9 @@
       transparent 30%, rgba(255,255,255,0.25) 42%, rgba(255,255,255,0.95) 48%,
       rgba(207,216,220,0.9) 51%, rgba(255,255,255,0.25) 60%, transparent 72%);
     background-size:220% 220%;
-    animation:fr-sheen-sweep 2.6s linear infinite;
+    animation-name:fr-sheen-sweep; animation-duration:2.6s; animation-timing-function:linear;
+    animation-iteration-count:1; animation-fill-mode:forwards;
+    animation-delay:var(--sheen-delay);
   }
   .face-draw-card.rarity-bronze .face-draw-front{
     border-color:var(--bronze);
@@ -642,7 +667,9 @@
       transparent 30%, rgba(240,205,160,0.2) 42%, rgba(255,235,205,0.9) 48%,
       rgba(227,168,102,0.9) 51%, rgba(240,205,160,0.2) 60%, transparent 72%);
     background-size:220% 220%;
-    animation:fr-sheen-sweep 3s linear infinite;
+    animation-name:fr-sheen-sweep; animation-duration:3s; animation-timing-function:linear;
+    animation-iteration-count:1; animation-fill-mode:forwards;
+    animation-delay:var(--sheen-delay);
   }
   /* Same lesson as btn-shine-sweep: a continuous one-directional sweep, no
      hold in the middle -- a dwell on a visible mid-sweep frame reads as the
