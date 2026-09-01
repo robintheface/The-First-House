@@ -515,13 +515,14 @@
        the same way. That's what keeps every tier's two faces matching --
        previously the back never varied by tier at all, and the front's
        fill didn't either, only its border/glow did. Normal (no rarity
-       class) is the default set here: a quiet version of the same gold
-       the back has always used, rather than a color of its own, so a
-       plain pull's front and back read as the same card.  */
-    --fr-border: var(--gold);
-    --fr-ring: rgba(232,212,77,0.4);
-    --fr-fill: rgba(232,212,77,0.14);
-    --fr-glow: rgba(232,212,77,0.35);
+       class) is the default set here: a plain gray, not a color -- and no
+       glow at all, per instruction, so a plain pull reads as visibly
+       ungraded next to one that lit up. Front and back still share these
+       same four values, so they stay identical to each other. */
+    --fr-border: rgba(200,205,198,0.4);
+    --fr-ring: rgba(200,205,198,0.28);
+    --fr-fill: rgba(200,205,198,0.08);
+    --fr-glow: transparent;
     position:relative; width:min(300px, 78vw); aspect-ratio:3/4;
     opacity:1; transition:opacity .4s ease;
   }
