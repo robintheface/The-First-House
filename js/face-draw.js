@@ -32,10 +32,18 @@ const realCards = [...document.querySelectorAll('.face-card')].filter((c) => c.g
 if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.length) {
   let currentMood = '';
   let currentJoke = '';
+  // True from the moment the joke's first shown until the next draw starts.
+  // Separate from is-flipped (which now just tracks which face is up, see
+  // tapToReveal below) so the backdrop/Escape close gate stays satisfied
+  // even after the user's flipped back to the front to look at the mood
+  // again -- otherwise closing would be impossible until they happened to
+  // land back on the joke side.
+  let hasRevealed = false;
 
   function setCardContent(mood, joke, imgSrc){
     currentMood = mood;
     currentJoke = joke;
+    hasRevealed = false;
     imgEl.src = imgSrc;
     imgEl.alt = '';
     labelEl.textContent = mood;
@@ -57,6 +65,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   }
 
   function triggerFlip(){
+    hasRevealed = true;
     cardInner.classList.add('is-flipped');
     cardInner.removeEventListener('transitionend', onFlipEnd);
     cardInner.style.transform = 'rotateY(180deg)';
@@ -432,27 +441,31 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     window.open(intent, '_blank', 'noopener,noreferrer');
   }
 
-  // Tap to reveal -- the joke flip used to fire on a timer; now it's the
-  // user's own tap, any time after the mood's shown. Guarded by is-flipped
-  // so a tap on the back (e.g. missing the Share button) can't re-trigger it.
-  function tapToReveal(){
-    if (cardInner.classList.contains('is-flipped')) return;
-    triggerFlip();
+  // Tap anywhere on the card flips it -- to the joke the first time, and
+  // back and forth between joke/mood on every tap after that. Share lives
+  // on the back face; it must only ever share, never also flip the card
+  // back to the front underneath the same tap.
+  function tapToReveal(e){
+    if (e.target.closest('#faceDrawShareBtn')) return;
+    if (cardInner.classList.contains('is-flipped')) resetCardToFront();
+    else triggerFlip();
   }
 
   if (fodBtn) fodBtn.addEventListener('click', openFaceOfTheDay);
   if (cardEl) cardEl.addEventListener('click', tapToReveal);
   // Backdrop click / Escape only actually close once the joke's been
-  // revealed (is-flipped) -- before that, a stray tap outside the card or
-  // an accidental Escape would dismiss the whole draw before the joke
-  // ever showed, losing the reveal entirely.
+  // revealed at least once (hasRevealed) -- before that, a stray tap
+  // outside the card or an accidental Escape would dismiss the whole draw
+  // before the joke ever showed, losing the reveal entirely. hasRevealed,
+  // not is-flipped, so closing still works after flipping back to the
+  // mood side to look at it again.
   overlay.querySelectorAll('[data-draw-close]').forEach((el) => {
     el.addEventListener('click', () => {
-      if (cardInner.classList.contains('is-flipped')) closeDraw();
+      if (hasRevealed) closeDraw();
     });
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !overlay.hidden && cardInner.classList.contains('is-flipped')) closeDraw();
+    if (e.key === 'Escape' && !overlay.hidden && hasRevealed) closeDraw();
   });
   if (shareBtn) shareBtn.addEventListener('click', shareOnX);
 }

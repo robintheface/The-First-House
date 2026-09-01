@@ -1541,11 +1541,48 @@ if (canvas) {
   // buttons, and the settings panel (sliders aren't <button>s) are left
   // alone so they still work normally instead of being hijacked into a jump.
   const gameSection = document.getElementById('game');
-  (gameSection || canvas).addEventListener('pointerdown', (e) => {
+  function handleGameTap(e) {
     if (!assetsReady) return;
-    if (e.target.closest('a, button, input, #hoodGameSettingsPanel, #hoodGameRanksPanel, #hoodGameSaveScore')) return;
+    // .nav-links/.nav-more/.topbar-right only ever matter for the document-
+    // level fallback below (nothing inside #game carries those classes),
+    // but living in one shared list is what lets that fallback stay a
+    // generic relay instead of a second, topbar-specific copy of this
+    // exclusion check.
+    if (e.target.closest('a, button, input, #hoodGameSettingsPanel, #hoodGameRanksPanel, #hoodGameSaveScore, .nav-links, .nav-more, .topbar-right')) return;
+    // Starting -- or restarting -- a run is the one action here worth
+    // gating: from IDLE or OVER, a tap anywhere in the wide zone below
+    // would start a run, and it's easy to catch by accident (scrolling
+    // past the section-head text, or the document-level relay below) with
+    // no way to tell beforehand that it's about to happen. Once a run is
+    // actually live, that same wide zone is what makes "jump" reachable
+    // without fighting the canvas as a fiddly target, so only the start
+    // itself requires a tap that lands on the visible frame.
+    const inFrame = !!(wrapEl && wrapEl.contains(e.target));
+    if (!inFrame && (state === STATE.IDLE || state === STATE.OVER)) return;
     primeAudio();
     jump();
+  }
+  (gameSection || canvas).addEventListener('pointerdown', handleGameTap);
+
+  // A tap that lands on something painted above #game -- the sticky
+  // topbar's own dead space, once the page is scrolled far enough that
+  // #game's tap zone runs up under it, which is roughly where the frame
+  // sits nicely near the top of the screen to play -- never reaches the
+  // listener above at all: pointerdown only bubbles through whatever the
+  // browser's hit-test actually picked, and anything stacked on top of
+  // #game without being its descendant isn't in that path. Catching that
+  // generically (by position, not by naming .topbar specifically) means
+  // this keeps working for whatever else ever ends up layered over #game,
+  // not just today's one known case, and it costs nothing on every other
+  // tap: gameSection.contains(e.target) is a plain tree-structure check,
+  // no layout read, and it's what skips straight past the common case --
+  // a tap already inside #game, already handled above -- before the one
+  // getBoundingClientRect() call below ever runs.
+  document.addEventListener('pointerdown', (e) => {
+    if (!gameSection || gameSection.contains(e.target)) return;
+    const r = gameSection.getBoundingClientRect();
+    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
+    handleGameTap(e);
   });
 
   // ---------- boot ----------
