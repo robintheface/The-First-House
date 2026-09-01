@@ -664,9 +664,10 @@
   */
   .face-draw-mood{font-family:'IM Fell English',serif; font-size:22px; color:var(--cream2);}
   /* Tap-to-reveal replaced the old auto-flip timer -- the whole card is
-     clickable (js/face-draw.js), this is just the visible cue for that. */
+     clickable (js/face-draw.js), and stays clickable after the flip too
+     (tapping the back flips it back to the front), so the pointer cursor
+     never needs to drop back to default. */
   .face-draw-card{cursor:pointer;}
-  .face-draw-card:has(.face-draw-card-inner.is-flipped){cursor:default;}
   .face-draw-tap-hint{
     font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase;
     color:var(--gold); opacity:0.75; margin-top:10px;
