@@ -441,9 +441,12 @@
   .gallery-wrap:hover .gallery-track, .gallery-wrap:active .gallery-track{animation-play-state:paused;}
   @keyframes gscroll{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
   .face-card{
+    /* One border, not the inset ring + outer border pair this used to
+       stack (they read as two concentric outlines in different colors --
+       gold on the outside, green just inside it). Every state below drops
+       the inset ring and keeps only this border plus a soft outer glow. */
     width:188px; flex:0 0 auto;
     background:rgba(111,207,58,0.04); border:1px solid rgba(232,212,77,0.4); border-radius:24px;
-    box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(111,207,58,0.28);
     padding:18px 14px 16px; text-align:center; position:relative; z-index:1;
     transition:border-color .25s ease, box-shadow .25s ease, transform .3s cubic-bezier(.34,1.56,.64,1);
   }
@@ -467,8 +470,7 @@
        glow got its top edge clipped there. Pushing the shadow down instead
        of just shrinking it keeps the glow looking full, just settled lower
        around the card rather than centered on it. */
-    box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(232,212,77,0.6),
-      0 8px 20px 2px rgba(232,212,77,0.55);
+    box-shadow:0 8px 20px 2px rgba(232,212,77,0.55);
     transform:scale(1.06);
     z-index:2;
   }
@@ -2029,8 +2031,7 @@
     .face-card:hover{
       transform:scale(1.06) translateY(-8px);
       border-color:#f5e77a; z-index:30;
-      box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(139,232,90,0.6),
-        0 18px 36px -6px rgba(139,232,90,0.7);
+      box-shadow:0 18px 36px -6px rgba(139,232,90,0.7);
     }
     .face-card:hover .face-label{color:var(--cream2);}
     .ledger:hover{
