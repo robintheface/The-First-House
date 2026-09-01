@@ -1543,12 +1543,17 @@ if (canvas) {
   const gameSection = document.getElementById('game');
   function handleGameTap(e) {
     if (!assetsReady) return;
-    if (e.target.closest('a, button, input, #hoodGameSettingsPanel, #hoodGameRanksPanel, #hoodGameSaveScore')) return;
+    // .nav-links/.nav-more/.topbar-right only ever matter for the document-
+    // level fallback below (nothing inside #game carries those classes),
+    // but living in one shared list is what lets that fallback stay a
+    // generic relay instead of a second, topbar-specific copy of this
+    // exclusion check.
+    if (e.target.closest('a, button, input, #hoodGameSettingsPanel, #hoodGameRanksPanel, #hoodGameSaveScore, .nav-links, .nav-more, .topbar-right')) return;
     // Starting -- or restarting -- a run is the one action here worth
     // gating: from IDLE or OVER, a tap anywhere in the wide zone below
     // would start a run, and it's easy to catch by accident (scrolling
-    // past the section-head text, or the sticky-bar relay below) with no
-    // way to tell beforehand that it's about to happen. Once a run is
+    // past the section-head text, or the document-level relay below) with
+    // no way to tell beforehand that it's about to happen. Once a run is
     // actually live, that same wide zone is what makes "jump" reachable
     // without fighting the canvas as a fiddly target, so only the start
     // itself requires a tap that lands on the visible frame.
@@ -1559,27 +1564,26 @@ if (canvas) {
   }
   (gameSection || canvas).addEventListener('pointerdown', handleGameTap);
 
-  // The sticky topbar paints above everything, so once the page is
-  // scrolled far enough that #game's own tap zone runs up under it, a tap
-  // that lands on the bar's own background (not a real nav control) never
-  // reaches #game at all -- the bar is what's under the finger, not the
-  // section. On a phone that's an easy scroll position to land on: it's
-  // roughly where the game frame sits nicely near the top of the screen to
-  // play. Relaying those taps to the same handler -- only while #game
-  // genuinely overlaps the bar, and never over one of the bar's own
-  // controls or its open menu -- keeps a mid-run jump reachable there too;
-  // the in-frame gate above still applies, so this can never start a run
-  // by itself.
-  const topbarEl = document.querySelector('.topbar');
-  if (topbarEl && gameSection) {
-    topbarEl.addEventListener('pointerdown', (e) => {
-      if (e.target.closest('a, button, input, .nav-links, .nav-more, .topbar-right')) return;
-      const barRect = topbarEl.getBoundingClientRect();
-      const gameRect = gameSection.getBoundingClientRect();
-      if (gameRect.bottom <= barRect.top || gameRect.top >= barRect.bottom) return;
-      handleGameTap(e);
-    });
-  }
+  // A tap that lands on something painted above #game -- the sticky
+  // topbar's own dead space, once the page is scrolled far enough that
+  // #game's tap zone runs up under it, which is roughly where the frame
+  // sits nicely near the top of the screen to play -- never reaches the
+  // listener above at all: pointerdown only bubbles through whatever the
+  // browser's hit-test actually picked, and anything stacked on top of
+  // #game without being its descendant isn't in that path. Catching that
+  // generically (by position, not by naming .topbar specifically) means
+  // this keeps working for whatever else ever ends up layered over #game,
+  // not just today's one known case, and it costs nothing on every other
+  // tap: gameSection.contains(e.target) is a plain tree-structure check,
+  // no layout read, and it's what skips straight past the common case --
+  // a tap already inside #game, already handled above -- before the one
+  // getBoundingClientRect() call below ever runs.
+  document.addEventListener('pointerdown', (e) => {
+    if (!gameSection || gameSection.contains(e.target)) return;
+    const r = gameSection.getBoundingClientRect();
+    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
+    handleGameTap(e);
+  });
 
   // ---------- boot ----------
   showOverlay('HOOD RUN', ['Loading…']);
