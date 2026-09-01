@@ -507,6 +507,19 @@
   .face-draw-stage{position:relative; z-index:1; perspective:1400px;}
 
   .face-draw-card{
+    /* Tier accent, in one place: border, the inner ring, the fill tint and
+       the outer glow all read off these four custom properties, and
+       .face-draw-front/.face-draw-back (further down) both consume them
+       the same way. That's what keeps every tier's two faces matching --
+       previously the back never varied by tier at all, and the front's
+       fill didn't either, only its border/glow did. Normal (no rarity
+       class) is the default set here: a quiet version of the same gold
+       the back has always used, rather than a color of its own, so a
+       plain pull's front and back read as the same card.  */
+    --fr-border: var(--gold);
+    --fr-ring: rgba(232,212,77,0.4);
+    --fr-fill: rgba(232,212,77,0.14);
+    --fr-glow: rgba(232,212,77,0.35);
     position:relative; width:min(300px, 78vw); aspect-ratio:3/4;
     opacity:1; transition:opacity .4s ease;
   }
@@ -521,7 +534,9 @@
   .face-draw-face{
     position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
     border-radius:26px; padding:26px 22px; display:flex; flex-direction:column; align-items:center; text-align:center;
-    box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(232,212,77,0.4), 0 30px 70px -12px rgba(0,0,0,0.75);
+    border:1px solid var(--fr-border);
+    box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px var(--fr-ring),
+      0 0 40px -6px var(--fr-glow), 0 30px 70px -12px rgba(0,0,0,0.75);
     /* Safety net on top of backface-visibility above: .face-draw-card's own
        opacity transition (the fade-in) sits directly above this 3D-rotated
        pair, and an ancestor's opacity is a known trigger for some WebKit
@@ -536,38 +551,41 @@
   .face-draw-card-inner:not(.is-flipped) .face-draw-back{ visibility:hidden; }
   .face-draw-front{
     justify-content:flex-start;
-    background:radial-gradient(120% 90% at 50% 0%, rgba(111,207,58,0.13), #071009);
-    border:1px solid rgba(232,212,77,0.45);
+    background:radial-gradient(120% 90% at 50% 0%, var(--fr-fill), #071009);
   }
   .face-draw-img{width:78%; aspect-ratio:1/1; object-fit:contain; margin:14px 0 16px;}
 
-  /* ---------- Face of the Day rarity shine (front face only) ----------
+  /* ---------- Face of the Day rarity shine ----------
      js/face-draw.js sets one of these on .face-draw-card (via
      js/face-rarity.js's mood -> tier map) once a draw lands; a "normal"
-     pull gets none of them and the front face looks exactly as it always
-     has. Scoped to .face-draw-front only -- the back (the joke itself)
-     stays the same gold quote-card regardless of what was pulled.
+     pull gets none of them and both faces stay on the default tokens set
+     above. Each tier rule below only overrides --fr-border/--fr-ring/
+     --fr-fill/--fr-glow -- .face-draw-face (both faces) and .face-draw-
+     front/.face-draw-back (their own gradient direction) read off those,
+     so border, fill and glow always move together and front/back always
+     match. The mythic rainbow tint (::after below) stays front-only --
+     it's a moving/decorative layer, not part of the base tier color.
      The animated sweep (the moving light streak) is TEMPORARILY DISABLED
      -- reports of visible stutter/hitching survived a full reset to a
      single continuous CSS animation, so it's off for now rather than
-     kept half-working. The border-color/box-shadow "big deal" glow per
-     tier stays -- only the moving streak itself is off. The sweep rules
-     (background/background-size/animation) are commented out below,
-     along with their now-unused @keyframes, so re-enabling later is a
-     matter of un-commenting rather than rebuilding from scratch. */
+     kept half-working. The sweep rules (background/background-size/
+     animation) are commented out below, along with their now-unused
+     @keyframes, so re-enabling later is a matter of un-commenting rather
+     than rebuilding from scratch. */
   .face-draw-front::after{
     content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
   }
-  .face-draw-card.rarity-legendary .face-draw-front,
-  .face-draw-card.rarity-mythic .face-draw-front,
-  .face-draw-card.rarity-silver .face-draw-front,
-  .face-draw-card.rarity-bronze .face-draw-front{
+  .face-draw-card.rarity-legendary .face-draw-face,
+  .face-draw-card.rarity-mythic .face-draw-face,
+  .face-draw-card.rarity-silver .face-draw-face,
+  .face-draw-card.rarity-bronze .face-draw-face{
     border-width:2px;
   }
-  .face-draw-card.rarity-legendary .face-draw-front{
-    border-color:var(--gold);
-    box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(232,212,77,0.45),
-      0 0 40px -6px rgba(232,212,77,0.85), 0 30px 70px -12px rgba(0,0,0,0.75);
+  .face-draw-card.rarity-legendary{
+    --fr-border: var(--gold);
+    --fr-ring: rgba(232,212,77,0.45);
+    --fr-fill: rgba(232,212,77,0.18);
+    --fr-glow: rgba(232,212,77,0.85);
   }
   /* Sweep layer disabled -- see the note above the rarity shine block.
   .face-draw-card.rarity-legendary .face-draw-front::after{
@@ -587,10 +605,11 @@
     mix-blend-mode:screen;
   }
   */
-  .face-draw-card.rarity-mythic .face-draw-front{
-    border-color:transparent;
-    box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(255,255,255,0.32),
-      0 0 44px -6px rgba(180,120,255,0.75), 0 30px 70px -12px rgba(0,0,0,0.75);
+  .face-draw-card.rarity-mythic{
+    --fr-border: rgba(180,120,255,0.9);
+    --fr-ring: rgba(180,120,255,0.4);
+    --fr-fill: rgba(180,120,255,0.16);
+    --fr-glow: rgba(180,120,255,0.75);
   }
   .face-draw-card.rarity-mythic .face-draw-front::after{
     /* screen only ever brightens (never darkens), so the art's own shapes
@@ -617,10 +636,11 @@
     mix-blend-mode:screen;
   }
   */
-  .face-draw-card.rarity-silver .face-draw-front{
-    border-color:#cfd8dc;
-    box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(207,216,220,0.4),
-      0 0 30px -8px rgba(207,216,220,0.65), 0 30px 70px -12px rgba(0,0,0,0.75);
+  .face-draw-card.rarity-silver{
+    --fr-border: #cfd8dc;
+    --fr-ring: rgba(207,216,220,0.4);
+    --fr-fill: rgba(207,216,220,0.14);
+    --fr-glow: rgba(207,216,220,0.65);
   }
   /* Sweep layer disabled -- see the note above the rarity shine block.
   .face-draw-card.rarity-silver .face-draw-front::after{
@@ -632,10 +652,11 @@
     animation:fr-sheen-sweep-2600 4.1s linear infinite;
   }
   */
-  .face-draw-card.rarity-bronze .face-draw-front{
-    border-color:var(--bronze);
-    box-shadow:inset 0 0 0 3px rgba(12,23,16,0.9), inset 0 0 0 4px rgba(227,168,102,0.4),
-      0 0 28px -8px rgba(227,168,102,0.6), 0 30px 70px -12px rgba(0,0,0,0.75);
+  .face-draw-card.rarity-bronze{
+    --fr-border: var(--bronze);
+    --fr-ring: rgba(227,168,102,0.4);
+    --fr-fill: rgba(227,168,102,0.14);
+    --fr-glow: rgba(227,168,102,0.6);
   }
   /* Sweep layer disabled -- see the note above the rarity shine block.
   .face-draw-card.rarity-bronze .face-draw-front::after{
@@ -680,8 +701,7 @@
   .face-draw-back{
     transform:rotateY(180deg);
     justify-content:center; gap:14px;
-    background:radial-gradient(120% 90% at 50% 100%, rgba(232,212,77,0.16), #0c1710);
-    border:1px solid var(--gold);
+    background:radial-gradient(120% 90% at 50% 100%, var(--fr-fill), #0c1710);
   }
   .face-draw-back-kicker{
     font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold);
