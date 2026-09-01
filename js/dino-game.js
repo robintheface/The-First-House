@@ -1541,12 +1541,45 @@ if (canvas) {
   // buttons, and the settings panel (sliders aren't <button>s) are left
   // alone so they still work normally instead of being hijacked into a jump.
   const gameSection = document.getElementById('game');
-  (gameSection || canvas).addEventListener('pointerdown', (e) => {
+  function handleGameTap(e) {
     if (!assetsReady) return;
     if (e.target.closest('a, button, input, #hoodGameSettingsPanel, #hoodGameRanksPanel, #hoodGameSaveScore')) return;
+    // Starting -- or restarting -- a run is the one action here worth
+    // gating: from IDLE or OVER, a tap anywhere in the wide zone below
+    // would start a run, and it's easy to catch by accident (scrolling
+    // past the section-head text, or the sticky-bar relay below) with no
+    // way to tell beforehand that it's about to happen. Once a run is
+    // actually live, that same wide zone is what makes "jump" reachable
+    // without fighting the canvas as a fiddly target, so only the start
+    // itself requires a tap that lands on the visible frame.
+    const inFrame = !!(wrapEl && wrapEl.contains(e.target));
+    if (!inFrame && (state === STATE.IDLE || state === STATE.OVER)) return;
     primeAudio();
     jump();
-  });
+  }
+  (gameSection || canvas).addEventListener('pointerdown', handleGameTap);
+
+  // The sticky topbar paints above everything, so once the page is
+  // scrolled far enough that #game's own tap zone runs up under it, a tap
+  // that lands on the bar's own background (not a real nav control) never
+  // reaches #game at all -- the bar is what's under the finger, not the
+  // section. On a phone that's an easy scroll position to land on: it's
+  // roughly where the game frame sits nicely near the top of the screen to
+  // play. Relaying those taps to the same handler -- only while #game
+  // genuinely overlaps the bar, and never over one of the bar's own
+  // controls or its open menu -- keeps a mid-run jump reachable there too;
+  // the in-frame gate above still applies, so this can never start a run
+  // by itself.
+  const topbarEl = document.querySelector('.topbar');
+  if (topbarEl && gameSection) {
+    topbarEl.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('a, button, input, .nav-links, .nav-more, .topbar-right')) return;
+      const barRect = topbarEl.getBoundingClientRect();
+      const gameRect = gameSection.getBoundingClientRect();
+      if (gameRect.bottom <= barRect.top || gameRect.top >= barRect.bottom) return;
+      handleGameTap(e);
+    });
+  }
 
   // ---------- boot ----------
   showOverlay('HOOD RUN', ['Loading…']);
