@@ -759,29 +759,6 @@
   .ledger-row:last-child{border-bottom:none;}
   .ledger-row .k{color:var(--ink-dim);}
   .ledger-row .v{color:var(--cream2); font-weight:600;}
-  .ledger-row.wrap{flex-wrap:wrap;}
-  .ledger-row.wrap .v{
-    width:100%; margin-top:6px; font-size:14px; text-align:left;
-    display:flex; align-items:center; gap:8px;
-  }
-  .contract-address{
-    /* it's a <button> for native keyboard/click semantics, but should read
-       as plain inline address text, not a UI control */
-    background:none; border:none; padding:0; margin:0;
-    font:inherit; text-align:left; color:inherit;
-    word-break:break-all; cursor:pointer;
-    border-bottom:1px dashed transparent;
-    transition:color .15s ease, border-color .15s ease;
-  }
-  .contract-address.copied{color:var(--green-bright); border-color:var(--green-bright);}
-  .copy-btn{
-    flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
-    width:26px; height:26px; padding:0; border-radius:8px;
-    background:transparent; border:1px solid var(--line); color:var(--ink-dim);
-    font-size:12px; line-height:1; cursor:pointer;
-    transition:border-color .15s ease, color .15s ease, transform .1s ease;
-  }
-  .copy-btn.copied{color:var(--green-bright); border-color:var(--green-bright);}
   .ledger-row .v.pending{color:var(--gold);}
 
   /* ---------- ledger-strip: the same rows, laid out as a compact row of
@@ -792,15 +769,15 @@
      markup or copy changed: same .ledger-row/.k/.v pairs js/copy.js
      already wires up, just re-flowed. column-reverse puts .v (the value,
      second in the DOM) on top and .k (the label) below it without
-     touching source order -- that's what keeps the contract-copy button
-     working unmodified inside the wrap row. */
+     touching source order. (The contract address used to live here as a
+     6th, full-width row -- moved to the hero's "Copy contract" button
+     instead, since a raw 0x address read badly as a ledger chip.) */
   .ledger.ledger-strip{
-    /* 5 plain rows (Supply/Chain/Tax/LP/Team) + 1 that spans the full
-       width (Contract) -- 5 doesn't divide evenly into every column
-       count, so 1 and 5 are the two breakpoints picked deliberately:
-       both leave every cell filled, with no dangling empty grid cell
-       reading as a UI bug. The intermediate 2-column width between them
-       is the one range that can't avoid a partial last row. */
+    /* 5 rows (Supply/Chain/Tax/LP/Team) don't divide evenly into every
+       column count, so 1 and 5 are the two breakpoints picked
+       deliberately: both leave every cell filled, with no dangling empty
+       grid cell reading as a UI bug. The intermediate 2-column width
+       between them is the one range that can't avoid a partial last row. */
     display:grid; grid-template-columns:1fr; gap:1px;
     background:var(--line); border:1px solid rgba(232,212,77,0.45); border-radius:20px; overflow:hidden;
     max-width:960px; box-shadow:0 0 26px -6px rgba(111,207,58,0.35);
@@ -815,7 +792,6 @@
     font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-dim);
   }
   .ledger.ledger-strip .ledger-row .v{font-size:19px;}
-  .ledger.ledger-strip .ledger-row.wrap{grid-column:1/-1;}
 
   /* ---------- roadmap trail ---------- */
   .trail{max-width:560px; margin:0 auto; position:relative; padding-left:26px;}
