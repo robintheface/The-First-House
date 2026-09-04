@@ -53,24 +53,17 @@
   </div>
 </header>
 
-<section id="lore">
+<section id="play">
   <div class="section-head">
-    <div class="kicker">The legend</div>
-    <h2 class="section-title">Not your average hooded archer</h2>
-    <p class="section-desc">Every trader wears the hood. Not everyone shows the face underneath.</p>
+    <div class="kicker">Play</div>
+    <h2 class="section-title">Two ways to play the hood.</h2>
+    <p class="section-desc">Dodge the rug, or let the reel find your mood.</p>
   </div>
-  <div class="lore-card">
-    <p>A green-hooded archer who steals the pump from whales and hands it back to the hood — but never fakes how he feels about it.</p>
-    <p>Legend says he lives in the market's forest. <strong>Euphoric on a green day. Wrecked on a red one. Dead asleep watching a 3am candle.</strong> The community started calling him <strong>ROBIN THE FACE</strong> — not for the hood, but for the face underneath it, which has apparently never once looked chill. We're not selling "always up." We're selling a face that's been through it, same as you.</p>
+  <div class="tabs" role="tablist" aria-label="Play mode">
+    <button type="button" id="playTabRun" class="tab-btn is-active" role="tab" aria-selected="true" aria-controls="game" data-tab="game">Outrun the rug</button>
+    <button type="button" id="playTabSpin" class="tab-btn" role="tab" aria-selected="false" aria-controls="faces" data-tab="faces">Spin for a face</button>
   </div>
-</section>
-
-<section id="game">
-  <div class="section-head">
-    <div class="kicker">Side quest</div>
-    <h2 class="section-title">Outrun the <span style="color:var(--green-bright);">rug</span>.</h2>
-    <p class="section-desc">Dodge red candles, grab the bag. Space to jump — or tap on mobile.</p>
-  </div>
+<div id="game" class="tab-panel is-active" role="tabpanel" aria-labelledby="playTabRun">
   <div class="hood-game-wrap" id="hoodGameWrap">
     <canvas id="hoodGameCanvas" width="800" height="450" role="img" aria-label="Robin The Face endless runner mini-game"></canvas>
     <div class="hood-game-hud">
@@ -130,14 +123,8 @@
       </div>
     </div>
   </div>
-</section>
-
-<section id="faces">
-  <div class="section-head">
-    <div class="kicker">The collection</div>
-    <h2 class="section-title">The Faces Behind the Hood</h2>
-    <p class="section-desc">Swipe through the moods. You've made at least three of these this week.</p>
-  </div>
+</div>
+<div id="faces" class="tab-panel" role="tabpanel" aria-labelledby="playTabSpin" hidden>
   <div class="gallery-wrap">
     <div class="gallery-track">
                 <div class="face-card">
@@ -338,6 +325,41 @@
     <button type="button" id="faceOfDayBtn" class="btn btn-spin">SPIN</button>
   </div>
   <p id="fodMessage" class="fod-message" hidden></p>
+</div>
+</section>
+
+<section id="tokenomics">
+  <div class="section-head">
+    <div class="kicker">The ledger</div>
+    <h2 class="section-title">Tokenomics</h2>
+    <p class="section-desc">No team wallet. No sneaky tax. No cap table full of your enemies. Just numbers, and a face that's felt every single one of them.</p>
+  </div>
+  <div class="ledger ledger-strip">
+    <div class="ledger-row"><span class="k">Supply</span><span class="v pending">1,000,000,000</span></div>
+    <div class="ledger-row"><span class="k">Chain</span><span class="v pending">Robinhood</span></div>
+    <div class="ledger-row"><span class="k">Tax</span><span class="v">0% buy / 0% sell</span></div>
+    <div class="ledger-row"><span class="k">LP</span><span class="v">Locked at launch</span></div>
+    <div class="ledger-row"><span class="k">Team allocation</span><span class="v">0%</span></div>
+    <div class="ledger-row wrap">
+      <span class="k">Contract</span>
+      <span class="v">
+        <button type="button" class="contract-address" style="font-family:'IBM Plex Mono',monospace;" data-copy="0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274" aria-label="Copy contract address" title="Click to copy contract address">0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274</button>
+        <button class="copy-btn" type="button" data-copy="0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274" aria-label="Copy contract address" title="Copy contract address">📋</button>
+      </span>
+    </div>
+  </div>
+</section>
+
+<section id="lore">
+  <div class="section-head">
+    <div class="kicker">The legend</div>
+    <h2 class="section-title">Not your average hooded archer</h2>
+    <p class="section-desc">Every trader wears the hood. Not everyone shows the face underneath.</p>
+  </div>
+  <div class="lore-card">
+    <p>A green-hooded archer who steals the pump from whales and hands it back to the hood — but never fakes how he feels about it.</p>
+    <p>Legend says he lives in the market's forest. <strong>Euphoric on a green day. Wrecked on a red one. Dead asleep watching a 3am candle.</strong> The community started calling him <strong>ROBIN THE FACE</strong> — not for the hood, but for the face underneath it, which has apparently never once looked chill. We're not selling "always up." We're selling a face that's been through it, same as you.</p>
+  </div>
 </section>
 
 <section id="roadmap">
@@ -346,7 +368,7 @@
     <h2 class="section-title">Through the forest</h2>
     <p class="section-desc">Four stops on the way from teaser to takeover.</p>
   </div>
-  <div class="trail">
+  <div class="trail trail-row">
     <div class="trail-step done">
       <div class="trail-dot">✓</div>
       <div class="trail-phase">Phase 0</div>
@@ -370,28 +392,6 @@
       <div class="trail-phase">Phase 3</div>
       <div class="trail-title">Sustain</div>
       <div class="trail-desc">Sticker packs, KOL collabs, Face of the Week — the hood keeps growing.</div>
-    </div>
-  </div>
-</section>
-
-<section id="tokenomics">
-  <div class="section-head">
-    <div class="kicker">The ledger</div>
-    <h2 class="section-title">Tokenomics</h2>
-    <p class="section-desc">No team wallet. No sneaky tax. No cap table full of your enemies. Just numbers, and a face that's felt every single one of them.</p>
-  </div>
-  <div class="ledger">
-    <div class="ledger-row"><span class="k">Supply</span><span class="v pending" style="font-size:24px;">1,000,000,000</span></div>
-    <div class="ledger-row"><span class="k">Chain</span><span class="v pending">Robinhood</span></div>
-    <div class="ledger-row"><span class="k">Tax</span><span class="v">0% buy / 0% sell</span></div>
-    <div class="ledger-row"><span class="k">LP</span><span class="v">Locked at launch</span></div>
-    <div class="ledger-row"><span class="k">Team allocation</span><span class="v">0%</span></div>
-    <div class="ledger-row wrap">
-      <span class="k">Contract</span>
-      <span class="v">
-        <button type="button" class="contract-address" style="font-family:'IBM Plex Mono',monospace;" data-copy="0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274" aria-label="Copy contract address" title="Click to copy contract address">0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274</button>
-        <button class="copy-btn" type="button" data-copy="0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274" aria-label="Copy contract address" title="Copy contract address">📋</button>
-      </span>
     </div>
   </div>
 </section>
@@ -426,6 +426,7 @@
   <div class="foot-brand">🏹 ROBIN THE FACE — Every Candle Has a Face.</div>
 </footer>
 
+
 <!-- FACE DRAW OVERLAY -->
 <div id="faceDrawOverlay" class="face-draw-overlay" hidden>
   <div class="face-draw-backdrop" data-draw-close></div>
@@ -453,5 +454,6 @@
 <script src="js/copy.js"></script>
 <script type="module" src="js/dino-game.js"></script>
 <script type="module" src="js/face-draw.js"></script>
+<script type="module" src="js/play-tabs.js"></script>
 </body>
 </html>
