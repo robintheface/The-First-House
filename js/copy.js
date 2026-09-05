@@ -1,10 +1,12 @@
 // Wires up any [data-copy] element to copy its value to the clipboard, with
-// brief visual feedback. Two flavors:
+// brief visual feedback. Three flavors:
 // - .copy-btn elements (the 📋 icon button): icon swaps to a check.
-// - everything else (e.g. the contract address text itself): the text stays
-//   put, only a .copied class toggles (styles.css colors it green) — we
-//   don't want to blank out the address the user is trying to read/copy.
-// Both flavors reset after 1.5s. Works for any element carrying a data-copy
+// - an element with data-copied-label (e.g. the hero's "Copy contract"
+//   button): its whole label swaps to that text.
+// - everything else: the text stays put, only a .copied class toggles
+//   (styles.css colors it green) — for cases where blanking the label
+//   would hide content the user is trying to read/copy.
+// All three reset after 1.5s. Works for any element carrying a data-copy
 // value, so it's reusable if another copyable value shows up later.
 (function () {
   var targets = document.querySelectorAll("[data-copy]");
@@ -38,8 +40,10 @@
 
   targets.forEach(function (el) {
     var isIconButton = el.classList.contains("copy-btn");
+    var copiedLabel = el.getAttribute("data-copied-label");
+    var swapsText = isIconButton || copiedLabel;
     var originalLabel = el.getAttribute("aria-label") || "Copy";
-    var originalIcon = isIconButton ? el.textContent : null;
+    var originalText = swapsText ? el.textContent : null;
     var resetTimer = null;
 
     function trigger() {
@@ -49,12 +53,13 @@
       copyToClipboard(value);
 
       if (isIconButton) el.textContent = "✅";
+      else if (copiedLabel) el.textContent = copiedLabel;
       el.classList.add("copied");
       el.setAttribute("aria-label", "Copied!");
 
       clearTimeout(resetTimer);
       resetTimer = setTimeout(function () {
-        if (isIconButton) el.textContent = originalIcon;
+        if (swapsText) el.textContent = originalText;
         el.classList.remove("copied");
         el.setAttribute("aria-label", originalLabel);
       }, 1500);
