@@ -378,6 +378,16 @@
     color:var(--bronze); border-color:var(--bronze); font-weight:700;
     -webkit-text-stroke:0.4px var(--bronze);
   }
+  /* Same breakpoint as .topbar-cta's own hide above, same swap: on a phone
+     there's no topbar Buy button to fall back on, so the hero leads with
+     "Buy $HOODFACE" instead of "Copy contract". Both are plain .btn-primary
+     buttons in the DOM the whole time -- this only ever hides one of the
+     two, never both. (Placed after .btn's own display:inline-flex, not
+     before -- equal-specificity rules resolve by source order regardless
+     of which is behind a media query, so declaring this earlier let .btn
+     win at every width and silently no-op both hides.) */
+  @media(max-width:719px){ .hero-copy-btn{display:none;} }
+  @media(min-width:720px){ .hero-buy-btn{display:none;} }
   /* ---------- section shells ---------- */
   section{padding:96px 20px;}
   .section-head{max-width:640px; margin:0 auto 48px; text-align:center;}
