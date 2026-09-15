@@ -387,7 +387,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     reel.appendChild(galleryWrap);
     overlay.hidden = false;
     overlay.showModal();
-    overlay.querySelector('.face-draw-close').focus();
+    document.getElementById('faceDrawTitle').focus({ preventScroll: true });
 
     const allowance = await checkDrawAllowance();
     // A closed or replaced dialog must never restart an old request.

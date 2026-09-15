@@ -245,8 +245,8 @@
 /* The daily draw runs entirely inside a modal, not in the page card. */
 .homepage .face-draw-overlay { width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; border: 0; background: transparent; color: var(--paper); padding: 20px; }
 .homepage .face-draw-overlay::backdrop { background: transparent; }
-.homepage .face-draw-stage { width: min(740px,100%); max-height: calc(100dvh - 40px); overflow-y: auto; overflow-x: hidden; background: transparent; border: 0; border-radius: 0; padding: 30px 20px; text-align: center; box-shadow: none; }
-.face-draw-close { position: absolute; right: 12px; top: 12px; width: 38px; height: 38px; border: 1px solid #849377; border-radius: 50%; background: #193b2a; color: #f6efdd; cursor: pointer; font-size: 16px; }
+.homepage .face-draw-backdrop { background: rgba(2,6,3,.55); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.homepage .face-draw-stage { width: min(740px,100%); max-height: calc(100dvh - 40px); overflow-y: auto; overflow-x: hidden; background: rgba(31,58,42,.28); border: 1px solid rgba(246,239,221,.28); border-radius: 18px; padding: 30px 20px; text-align: center; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 18px 60px rgba(0,0,0,.18); }
 .face-draw-title { font-size: 34px; font-weight: 400; margin: 8px 40px 12px; }
 .face-draw-status { font-size: 16px; line-height: 1.5; min-height: 24px; margin: 0 20px 20px; color: #ddd7bf; }
 .face-draw-reel { position: relative; margin: 0 -20px; }
