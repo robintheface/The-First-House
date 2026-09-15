@@ -266,3 +266,24 @@
   .face-draw-reel .face-card { width: 160px; }
   .face-draw-reel .gallery-wrap { min-height: 235px; }
 }
+
+/* Animate the dialog entrance without touching the reel's own transform. */
+.homepage .face-draw-overlay[open] .face-draw-backdrop {
+  animation: reveal-backdrop-enter 280ms ease-out both;
+}
+.homepage .face-draw-overlay[open] .face-draw-stage {
+  animation: reveal-stage-enter 420ms cubic-bezier(.16,1,.3,1) both;
+  transform-origin: center;
+}
+@keyframes reveal-backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes reveal-stage-enter {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .homepage .face-draw-overlay[open] .face-draw-backdrop,
+  .homepage .face-draw-overlay[open] .face-draw-stage { animation: none; }
+}
