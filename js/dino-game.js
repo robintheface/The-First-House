@@ -378,6 +378,9 @@ if (canvas) {
   }
 
   function jump() {
+    // Both experiences are visible on the homepage. Finish a face reveal
+    // before starting a run; an existing run can still accept jumps.
+    if (state !== STATE.PLAYING && document.body.classList.contains('homepage') && document.getElementById('faceOfDayBtn')?.disabled) return;
     // A name prompt is open and unanswered -- from a qualifying run, or from
     // the best carried over on the idle screen. Starting a run now would
     // throw that place away, and the prompt itself invites a keypress, so
@@ -1532,7 +1535,16 @@ if (canvas) {
     // focused button/link) instead of hijacking it into a jump when focus
     // is on one of the settings panel's own controls.
     if (e.target && e.target.closest && e.target.closest('input, button, a')) return;
+    if (document.body.classList.contains('homepage')) {
+      const r = wrapEl.getBoundingClientRect();
+      if (r.bottom <= 0 || r.top >= window.innerHeight || document.getElementById('faceDrawOverlay')?.hidden === false) return;
+    }
     e.preventDefault();
+    primeAudio();
+    jump();
+  });
+  document.addEventListener('hood-runner-start', () => {
+    if (!assetsReady) return;
     primeAudio();
     jump();
   });

@@ -2,70 +2,66 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<script src="js/scroll-fix.js"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Welcome to the hood. Play Hood Runner, discover your Face of the Day, and explore the world of Robin The Face.">
 <title>ROBIN THE FACE — Every Candle Has a Face.</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="images/home-hero.webp">
 <link rel="stylesheet" href="styles.css?v=66">
+<link rel="stylesheet" href="home.css?v=1">
 </head>
-<body>
-
+<body class="homepage">
+<a class="skip-link" href="#main">Skip to content</a>
 <div class="topbar" id="top">
   <div class="topbar-inner">
-    <a href="/" class="brand" style="text-decoration:none;"><img class="brand-logo" src="logo.webp" alt="Robin The Face logo"><span class="brand-name">ROBIN THE FACE</span></a>
-    <nav class="nav-links" id="top-nav">
-      <a href="#lore">Lore</a>
-      <a href="#faces">Faces</a>
-      <a href="#tokenomics">Tokenomics</a>
-      <a href="#roadmap">Trail</a>
+    <a href="/" class="brand" aria-label="Robin The Face home">
+      <span class="brand-arrow" aria-hidden="true">➳</span>
+      <span class="brand-lockup"><span class="brand-name">ROBIN THE FACE</span><span class="brand-tagline">THE FIRST HOUSE</span></span>
+    </a>
+    <nav class="nav-links" id="top-nav" aria-label="Main navigation">
+      <a href="#play">Play</a>
+      <a href="#meet-faces">The Faces</a>
+      <a href="/explore">Explore</a>
       <a href="#community">Community</a>
-      <div class="nav-more">
-        <button type="button" class="nav-more-trigger" aria-haspopup="true" aria-expanded="false" aria-controls="nav-more-panel"><span class="nav-more-sparkle">Explore</span> <span class="nav-more-caret">▾</span></button>
-        <div class="nav-more-panel" id="nav-more-panel">
-          <a class="nav-more-item" href="/explore/wallet" target="_blank" rel="noopener noreferrer">Your Rank</a>
-          <a class="nav-more-item" href="/explore/wallet/faq" target="_blank" rel="noopener noreferrer">FAQ</a>
-          <span class="nav-more-item is-locked">Lucky Draw<span class="lock-tag">Soon</span></span>
-          <span class="nav-more-item is-locked">Tickets<span class="lock-tag">Soon</span></span>
-          <span class="nav-more-item is-locked">Burn Tracker<span class="lock-tag">Soon</span></span>
-        </div>
-      </div>
     </nav>
     <div class="topbar-right">
-      <a class="topbar-cta" href="https://app.uniswap.org/swap?outputCurrency=0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274" target="_blank" rel="noopener noreferrer">Buy $HOODFACE</a>
-      <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="top-nav">☰</button>
+      <a class="home-button home-button-small" href="/explore/wallet">Connect Wallet <span aria-hidden="true">↗</span></a>
+      <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="top-nav">☰</button>
     </div>
   </div>
 </div>
+<main id="main">
+  <header class="home-hero" aria-labelledby="home-title">
+    <img class="home-hero-art" src="images/home-hero.webp" width="1536" height="1024" alt="Robin in his green hood, resting with his bow in the market’s forest." fetchpriority="high">
+    <div class="home-hero-content">
+      <p class="home-eyebrow"><span aria-hidden="true">✦</span> A FACE FOR EVERY FEELING</p>
+      <h1 id="home-title">Every Candle<br>Has a <em>Face.</em></h1>
+      <p class="home-intro">Welcome to the hood.<br>Play a little. Find your face. Make yourself at home.</p>
+      <div class="home-actions">
+        <a class="home-button" href="#game">Play Now <span aria-hidden="true">→</span></a>
+        <a class="home-button home-button-outline" href="/explore/wallet">Explore Your Rank <span aria-hidden="true">↗</span></a>
+      </div>
+      <p class="hero-footnote">One chart. Every emotion. Your kind of people.</p>
+    </div>
+    <span class="hero-caption" aria-hidden="true">SAME HOOD.<br>DIFFERENT MOODS.</span>
+  </header>
 
-<header class="hero">
-  <div class="eyebrow">Live now · Trading is open</div>
-
-  <div class="medallion-wrap main-logo-wrap"><img class="main-logo" src="logo-main.webp" alt="Robin The Face main logo"></div>
-
-  <h1 class="headline">Every Candle<br>Has a <span class="accent">Face.</span></h1>
-  <p class="sub">A green-hooded legend who steals the pump from whales and hands it back to the hood — and never fakes how it feels about it. The faces that built the hood. One chart. Zero hopium.</p>
-
-  <div class="cta-row">
-    <button type="button" class="btn btn-primary hero-copy-btn" data-copy="0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274" data-copied-label="Copied!" aria-label="Copy contract address">Copy contract</button>
-    <a class="btn btn-primary hero-buy-btn" href="https://app.uniswap.org/swap?outputCurrency=0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274" target="_blank" rel="noopener noreferrer">Buy $HOODFACE</a>
-    <a class="btn btn-ghost" href="https://dexscreener.com/robinhood/0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274" target="_blank" rel="noopener noreferrer">View chart →</a>
-  </div>
-</header>
-
-<section id="play">
-  <div class="section-head">
-    <div class="kicker">Play</div>
-    <h2 class="section-title">Two ways to play the hood.</h2>
-    <p class="section-desc">Dodge the rug, or let the reel find your mood.</p>
-  </div>
-  <div class="tabs" role="tablist" aria-label="Play mode">
-    <button type="button" id="playTabRun" class="tab-btn is-active" role="tab" aria-selected="true" aria-controls="game" data-tab="game">Outrun the rug</button>
-    <button type="button" id="playTabSpin" class="tab-btn" role="tab" aria-selected="false" aria-controls="faces" data-tab="faces">Spin for a face</button>
-  </div>
-<div id="game" class="tab-panel is-active" role="tabpanel" aria-labelledby="playTabRun">
-  <div class="hood-game-wrap" id="hoodGameWrap">
+  <section id="play" class="home-section" aria-labelledby="play-title">
+    <div class="home-section-heading">
+      <p class="home-eyebrow">TAKE A BREAK FROM THE CHART</p>
+      <h2 id="play-title">A little chaos. A lot of hood.</h2>
+      <p>Run, reveal, repeat. There’s more than one way in.</p>
+    </div>
+    <div class="home-play-grid">
+      <section id="game" class="home-game" aria-labelledby="runner-title">
+        <div class="home-game-heading">
+          <div><p class="home-eyebrow">THE HOOD’S ARCADE</p><h3 id="runner-title">Hood Runner</h3></div>
+          <button class="home-game-start" type="button" data-start-run>Play now <span aria-hidden="true">→</span></button>
+        </div>
+  <div class="hood-game-wrap" id="hoodGameWrap" tabindex="0" aria-label="Hood Runner. Press Space or tap to play.">
     <canvas id="hoodGameCanvas" width="800" height="450" role="img" aria-label="Robin The Face endless runner mini-game"></canvas>
     <div class="hood-game-hud">
       <span id="hoodGameScore">0</span>
@@ -124,8 +120,13 @@
       </div>
     </div>
   </div>
-</div>
-<div id="faces" class="tab-panel" role="tabpanel" aria-labelledby="playTabSpin" hidden>
+
+        <div class="home-game-caption"><span>Dodge the candles. Don’t get rugged.</span><span><kbd>SPACE</kbd> or tap to jump</span></div>
+      </section>
+      <section id="faces" class="home-daily" aria-labelledby="daily-title">
+        <p class="home-eyebrow">A NEW DAY. A NEW MOOD.</p>
+        <h3 id="daily-title">Face of the Day</h3>
+        <p class="home-daily-intro">What’s behind your hood today?</p>
   <div class="gallery-wrap">
     <div class="gallery-track">
                 <div class="face-card">
@@ -323,18 +324,47 @@
 </div>
   </div>
   <div class="fod-row">
-    <button type="button" id="faceOfDayBtn" class="btn btn-spin">SPIN</button>
+    <button type="button" id="faceOfDayBtn" class="btn btn-spin">Reveal my face <span aria-hidden="true">↗</span></button>
   </div>
   <p id="fodMessage" class="fod-message" hidden></p>
-</div>
-</section>
 
-<section id="tokenomics">
-  <div class="section-head">
-    <div class="kicker">The ledger</div>
-    <h2 class="section-title">Tokenomics</h2>
-    <p class="section-desc">No team wallet. No sneaky tax. No cap table full of your enemies. Just numbers, and a face that's felt every single one of them.</p>
+        <p id="drawAvailability" class="home-daily-note">Three draws a day. Let the hood decide.</p>
+      </section>
+    </div>
+  </section>
+
+  <section id="meet-faces" class="home-section home-faces" aria-labelledby="faces-title">
+    <div class="home-section-heading">
+      <p class="home-eyebrow">DIFFERENT FACES. SAME HOOD.</p>
+      <h2 id="faces-title">Meet the faces.</h2>
+      <p>Every candle has a story. You’ve probably worn a few.</p>
+    </div>
+    <div class="home-face-grid">
+      <figure><img src="images/face-01.webp" alt="Robin’s original unimpressed face" width="440" height="440" loading="lazy"><figcaption><h3>OG</h3><p>Seen it all. Still here.</p></figcaption></figure>
+      <figure><img src="images/face-02.webp" alt="Robin celebrating a green day" width="440" height="440" loading="lazy"><figcaption><h3>Green Day</h3><p>Suddenly, a financial genius.</p></figcaption></figure>
+      <figure><img src="images/face-06.webp" alt="Robin with diamond hands" width="440" height="440" loading="lazy"><figcaption><h3>Diamond Hands</h3><p>Not leaving. Not blinking.</p></figcaption></figure>
+      <figure><img src="images/face-07.webp" alt="Robin watching the chart late at night" width="440" height="440" loading="lazy"><figcaption><h3>3AM Watch</h3><p>One more candle, then bed.</p></figcaption></figure>
+    </div>
+    <a class="home-text-link" href="#faces">Find today’s face <span aria-hidden="true">↗</span></a>
+  </section>
+
+  <div class="home-about home-section">
+    <section id="lore" class="home-about-column" aria-labelledby="story-title">
+      <img src="icons/leaf.webp" alt="" width="48" height="48" loading="lazy">
+      <h2 id="story-title">The Story</h2>
+      <p>A hooded archer. An honest face.<br>A whole forest of feelings.</p>
+      <details><summary>Read the story <span aria-hidden="true">↗</span></summary>
+  <div class="lore-card">
+    <p>A green-hooded archer who steals the pump from whales and hands it back to the hood — but never fakes how he feels about it.</p>
+    <p>Legend says he lives in the market's forest. <strong>Euphoric on a green day. Wrecked on a red one. Dead asleep watching a 3am candle.</strong> The community started calling him <strong>ROBIN THE FACE</strong> — not for the hood, but for the face underneath it, which has apparently never once looked chill. We're not selling "always up." We're selling a face that's been through it, same as you.</p>
   </div>
+      </details>
+    </section>
+    <section id="tokenomics" class="home-about-column" aria-labelledby="ledger-title">
+      <img src="icons/hoodface_coin.webp" alt="" width="48" height="48" loading="lazy">
+      <h2 id="ledger-title">Tokenomics</h2>
+      <p>Know the numbers.<br>Explore the ledger behind the hood.</p>
+      <details><summary>Open the ledger <span aria-hidden="true">↗</span></summary>
   <div class="ledger ledger-strip">
     <div class="ledger-row"><span class="k">Chain</span><span class="v pending">Robinhood</span></div>
     <div class="ledger-row"><span class="k">Supply</span><span class="v pending">1,000,000,000</span></div>
@@ -342,26 +372,18 @@
     <div class="ledger-row"><span class="k">LP</span><span class="v">Locked at launch</span></div>
     <div class="ledger-row"><span class="k">Team allocation</span><span class="v">0%</span></div>
   </div>
-</section>
-
-<section id="lore">
-  <div class="section-head">
-    <div class="kicker">The legend</div>
-    <h2 class="section-title">Not your average hooded archer</h2>
-    <p class="section-desc">Every trader wears the hood. Not everyone shows the face underneath.</p>
-  </div>
-  <div class="lore-card">
-    <p>A green-hooded archer who steals the pump from whales and hands it back to the hood — but never fakes how he feels about it.</p>
-    <p>Legend says he lives in the market's forest. <strong>Euphoric on a green day. Wrecked on a red one. Dead asleep watching a 3am candle.</strong> The community started calling him <strong>ROBIN THE FACE</strong> — not for the hood, but for the face underneath it, which has apparently never once looked chill. We're not selling "always up." We're selling a face that's been through it, same as you.</p>
-  </div>
-</section>
-
-<section id="roadmap">
-  <div class="section-head">
-    <div class="kicker">The trail</div>
-    <h2 class="section-title">Through the forest</h2>
-    <p class="section-desc">Four stops on the way from teaser to takeover.</p>
-  </div>
+        <div class="home-contract-actions">
+          <button type="button" class="home-text-link" data-copy="0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274" data-copied-label="Copied!">Copy contract</button>
+          <a href="https://dexscreener.com/robinhood/0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274" target="_blank" rel="noopener noreferrer">View chart ↗</a>
+          <a href="https://app.uniswap.org/swap?outputCurrency=0x4390B64Db4d9AC2F2D6AA880AAf23de24008C274" target="_blank" rel="noopener noreferrer">Buy $HOODFACE ↗</a>
+        </div>
+      </details>
+    </section>
+    <section id="roadmap" class="home-about-column" aria-labelledby="trail-title">
+      <img src="icons/campfire.webp" alt="" width="48" height="48" loading="lazy">
+      <h2 id="trail-title">The Trail</h2>
+      <p>From the first face to the next chapter.<br>Follow the path through the forest.</p>
+      <details><summary>See what’s next <span aria-hidden="true">↗</span></summary>
   <div class="trail trail-row">
     <div class="trail-step done">
       <div class="trail-dot">✓</div>
@@ -388,39 +410,22 @@
       <div class="trail-desc">Sticker packs, KOL collabs, Face of the Week — the hood keeps growing.</div>
     </div>
   </div>
-</section>
-
-<section id="community">
-  <div class="section-head">
-    <div class="kicker">Join in</div>
-    <h2 class="section-title">Come stand in the hood</h2>
-    <p class="section-desc">Links go live at reveal — bookmark this page.</p>
+      </details>
+    </section>
   </div>
-  <div class="community-grid">
-    <a class="comm-card" href="https://t.me/robintheface" target="_blank" rel="noopener noreferrer">
-      <span class="comm-icon">💬</span>
-      <div class="comm-name">Telegram</div>
-      <div class="comm-sub">@robintheface</div>
-    </a>
-    <a class="comm-card" href="https://x.com/robintheface" target="_blank" rel="noopener noreferrer">
-      <span class="comm-icon">𝕏</span>
-      <div class="comm-name">X / Twitter</div>
-      <div class="comm-sub">@robintheface</div>
-    </a>
-    <a class="comm-card" href="#" aria-disabled="true">
-      <span class="comm-icon">🏹</span>
-      <div class="comm-name">Discord</div>
-      <div class="comm-sub">coming soon</div>
-    </a>
-  </div>
-</section>
 
-<footer>
+  <section id="community" class="home-community" aria-labelledby="community-title">
+    <p class="home-eyebrow">YOU DON’T HAVE TO HOLD TO BELONG</p>
+    <h2 id="community-title">There’s room in the hood.</h2>
+    <p>Memes. Games. Familiar faces. Come find your people.</p>
+    <a class="home-button home-button-gold" href="https://t.me/robintheface" target="_blank" rel="noopener noreferrer">Join the Community <span aria-hidden="true">↗</span></a>
+    <a class="home-community-x" href="https://x.com/robintheface" target="_blank" rel="noopener noreferrer">Follow the story on 𝕏 ↗</a>
+  </section>
+</main>
+<footer class="home-footer">
+  <div class="home-footer-row"><a class="home-footer-brand" href="#top">➳ ROBIN THE FACE</a><span class="home-footer-tagline">EVERY CANDLE HAS A FACE.</span><nav aria-label="Footer navigation"><a href="/explore">Explore</a><a href="/explore/wallet/faq">FAQ</a><a href="https://x.com/robintheface" target="_blank" rel="noopener noreferrer">𝕏</a><a href="https://t.me/robintheface" target="_blank" rel="noopener noreferrer">Telegram</a></nav></div>
   <p class="disclaimer">This is a community meme project built for entertainment and culture. Not financial advice. Nothing on this page is a promise of profit — always DYOR before interacting with any token or contract.</p>
-  <div class="foot-brand">🏹 ROBIN THE FACE — Every Candle Has a Face.</div>
 </footer>
-
-
 <!-- FACE DRAW OVERLAY -->
 <div id="faceDrawOverlay" class="face-draw-overlay" hidden>
   <div class="face-draw-backdrop" data-draw-close></div>
@@ -444,10 +449,11 @@
   </div>
 </div>
 
+
 <script type="module" src="js/topbar-menus.js"></script>
 <script src="js/copy.js"></script>
 <script type="module" src="js/dino-game.js"></script>
 <script type="module" src="js/face-draw.js"></script>
-<script type="module" src="js/play-tabs.js"></script>
+<script type="module" src="js/home.js"></script>
 </body>
 </html>
