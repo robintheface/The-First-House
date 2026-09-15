@@ -241,3 +241,29 @@
   .homepage *, .homepage *::before, .homepage *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
   .home-daily .gallery-track { animation: none; }
 }
+
+/* The daily draw runs entirely inside a modal, not in the page card. */
+.homepage .face-draw-overlay { width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; border: 0; background: transparent; color: var(--paper); padding: 20px; }
+.homepage .face-draw-overlay::backdrop { background: transparent; }
+.homepage .face-draw-stage { width: min(740px,100%); max-height: calc(100dvh - 40px); overflow-y: auto; overflow-x: hidden; background: #193b2a; border: 1px solid #938051; border-radius: 16px; padding: 30px 20px; text-align: center; box-shadow: 0 25px 100px #0009; }
+.face-draw-close { position: absolute; right: 12px; top: 12px; width: 38px; height: 38px; border: 1px solid #849377; border-radius: 50%; background: #193b2a; color: #f6efdd; cursor: pointer; font-size: 16px; }
+.face-draw-title { font-size: 34px; font-weight: 400; margin: 8px 40px 12px; }
+.face-draw-status { font-size: 16px; line-height: 1.5; min-height: 24px; margin: 0 20px 20px; color: #ddd7bf; }
+.face-draw-reel { position: relative; margin: 0 -20px; }
+.face-draw-reel::after { content: '▼'; position: absolute; top: 0; left: 50%; transform: translateX(-50%); color: #efc567; z-index: 5; }
+.face-draw-reel .gallery-wrap { min-height: 270px; }
+.face-draw-reel .gallery-wrap::before { background: linear-gradient(90deg,#193b2a,transparent); width: 18%; }
+.face-draw-reel .gallery-wrap::after { background: linear-gradient(270deg,#193b2a,transparent); width: 18%; }
+.face-draw-reel .gallery-track { gap: 24px; padding: 30px 0; }
+.face-draw-reel .face-card { width: 190px; border-radius: 10px; background: #294d34; }
+.face-draw-reel .face-label { color: #f6efdd; }
+.homepage .face-draw-stage .face-draw-card { margin: 0 auto; width: min(300px,65vw,45dvh); }
+@media (max-width: 480px) {
+  .homepage .face-draw-overlay { padding: 12px; }
+  .homepage .face-draw-stage { padding: 28px 16px 24px; max-height: calc(100dvh - 24px); }
+  .face-draw-title { font-size: 28px; }
+  .face-draw-status { font-size: 14px; margin-left: 10px; margin-right: 10px; }
+  .face-draw-reel { margin: 0 -16px; }
+  .face-draw-reel .face-card { width: 160px; }
+  .face-draw-reel .gallery-wrap { min-height: 235px; }
+}

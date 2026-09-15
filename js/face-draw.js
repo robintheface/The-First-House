@@ -1,14 +1,5 @@
-// The "SPIN" button below the gallery (index.html, #faces) is the only way
-// into the reveal card -- gallery face cards are decorative only, not
-// clickable. Clicking it spins the gallery's own live marquee,
-// CS:GO-case-opening style: it races past the dead center of the gallery
-// (no fixed marker -- whichever card is actually passing through center
-// lights up live, tracked every frame) and decelerates to a stop, and
-// whichever face is lit when it lands flips (tap to reveal) to show its
-// joke, with a Share on X control. Backdrop click / Escape only close once
-// the joke's actually revealed, so a stray tap outside can't lose the
-// draw before it gets there. Kept as an external module, same CSP reason
-// as wallet-connect.js: script-src has no 'unsafe-inline'.
+// Face of the Day opens a centered dialog immediately. The existing reel
+// moves into that dialog for the draw, then returns to its homepage slot.
 import { randomJoke } from "./face-jokes.js";
 import { rarityFor } from "./face-rarity.js";
 
@@ -27,6 +18,13 @@ const galleryWrap = document.querySelector('.gallery-wrap');
 const galleryTrack = document.querySelector('.gallery-track');
 // The real 24, not the aria-hidden duplicates that pad the marquee loop --
 // Face of the Day picks a winner from this set.
+const reel = document.getElementById('faceDrawReel');
+const drawStatus = document.getElementById('faceDrawStatus');
+const galleryHome = galleryWrap?.parentNode;
+const galleryNext = galleryWrap?.nextSibling;
+let drawId = 0;
+let previousOverflow = '';
+
 const realCards = [...document.querySelectorAll('.face-card')].filter((c) => c.getAttribute('aria-hidden') !== 'true');
 
 if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.length) {
@@ -273,11 +271,14 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     galleryTrack.style.transition = '';
     galleryTrack.style.transform = '';
     galleryTrack.style.animation = '';
-    if (fodBtn) fodBtn.disabled = false;
     gallerySpinCleanup = null;
   }
 
   function spinGallery(winnerIdx, onDone){
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      onDone([]);
+      return;
+    }
     const currentX = readTranslateX(galleryTrack);
     // Freeze the marquee exactly where it visually is right now, then
     // switch it from CSS-keyframe-driven to a plain transform this
@@ -327,6 +328,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     function onEnd(e){
       if (e.target !== galleryTrack || e.propertyName !== 'transform') return;
       galleryTrack.removeEventListener('transitionend', onEnd);
+      clearTimeout(fallback);
       stopLitTracking();
       // The live rAF tracking should already have landed here, but pin it
       // explicitly -- rounding across many frames of a multi-lap spin is
@@ -335,8 +337,10 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
       onDone(addedClones);
     }
     galleryTrack.addEventListener('transitionend', onEnd);
+    const fallback = setTimeout(() => onEnd({ target: galleryTrack, propertyName: 'transform' }), GALLERY_SPIN_MS + 100);
     gallerySpinCleanup = () => {
       galleryTrack.removeEventListener('transitionend', onEnd);
+      clearTimeout(fallback);
       cleanupGallerySpin(addedClones);
     };
   }
@@ -362,70 +366,74 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     }
   }
 
+  function restoreGallery() {
+    if (galleryHome && galleryWrap.parentNode !== galleryHome) {
+      galleryHome.insertBefore(galleryWrap, galleryNext);
+    }
+  }
+
   async function openFaceOfTheDay(){
-    if (!realCards.length || !fodBtn || fodBtn.disabled || !galleryTrack) return;
-    // Must happen synchronously inside the real click handler, before any
-    // await -- checkDrawAllowance() below awaits a fetch, so priming the
-    // spin sound after that point risks Safari (and other strict browsers)
-    // refusing to ever let it play. See primeSpinSound() above.
+    if (!realCards.length || !fodBtn || fodBtn.disabled || !galleryTrack || !reel) return;
     primeSpinSound();
+    const thisDraw = ++drawId;
     fodBtn.disabled = true;
+    hasRevealed = false;
     showFodMessage('');
+    previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    cardEl.hidden = true;
+    reel.hidden = false;
+    drawStatus.textContent = 'Checking your daily draws…';
+    reel.appendChild(galleryWrap);
+    overlay.hidden = false;
+    overlay.showModal();
+    overlay.querySelector('.face-draw-close').focus();
+
     const allowance = await checkDrawAllowance();
+    // A closed or replaced dialog must never restart an old request.
+    if (thisDraw !== drawId || overlay.hidden) return;
     if (!allowance.allowed) {
-      fodBtn.disabled = false;
-      showFodMessage(allowance.message);
+      restoreGallery();
+      reel.hidden = true;
+      drawStatus.textContent = allowance.message;
       return;
     }
 
+    drawStatus.textContent = 'The hood is finding your face…';
     const winnerIdx = Math.floor(Math.random() * realCards.length);
     const winnerCard = realCards[winnerIdx];
-    const winnerLabel = winnerCard.querySelector('.face-label');
-    const winnerMood = winnerLabel ? winnerLabel.textContent.trim() : '';
+    const winnerMood = winnerCard.querySelector('.face-label')?.textContent.trim() || '';
     const winnerJoke = randomJoke(winnerMood);
-    const winnerImg = winnerCard.querySelector('.face-img');
-    const winnerImgSrc = winnerImg ? winnerImg.src : '';
-
-    // No overlay/backdrop yet -- the spin plays out on the page itself, in
-    // the actual gallery, not behind a dialog. fodBtn is already disabled
-    // (set above, before the allowance check), so a second spin can't
-    // start before this one lands and fight it for control of the track.
-    // Two beats after landing: 1s with the winner card lit and sitting
-    // still in the gallery -> overlay backdrop appears (card still
-    // hidden) -> 0.5s later the card fades in showing the mood, with a
-    // "tap to reveal" prompt -- the joke flip is now a tap, not a timer.
+    const winnerImgSrc = winnerCard.querySelector('.face-img')?.src || '';
+    // Eager-load the moving cards: off-screen lazy images otherwise only
+    // begin loading as the fast reel carries them into view.
+    realCards.forEach(card => { card.querySelector('img').loading = 'eager'; });
     spinGallery(winnerIdx, (addedClones) => {
-      const overlayDelay = setTimeout(() => {
+      const revealDelay = setTimeout(() => {
+        if (thisDraw !== drawId) return;
         cleanupGallerySpin(addedClones);
-        overlay.hidden = false;
-        document.body.style.overflow = 'hidden';
-        cardEl.hidden = true;
-
-        const fadeDelay = setTimeout(() => {
-          setCardContent(winnerMood, winnerJoke, winnerImgSrc);
-          resetCardToFront();
-          cardEl.hidden = false;
-          cardEl.classList.add('is-revealing');
-          void cardEl.offsetWidth; // force a reflow so the class removal below actually transitions
-          cardEl.classList.remove('is-revealing');
-        }, 500);
-        // Overlay's already up and the gallery's already restored at this
-        // point -- closing mid-fade just needs to cancel the pending reveal.
-        gallerySpinCleanup = () => { clearTimeout(fadeDelay); };
-      }, 1000);
-      gallerySpinCleanup = () => { clearTimeout(overlayDelay); cleanupGallerySpin(addedClones); };
+        restoreGallery();
+        reel.hidden = true;
+        setCardContent(winnerMood, winnerJoke, winnerImgSrc);
+        resetCardToFront();
+        cardEl.hidden = false;
+        drawStatus.textContent = 'Your face has arrived. Tap the card to reveal its story.';
+        cardEl.focus({ preventScroll: true });
+      }, 650);
+      gallerySpinCleanup = () => { clearTimeout(revealDelay); cleanupGallerySpin(addedClones); };
     });
   }
 
-  // ---------- shared: close / share ----------
   function closeDraw(){
-    overlay.hidden = true;
-    document.body.style.overflow = '';
-    cardInner.removeEventListener('transitionend', onFlipEnd);
-    // Closing mid-spin (or during the post-landing pause, before the
-    // overlay even opened) needs the gallery put back exactly as much as
-    // closing after the joke's already showing does.
+    ++drawId;
     if (gallerySpinCleanup) gallerySpinCleanup();
+    restoreGallery();
+    overlay.close();
+    overlay.hidden = true;
+    document.body.style.overflow = previousOverflow;
+    cardInner.removeEventListener('transitionend', onFlipEnd);
+    fodBtn.disabled = false;
+    fodBtn.focus({ preventScroll: true });
   }
 
   function shareOnX(){
@@ -453,19 +461,17 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
 
   if (fodBtn) fodBtn.addEventListener('click', openFaceOfTheDay);
   if (cardEl) cardEl.addEventListener('click', tapToReveal);
-  // Backdrop click / Escape only actually close once the joke's been
-  // revealed at least once (hasRevealed) -- before that, a stray tap
-  // outside the card or an accidental Escape would dismiss the whole draw
-  // before the joke ever showed, losing the reveal entirely. hasRevealed,
-  // not is-flipped, so closing still works after flipping back to the
-  // mood side to look at it again.
-  overlay.querySelectorAll('[data-draw-close]').forEach((el) => {
-    el.addEventListener('click', () => {
-      if (hasRevealed) closeDraw();
-    });
+  cardEl.addEventListener('keydown', (e) => {
+    if (e.target !== cardEl || (e.key !== 'Enter' && e.key !== ' ')) return;
+    e.preventDefault();
+    tapToReveal(e);
   });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !overlay.hidden && hasRevealed) closeDraw();
+  overlay.querySelectorAll('[data-draw-close]').forEach((el) => {
+    el.addEventListener('click', closeDraw);
+  });
+  overlay.addEventListener('cancel', (e) => {
+    e.preventDefault();
+    closeDraw();
   });
   if (shareBtn) shareBtn.addEventListener('click', shareOnX);
 }
