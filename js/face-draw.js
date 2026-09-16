@@ -79,14 +79,14 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
 
   // The fixed gold marker selects the card beneath it. A short launch
   // gives way to a long deceleration, leaving time to follow the last cards.
-  const CLONE_LOOPS = 2;
+  const CLONE_LOOPS = 1;
   const LAND_LOOP = CLONE_LOOPS;
   const GALLERY_SPIN_MS = 8000;
-  const GALLERY_SPIN_EASE = 'cubic-bezier(.12,.65,.12,1)';
+  const GALLERY_SPIN_EASE = 'cubic-bezier(.16,.55,.18,1)';
   let gallerySpinCleanup = null; // non-null only while a spin (or its post-landing pause) is in flight
   let galleryRafId = null;
   let litCard = null;
-  let glowActive = true; // spin always starts slow, so it starts lit
+  let imagesReady = Promise.resolve();
 
   function readTranslateX(el){
     const m = getComputedStyle(el).transform;
@@ -173,23 +173,6 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
 
   // Below this fraction of the spin's peak speed, the passing card
   // actually lights up; at or above it, no card lights (see trackLitCard).
-  // The fast cruise whips past many cards a second -- lighting every one
-  // of them, each with its own glow/scale pop, reads as a strobe rather
-  // than a highlight. Gating it to the slow start and the decelerating
-  // tail keeps the glow meaningful without the flicker. The tick sound
-  // above is deliberately NOT gated by this -- it fires on every real
-  // crossing so it stays audibly synced to the actual spin speed.
-  const GLOW_SPEED_RATIO = 0.18;
-  // Empirically measured against this exact easing curve: peak
-  // instantaneous speed during a spin ≈ (travel distance / duration) *
-  // this factor -- recomputed fresh each spin from the real distance/
-  // duration (see spinGallery) rather than hardcoded, so the glow gate
-  // above stays calibrated if either changes again later.
-  const SPIN_PEAK_FACTOR = 5.42;
-
-  let spinPeakSpeed = 1;
-  let lastTrackX = 0;
-  let lastTrackT = 0;
   let lastCenterCard = null; // drives the tick above -- independent of litCard/glowActive
 
   function setLitCard(el){
@@ -202,44 +185,18 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   function trackLitCard(step, cardWidth, centerX, totalCount){
     const trackX = readTranslateX(galleryTrack);
     const now = performance.now();
-    const dt = now - lastTrackT;
-    const speed = dt > 0 ? Math.abs(trackX - lastTrackX) / dt : 0;
-    lastTrackX = trackX;
-    lastTrackT = now;
-
     const centerInTrack = centerX - trackX;
     const idx = Math.max(0, Math.min(totalCount - 1, Math.round((centerInTrack - cardWidth / 2) / step)));
     const centerCard = galleryTrack.children[idx];
 
-    // Tick on every real center-crossing, independent of the glow gate --
-    // this is what keeps the sound synced to the actual spin speed even
-    // while the visual stays dark during the fast cruise. Tracked via its
-    // own reference (not litCard) since litCard is deliberately left
-    // stale/dark while the gate is closed, but the center card keeps moving.
+    // Track sound only while moving. The winner gets its glow after landing,
+    // avoiding repeated filter repaints on the fast-moving image strip.
     if (centerCard !== lastCenterCard) {
       lastCenterCard = centerCard;
       playSpinTick(lastTickAt ? now - lastTickAt : 40);
       lastTickAt = now;
     }
 
-    // Hysteresis around the threshold -- crossing a single speed value
-    // right at the boundary between the fast cruise and the slow tail lets
-    // measurement noise flicker glowActive on/off several times in as many
-    // frames. A gap between the "turn off" and "turn on" speeds keeps that
-    // crossing a single, clean transition instead of a mini strobe burst.
-    const threshold = spinPeakSpeed * GLOW_SPEED_RATIO;
-    if (glowActive) {
-      if (speed > threshold * 1.3) glowActive = false;
-    } else if (speed <= threshold * 0.75) {
-      glowActive = true;
-    }
-    if (glowActive) {
-      setLitCard(centerCard);
-    } else if (litCard) {
-      // Too fast to track by eye right now -- go dark rather than strobe.
-      litCard.classList.remove('is-lit');
-      litCard = null;
-    }
     galleryRafId = requestAnimationFrame(() => trackLitCard(step, cardWidth, centerX, totalCount));
   }
 
@@ -258,6 +215,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     galleryTrack.style.transition = '';
     galleryTrack.style.transform = '';
     galleryTrack.style.animation = '';
+    galleryTrack.style.willChange = '';
     gallerySpinCleanup = null;
   }
 
@@ -267,6 +225,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
       return;
     }
     const currentX = readTranslateX(galleryTrack);
+    galleryTrack.style.willChange = 'transform';
     // Freeze the marquee exactly where it visually is right now, then
     // switch it from CSS-keyframe-driven to a plain transform this
     // function fully controls -- no jump, since the frozen value is the
@@ -280,6 +239,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
       realCards.forEach((card) => {
         const clone = card.cloneNode(true);
         clone.removeAttribute('id');
+        clone.setAttribute('aria-hidden', 'true');
         galleryTrack.appendChild(clone);
         addedClones.push(clone);
       });
@@ -301,12 +261,8 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     const targetX = currentX + (centerX - winnerCenter) + jitter;
 
     stopLitTracking();
-    lastTrackX = currentX;
-    lastTrackT = performance.now();
     lastCenterCard = null;
     lastTickAt = 0;
-    glowActive = true;
-    spinPeakSpeed = (Math.abs(targetX - currentX) / GALLERY_SPIN_MS) * SPIN_PEAK_FACTOR;
     const localCenter = centerX - galleryTrack.getBoundingClientRect().left + currentX;
     trackLitCard(step, cardWidth, localCenter, galleryTrack.children.length);
 
@@ -368,6 +324,10 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
       const mood = card.querySelector('.face-label')?.textContent.trim() || '';
       card.dataset.rarity = rarityFor(mood);
     });
+    imagesReady = Promise.all([...galleryTrack.querySelectorAll('img')].map(img => {
+      img.loading = 'eager';
+      return img.decode ? img.decode().catch(() => {}) : Promise.resolve();
+    }));
     fodBtn.disabled = true;
     hasRevealed = false;
     showFodMessage('');
@@ -392,7 +352,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     primeSpinSound();
     const thisDraw = ++drawId;
     drawStatus.textContent = 'Checking your daily draws…';
-    const allowance = await checkDrawAllowance();
+    const [allowance] = await Promise.all([checkDrawAllowance(), imagesReady]);
     // A closed or replaced dialog must never restart an old request.
     if (thisDraw !== drawId || overlay.hidden) return;
     if (!allowance.allowed) {
@@ -402,9 +362,8 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
       return;
     }
 
-    spinBtn.hidden = true;
+    spinBtn.textContent = 'Spinning…';
     overlay.classList.add('is-spinning');
-    reel.classList.remove('is-ready');
     drawStatus.textContent = 'The hood is finding your face…';
     const winnerIdx = Math.floor(Math.random() * realCards.length);
     const winnerCard = realCards[winnerIdx];
@@ -422,6 +381,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
         cleanupGallerySpin(addedClones);
         restoreGallery();
         reel.hidden = true;
+        spinBtn.hidden = true;
         setCardContent(winnerMood, winnerJoke, winnerImgSrc);
         resetCardToFront();
         cardEl.hidden = false;

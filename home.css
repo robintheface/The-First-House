@@ -382,7 +382,7 @@
 .face-draw-reel .face-card.is-lit .face-label { color: #fff1cc; }
 .face-draw-reel .face-img { filter: drop-shadow(0 6px 12px #0006); }
 .face-draw-spin { position: relative; overflow: hidden; text-transform: uppercase; letter-spacing: .2em; background: linear-gradient(110deg,#b88b42,#ffe6a5 50%,#d3aa58); box-shadow: 0 3px 0 #866128,0 0 25px #edcb8320; }
-.face-draw-spin::after { content: ''; position: absolute; inset: -50%; background: linear-gradient(110deg,transparent 40%,#fff7 50%,transparent 60%); transform: translateX(-100%); animation: treasure-sheen 4s ease-in-out infinite; pointer-events: none; }
+.face-draw-spin::after { content: ''; position: absolute; inset: -50%; background: linear-gradient(110deg,transparent 40%,#fff7 50%,transparent 60%); transform: translateX(-100%); animation: treasure-sheen 3.2s linear infinite; pointer-events: none; }
 .reveal-stardust { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: -1; }
 .reveal-stardust i { position: absolute; color: #fce6ab; font-style: normal; font-size: 12px; opacity: .3; animation: treasure-drift 5s ease-in-out infinite alternate; }
 .reveal-stardust i:nth-child(1) { left: 7%; top: 16%; }
@@ -395,7 +395,7 @@
 .is-winner .face-draw-reel .face-card.is-lit .face-img { filter: drop-shadow(0 0 22px color-mix(in srgb,var(--reel-color) 75%,transparent)); }
 .is-winner .reveal-stardust i { color: #fff1c6; opacity: .85; }
 @keyframes treasure-drift { from { transform: translateY(7px) rotate(-12deg); opacity: .2; } to { transform: translateY(-10px) rotate(12deg); opacity: .8; } }
-@keyframes treasure-sheen { 0%,45% { transform: translateX(-100%); } 80%,100% { transform: translateX(100%); } }
+@keyframes treasure-sheen { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
 @keyframes treasure-arrive { from { opacity: 0; transform: translateY(18px) scale(.92); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @media (max-width: 480px) { .reveal-kicker { font-size: 8px; letter-spacing: .18em; } .face-draw-reel .gallery-track { gap: 12px; } }
 @media (prefers-reduced-motion: reduce) { .reveal-stardust i,.face-draw-spin::after,.is-winner .face-draw-card { animation: none; } }
@@ -410,3 +410,13 @@
 .homepage .face-draw-card .face-draw-front::before,.homepage .face-draw-card .face-draw-front::after { content: none; display: none; }
 .homepage .face-draw-card .face-draw-img { filter: drop-shadow(0 0 16px color-mix(in srgb,var(--result-color) 48%,transparent)); }
 .homepage .face-draw-card:focus-visible { outline: 1px solid color-mix(in srgb,var(--result-color) 30%,transparent); outline-offset: 6px; }
+
+/* Keep the reel geometry fixed while spinning; only its transform moves. */
+.face-draw-spin { transition: transform .2s ease, opacity .2s ease; }
+.face-draw-spin:not(:disabled):hover { transform: translateY(-2px); }
+.face-draw-spin:not(:disabled):active { transform: translateY(0); }
+.face-draw-spin:disabled::after { animation-play-state: paused; opacity: 0; }
+.face-draw-reel .face-img { transition: filter .45s ease; }
+.is-spinning .face-draw-reel .face-img { filter: none; }
+.is-spinning .reveal-stardust i { animation-play-state: paused; }
+.face-draw-reel .face-card { transition: none; }
