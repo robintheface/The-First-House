@@ -22,23 +22,33 @@ body.site-inner { --bg: #f6efdd; --bg-2: #eee5ce; --ink: #193c2b; --ink-dim: #58
 .site-inner .rank-live-badge,.site-inner .rank-chain-badge { color: #35633e; border-color: #9bac8a; background: #e5ebd5; }
 .coming-soon-icon { display: block; width: 80px; height: 80px; object-fit: contain; margin: 0 auto; }
 /* Wallet dialog matches the page's parchment theme, same tokens/card
-   treatment as .quicklink-card and the other paper panels below rather than
-   a separate dark palette. */
-.site-inner .wallet-modal { --ink: var(--site-forest); --ink-dim: var(--site-muted); --cream2: var(--site-forest); --green-bright: #35633e; --gold: #88641f; --bronze: #95632c; --line: var(--site-line); color: var(--ink); }
-.site-inner .wallet-modal-card { background: linear-gradient(145deg,#fffaf0,#f0e9d5); border-color: #c7b582; box-shadow: 0 40px 100px rgba(25,60,43,0.22); max-height: calc(100dvh - 32px); overscroll-behavior: contain; }
-.site-inner .wallet-modal-close { width: 44px; height: 44px; top: 12px; right: 12px; background: #f3eedf; border-color: #c7b582; }
-.site-inner .wallet-modal-close:hover { border-color: #35633e; color: #193c2b; }
-.site-inner .wallet-option { background: #fbf6e8; border-color: var(--site-line); }
-.site-inner .wallet-option-icon { background: #f3eedf; border-color: var(--site-line); }
-.site-inner .wallet-option-meta { color: #35633e; background: #e5ebd5; border-color: #9bac8a; }
+   treatment as .quicklink-card and the other paper panels below -- but with
+   its own stronger borders/fills so the picker rows and result read as
+   clear focal points, not just another flat cream surface. */
+.site-inner .wallet-modal { --ink: var(--site-forest); --ink-dim: var(--site-muted); --cream2: var(--site-forest); --green-bright: #1f4a2c; --gold: #7a5a15; --bronze: #7a4d1e; --line: var(--site-line); color: var(--ink); }
+.site-inner .wallet-modal-card { background: linear-gradient(145deg,#fffdf6,#f3ead0); border: 2px solid #a9843a; box-shadow: 0 40px 100px rgba(25,60,43,0.3), inset 0 1px 0 #ffffffb0; max-height: calc(100dvh - 32px); overscroll-behavior: contain; }
+.site-inner .wallet-modal .kicker { color: #8a6416; font-weight: 700; }
+.site-inner .wallet-modal-title { color: #193c2b; }
+.site-inner .wallet-modal-close { width: 44px; height: 44px; top: 12px; right: 12px; background: #fff; border: 2px solid #a9843a; color: #193c2b; font-weight: 700; }
+.site-inner .wallet-modal-close:hover { background: #193c2b; border-color: #193c2b; color: #f6efdd; }
+.site-inner .wallet-option { background: #fffefb; border: 2px solid #c7b582; box-shadow: 0 3px 10px rgba(25,60,43,0.08); }
+.site-inner .wallet-option-name { color: #193c2b; font-weight: 700; }
+.site-inner .wallet-option-icon { background: #dde8cc; border: 2px solid #6f8a5a; }
+.site-inner .wallet-option-meta { color: #f6efdd; background: #2c5636; border-color: #2c5636; font-weight: 700; }
 .site-inner .wallet-option.is-unavailable .wallet-option-icon,
 .site-inner .wallet-option.is-locked .wallet-option-icon { background: #ecebdc; border-color: var(--site-line); }
 .site-inner .wallet-option.is-unavailable .wallet-option-meta,
-.site-inner .wallet-option.is-locked .wallet-option-meta { color: var(--site-muted); background: #ecebdc; border-color: var(--site-line); }
-.site-inner .wallet-modal-spinner { border-color: var(--site-line); border-top-color: #35633e; }
+.site-inner .wallet-option.is-locked .wallet-option-meta { color: var(--site-muted); background: #ecebdc; border-color: #c9c2a8; }
+.site-inner .wallet-modal-spinner { border-color: #e4d6b0; border-top-color: #8a6416; border-width: 3px; }
 @media (hover: hover) and (pointer: fine) {
-  .site-inner .wallet-option:not(:disabled):hover { border-color: #839477; background: #f3eedf; box-shadow: 0 8px 24px #193c2b14; }
+  .site-inner .wallet-option:not(:disabled):hover { border-color: #193c2b; background: #fff; box-shadow: 0 10px 26px rgba(25,60,43,0.18); }
 }
+/* Result step: the tier's icon ring and title already carry the accent
+   color (--tier-color, set inline from wallet-utils.js's tierColorVar) --
+   darkened along with --gold/--green-bright/--bronze/--cream2 above so a
+   Legendary/Mythic/etc. result reads as bold on parchment instead of a
+   pastel tint that used to only work on the old dark card. */
+.site-inner .rank-hero-title { font-weight: 700; }
 /* Same navigation markup and spacing on every route. */
 :is(.homepage,.site-inner) .topbar { background: #f6efddf5; border-bottom: 1px solid var(--site-line); backdrop-filter: blur(12px); }
 :is(.homepage,.site-inner) .topbar-inner { max-width: 1320px; min-height: 78px; padding: 14px 28px; gap: 22px; }
