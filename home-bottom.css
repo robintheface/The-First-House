@@ -25,20 +25,26 @@
 .homepage #roadmap .trail-phase { font: 10px/1.5 'IBM Plex Mono',monospace; letter-spacing: .06em; color: #586647; }
 .homepage #roadmap .trail-desc { font-size: 15px; line-height: 1.65; }
 .homepage .home-community { padding: 64px 24px 70px; background: radial-gradient(ellipse at 50% 0%,#46613c,#193b2a 70%); border-top: 1px solid #667345; }
+.homepage .home-community { isolation: isolate; }
 .homepage .home-community::before { content: none; }
 .homepage .home-community > .community-background {
   position: absolute;
-  inset: 0 0 0 auto;
-  width: min(900px,100%);
+  inset: 0;
+  width: 100%;
   height: 100%;
-  max-width: 100%;
-  object-fit: contain;
-  object-position: right center;
+  object-fit: cover;
+  object-position: center;
   pointer-events: none;
-  opacity: .12;
-  mix-blend-mode: luminosity;
-  -webkit-mask-image: radial-gradient(ellipse at 100% 50%,#000 15%,transparent 75%);
-  mask-image: radial-gradient(ellipse at 100% 50%,#000 15%,transparent 75%);
+  opacity: .55;
+  z-index: -2;
+}
+.homepage .home-community::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background: linear-gradient(180deg,#142f2338,#142f2355 60%,#142f23);
 }
 .community-emblem { display: block; width: 64px; height: 64px; object-fit: contain; margin: 0 auto 24px; }
 .homepage .home-community h2 { max-width: 650px; margin: 14px auto 18px; font-size: clamp(38px,5vw,64px); }
