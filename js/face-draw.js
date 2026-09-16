@@ -113,6 +113,56 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   let spinAudioCtx = null;
   let spinClickBuffer = null;
   let lastTickAt = 0;
+  const soundBtn = document.getElementById('faceDrawSoundBtn');
+  let soundEnabled = true;
+  try { soundEnabled = localStorage.getItem('faceDrawSound') !== 'off'; } catch {}
+  const soundSources = new Set();
+  function syncSoundButton() {
+    if (!soundBtn) return;
+    soundBtn.textContent = soundEnabled ? 'Sound: On' : 'Sound: Off';
+    soundBtn.setAttribute('aria-pressed', String(soundEnabled));
+  }
+  function trackSound(source, nodes) {
+    soundSources.add(source);
+    source.onended = () => { soundSources.delete(source); source.disconnect(); nodes.forEach(node => node.disconnect()); };
+  }
+  function stopAllDrawSounds() {
+    soundSources.forEach(source => { try { source.stop(); } catch {} });
+    soundSources.clear();
+  }
+  function playChime(notes, spacing = .09, duration = .35) {
+    const ctx = spinAudioCtx;
+    if (!soundEnabled || !ctx || ctx.state !== 'running' || document.hidden) return;
+    notes.forEach((frequency, index) => {
+      const start = ctx.currentTime + index * spacing;
+      const tone = ctx.createOscillator();
+      const volume = ctx.createGain();
+      tone.type = 'sine'; tone.frequency.value = frequency;
+      volume.gain.setValueAtTime(.0001, start);
+      volume.gain.exponentialRampToValueAtTime(.065, start + .012);
+      volume.gain.exponentialRampToValueAtTime(.0001, start + duration);
+      tone.connect(volume); volume.connect(ctx.destination);
+      trackSound(tone, [volume]); tone.start(start); tone.stop(start + duration + .02);
+    });
+  }
+  function playResultSound(tier) {
+    const melodies = {
+      normal: [392, 523.25], bronze: [329.63, 392, 523.25],
+      silver: [523.25, 659.25, 783.99], mythic: [440, 659.25, 880, 1108.73],
+      legendary: [523.25, 659.25, 783.99, 1046.5, 1318.51]
+    };
+    playChime(melodies[tier] || melodies.normal, .11, .55);
+  }
+  syncSoundButton();
+  soundBtn?.addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    if (!soundEnabled) stopAllDrawSounds();
+    else primeSpinSound();
+    try { localStorage.setItem('faceDrawSound', soundEnabled ? 'on' : 'off'); } catch {}
+    syncSoundButton();
+  });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stopAllDrawSounds(); });
+
   function ensureSpinAudio(){
     if (spinAudioCtx) return spinAudioCtx;
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -141,9 +191,11 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   // it. Starting an actual (silent, 1-sample) buffer right here forces
   // the unlock immediately, in the same call stack as the tap.
   function primeSpinSound(){
-    const ctx = ensureSpinAudio();
+    if (!soundEnabled) return;
+    let ctx;
+    try { ctx = ensureSpinAudio(); } catch { return; }
     if (!ctx) return;
-    if (ctx.state !== 'running') ctx.resume();
+    if (ctx.state !== 'running') ctx.resume().catch(() => {});
     const unlock = ctx.createBufferSource();
     unlock.buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
     unlock.connect(ctx.destination);
@@ -151,7 +203,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   }
   function playSpinTick(gapMs){
     const ctx = spinAudioCtx;
-    if (!ctx || !spinClickBuffer) return;
+    if (!soundEnabled || document.hidden || !ctx || ctx.state !== 'running' || !spinClickBuffer) return;
     const now = ctx.currentTime;
     const src = ctx.createBufferSource();
     src.buffer = spinClickBuffer;
@@ -166,6 +218,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     src.connect(filter);
     filter.connect(gain);
     gain.connect(ctx.destination);
+    trackSound(src, [filter, gain]);
     src.start(now);
     src.stop(now + 0.03);
   }
@@ -346,6 +399,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     await imagesReady;
     // A closed or replaced dialog must never restart an old request.
     if (thisDraw !== drawId || overlay.hidden) return;
+    playChime([220, 330, 440], .055, .18);
     spinBtn.textContent = 'Spinning…';
     overlay.classList.add('is-spinning');
     drawStatus.textContent = 'The hood is finding your face…';
@@ -358,6 +412,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     // begin loading as the fast reel carries them into view.
     realCards.forEach(card => { card.querySelector('img').loading = 'eager'; });
     spinGallery(winnerIdx, (addedClones) => {
+      playChime([164.81], 0, .16);
       overlay.classList.remove('is-spinning');
       overlay.classList.add('is-winner');
       const revealDelay = setTimeout(() => {
@@ -367,6 +422,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
         reel.hidden = true;
         spinBtn.hidden = true;
         setCardContent(winnerMood, winnerJoke, winnerImgSrc);
+        playResultSound(rarityFor(winnerMood));
         resetCardToFront();
         cardEl.hidden = false;
         drawStatus.textContent = 'Your face has arrived. Tap the card to reveal its story.';
@@ -377,6 +433,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   }
 
   function closeDraw(){
+    stopAllDrawSounds();
     ++drawId;
     if (gallerySpinCleanup) gallerySpinCleanup();
     restoreGallery();
@@ -410,6 +467,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   // back to the front underneath the same tap.
   function tapToReveal(e){
     if (e.target.closest('#faceDrawShareBtn')) return;
+    playChime([660, 880], .035, .09);
     if (cardInner.classList.contains('is-flipped')) resetCardToFront();
     else triggerFlip();
   }
