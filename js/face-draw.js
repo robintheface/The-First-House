@@ -6,6 +6,7 @@ import { rarityFor } from "./face-rarity.js";
 const RARITY_CLASSES = ["rarity-legendary", "rarity-mythic", "rarity-silver", "rarity-bronze"]; // "normal" gets none
 
 const overlay = document.getElementById('faceDrawOverlay');
+const drawStage = overlay?.querySelector('.face-draw-stage');
 const cardEl = document.getElementById('faceDrawCard');
 const cardInner = cardEl ? cardEl.querySelector('.face-draw-card-inner') : null;
 const imgEl = document.getElementById('faceDrawImg');
@@ -328,8 +329,11 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     spinBtn.textContent = 'Spin';
     reel.classList.add('is-ready');
     reel.appendChild(galleryWrap);
+    drawStage.style.height = '';
     overlay.hidden = false;
     overlay.showModal();
+    // Keep the initial frame height when the reel is replaced by a result.
+    drawStage.style.height = `${drawStage.offsetHeight}px`;
     spinBtn.focus({ preventScroll: true });
   }
 
@@ -380,6 +384,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     overlay.classList.remove('is-spinning', 'is-winner');
     overlay.close();
     overlay.hidden = true;
+    drawStage.style.height = '';
     document.body.style.overflow = previousOverflow;
     cardInner.removeEventListener('transitionend', onFlipEnd);
     fodBtn.disabled = false;
