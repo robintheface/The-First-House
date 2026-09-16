@@ -96,3 +96,41 @@ body.site-inner { --bg: #f6efdd; --bg-2: #eee5ce; --ink: #193c2b; --ink-dim: #58
  .site-inner #main > section { padding-top: 20px !important; padding-bottom: 44px; }
  .site-inner .inner-coming-card { padding: 28px 20px; }
 }
+
+/* Bow medallion navigation: parchment, forest and a restrained gold edge. */
+:is(.homepage,.site-inner) .topbar { background: #f8f2e3f5; border-bottom: 1px solid #c7b582; box-shadow: 0 3px 18px #193c2b0a; }
+:is(.homepage,.site-inner) .topbar-inner { min-height: 90px; padding-top: 14px; padding-bottom: 14px; }
+:is(.homepage,.site-inner) .brand { gap: 14px; }
+:is(.homepage,.site-inner) .brand-logo { width: 56px; height: 56px; flex-shrink: 0; object-fit: contain; border-radius: 50%; filter: drop-shadow(0 3px 4px #254b3429); }
+:is(.homepage,.site-inner) .brand-lockup { align-items: flex-start; gap: 7px; }
+:is(.homepage,.site-inner) .brand-name { font-size: 25px; letter-spacing: -.035em; line-height: 1; }
+:is(.homepage,.site-inner) .brand-tagline { color: #7f6b3e; font-size: 8px; letter-spacing: .3em; }
+:is(.homepage,.site-inner) .nav-links { gap: 4px; }
+:is(.homepage,.site-inner) .nav-links a { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 14px; border-radius: 8px; transition: background .18s ease,color .18s ease; }
+:is(.homepage,.site-inner) .nav-links a:hover { background: #e7eadb; color: #193c2b; text-decoration: none; }
+:is(.homepage,.site-inner) .topbar-right > .home-button { min-height: 46px; padding: 12px 20px; border: 1px solid #456149; border-radius: 9px; background: linear-gradient(135deg,#2b5038,#193c2b); color: #f7edcf; box-shadow: inset 0 1px #ffffff18,0 3px 8px #193c2b12; font-size: 15px; }
+:is(.homepage,.site-inner) .topbar-right > .home-button:hover { background: #345b3d; }
+:is(.homepage,.site-inner) .nav-toggle { border-color: #b7b899; border-radius: 9px; background: #f3eedf; }
+:is(.homepage,.site-inner) .nav-links .nav-mobile-wallet { display: none; }
+@media(max-width:1023px) {
+ :is(.homepage,.site-inner) .topbar-inner { min-height: 80px; padding: 12px 20px; }
+ :is(.homepage,.site-inner) .brand-logo { width: 50px; height: 50px; }
+ :is(.homepage,.site-inner) .nav-links.open { padding: 12px 20px 20px; gap: 4px; background: #f8f2e3; }
+ :is(.homepage,.site-inner) .nav-links.open a { display: flex; padding: 12px 14px; border: 0; }
+ :is(.homepage,.site-inner) .nav-links.open .nav-mobile-wallet { display: flex; margin-top: 6px; background: #193c2b; color: #f7edcf; }
+}
+@media(max-width:600px) {
+ :is(.homepage,.site-inner) .topbar-inner { min-height: 74px; padding: 10px 14px; }
+ :is(.homepage,.site-inner) .brand { gap: 10px; }
+ :is(.homepage,.site-inner) .brand-logo { width: 46px; height: 46px; }
+ :is(.homepage,.site-inner) .brand-name { font-size: 19px; }
+ :is(.homepage,.site-inner) .brand-tagline { font-size: 6px; letter-spacing: .23em; }
+}
+@media(prefers-reduced-motion:reduce) {
+ :is(.homepage,.site-inner) .nav-links a { transition: none; }
+}
+@media(max-width:360px) {
+ :is(.homepage,.site-inner) .brand-name { font-size: 17px; }
+ :is(.homepage,.site-inner) .brand-logo { width: 40px; height: 40px; }
+ :is(.homepage,.site-inner) .brand { gap: 8px; }
+}
