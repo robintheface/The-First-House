@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="styles.css?v=66">
 <link rel="stylesheet" href="home.css?v=20">
 <link rel="stylesheet" href="/site-theme.css?v=1">
+<link rel="stylesheet" href="home-bottom.css?v=1">
 </head>
 <body class="homepage">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -352,12 +353,17 @@
     <a class="home-text-link" href="#faces">Find today’s face <span aria-hidden="true">↗</span></a>
   </section>
 
+  <div class="home-bottom-intro home-section">
+    <p class="home-eyebrow">BEYOND THE CHART</p>
+    <h2>A little lore.<br>A long way to go.</h2>
+    <p>The face behind the hood. The numbers behind the story.<br>And the trail we’re taking together.</p>
+  </div>
   <div class="home-about home-section">
     <section id="lore" class="home-about-column" aria-labelledby="story-title">
       <img src="icons/leaf.webp" alt="" width="48" height="48" loading="lazy">
       <h2 id="story-title">The Story</h2>
       <p>A hooded archer. An honest face.<br>A whole forest of feelings.</p>
-      <details><summary>Read the story <span aria-hidden="true">↗</span></summary>
+      <details open><summary>Read the story <span aria-hidden="true">↗</span></summary>
   <div class="lore-card">
     <p>A green-hooded archer who steals the pump from whales and hands it back to the hood — but never fakes how he feels about it.</p>
     <p>Legend says he lives in the market's forest. <strong>Euphoric on a green day. Wrecked on a red one. Dead asleep watching a 3am candle.</strong> The community started calling him <strong>ROBIN THE FACE</strong> — not for the hood, but for the face underneath it, which has apparently never once looked chill. We're not selling "always up." We're selling a face that's been through it, same as you.</p>
@@ -368,7 +374,7 @@
       <img src="icons/hoodface_coin.webp" alt="" width="48" height="48" loading="lazy">
       <h2 id="ledger-title">Tokenomics</h2>
       <p>Know the numbers.<br>Explore the ledger behind the hood.</p>
-      <details><summary>Open the ledger <span aria-hidden="true">↗</span></summary>
+      <details open><summary>Open the ledger <span aria-hidden="true">↗</span></summary>
   <div class="ledger ledger-strip">
     <div class="ledger-row"><span class="k">Chain</span><span class="v pending">Robinhood</span></div>
     <div class="ledger-row"><span class="k">Supply</span><span class="v pending">1,000,000,000</span></div>
@@ -387,7 +393,7 @@
       <img src="icons/campfire.webp" alt="" width="48" height="48" loading="lazy">
       <h2 id="trail-title">The Trail</h2>
       <p>From the first face to the next chapter.<br>Follow the path through the forest.</p>
-      <details><summary>See what’s next <span aria-hidden="true">↗</span></summary>
+      <details open><summary>See what’s next <span aria-hidden="true">↗</span></summary>
   <div class="trail trail-row">
     <div class="trail-step done">
       <div class="trail-dot">✓</div>
@@ -419,6 +425,7 @@
   </div>
 
   <section id="community" class="home-community" aria-labelledby="community-title">
+    <img class="community-emblem" src="icons/campfire.webp" alt="" width="80" height="80" loading="lazy">
     <p class="home-eyebrow">YOU DON’T HAVE TO HOLD TO BELONG</p>
     <h2 id="community-title">There’s room in the hood.</h2>
     <p>Memes. Games. Familiar faces. Come find your people.</p>
@@ -427,8 +434,17 @@
   </section>
 </main>
 <footer class="home-footer">
-  <div class="home-footer-row"><a class="home-footer-brand" href="#top">➳ ROBIN THE FACE</a><span class="home-footer-tagline">EVERY CANDLE HAS A FACE.</span><nav aria-label="Footer navigation"><a href="/explore">Explore</a><a href="/explore/wallet/faq">FAQ</a><a href="https://x.com/robintheface" target="_blank" rel="noopener noreferrer">𝕏</a><a href="https://t.me/robintheface" target="_blank" rel="noopener noreferrer">Telegram</a></nav></div>
-  <p class="disclaimer">This is a community meme project built for entertainment and culture. Not financial advice. Nothing on this page is a promise of profit — always DYOR before interacting with any token or contract.</p>
+  <div class="bottom-footer-grid">
+    <div class="bottom-footer-identity">
+      <a class="home-footer-brand" href="#top">➳ ROBIN THE FACE</a>
+      <p>Every candle has a face.<br>Every face has a place in the hood.</p>
+      <span class="bottom-footer-signature">THE FIRST HOUSE · BUILT FOR THE HOOD</span>
+    </div>
+    <nav aria-label="Discover"><h2>Wander</h2><a href="#game">Hood Runner</a><a href="#faces">Face of the Day</a><a href="#lore">Our story</a></nav>
+    <nav aria-label="Resources"><h2>Explore</h2><a href="/explore">The hub</a><a href="/explore/wallet">Your rank</a><a href="/explore/wallet/faq">Questions &amp; answers</a></nav>
+    <nav aria-label="Community links"><h2>Find the hood</h2><a href="https://t.me/robintheface" target="_blank" rel="noopener noreferrer">Telegram ↗</a><a href="https://x.com/robintheface" target="_blank" rel="noopener noreferrer">Follow on 𝕏 ↗</a><a href="#top">Back to the treetops ↑</a></nav>
+  </div>
+  <div class="bottom-footer-note"><span>GOOD COMPANY. EVERY MARKET.</span><p class="disclaimer">This is a community meme project built for entertainment and culture. Not financial advice. Nothing on this page is a promise of profit — always DYOR before interacting with any token or contract.</p></div>
 </footer>
 <!-- FACE DRAW OVERLAY -->
 <dialog id="faceDrawOverlay" class="face-draw-overlay" aria-labelledby="faceDrawTitle" hidden>
