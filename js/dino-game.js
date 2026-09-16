@@ -7,7 +7,7 @@
 // wallet-connect.js: no 'unsafe-inline' script-src.
 
 import * as lb from './leaderboard.js';
-import { drawCandle } from './runner-style.js';
+import { drawCandle } from './runner-style.js?v=2';
 
 const canvas = document.getElementById('hoodGameCanvas');
 if (canvas) {
