@@ -275,7 +275,14 @@ function renderNextTier(balanceNum){
   nextTierMaxed.style.display = 'none';
   nextTierName.textContent = next.name;
   nextTierFill.style.width = (next.progress * 100).toFixed(1) + '%';
-  nextTierRemaining.textContent = next.remaining.toLocaleString(undefined, {maximumFractionDigits: 0}) + ' more $HOODFACE to go';
+  // The amount is the actual takeaway of this line, so it gets its own
+  // element (.next-tier-amount) to size/weight distinctly from the rest of
+  // the sentence -- plain textContent couldn't style just part of a string.
+  nextTierRemaining.replaceChildren();
+  const amountEl = document.createElement('strong');
+  amountEl.className = 'next-tier-amount';
+  amountEl.textContent = next.remaining.toLocaleString(undefined, {maximumFractionDigits: 0});
+  nextTierRemaining.append(amountEl, ' more $HOODFACE to go');
 }
 
 async function connectWith(walletKey){

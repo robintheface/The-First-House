@@ -51,6 +51,7 @@ body.site-inner { --bg: #f6efdd; --bg-2: #eee5ce; --ink: #193c2b; --ink-dim: #58
 .site-inner .next-tier-track { background: #e9e0c4; border: 1px solid #d9d0b9; }
 .site-inner .next-tier-fill { background: linear-gradient(90deg,#2c5636,#4f8a55); box-shadow: none; }
 .site-inner .next-tier-remaining { color: #193c2b; font-size: 15px; font-weight: 700; }
+.site-inner .next-tier-amount { font-size: 21px; font-weight: 700; }
 .site-inner .next-tier-top span:last-child { font-weight: 700; }
 @media (hover: hover) and (pointer: fine) {
   .site-inner .wallet-option:not(:disabled):hover { border-color: #193c2b; background: #fff; box-shadow: 0 10px 26px rgba(25,60,43,0.18); }
