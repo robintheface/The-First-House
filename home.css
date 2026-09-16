@@ -133,6 +133,11 @@
 .home-face-grid figure:hover img { transform: translateY(-7px) rotate(-3deg); }
 .home-face-grid h3 { font-weight: 400; font-size: 24px; margin: 16px 0 5px; }
 .home-face-grid p { font-size: 15px; color: var(--muted); margin: 0; }
+/* Same top gap the old .home-text-link had as a direct child of
+   .home-faces -- lost when it was swapped for the Reveal button (a
+   different element, so that rule no longer matched). */
+.home-faces > .home-daily-button-only { margin-top: 40px; }
+.home-daily-button-only .home-daily-note { margin-top: 14px; }
 .home-text-link { display: inline-flex; gap: 12px; align-items: center; font: 13px 'IBM Plex Mono',monospace; text-decoration: underline; text-underline-offset: 6px; background: transparent; border: 0; padding: 0; color: inherit; cursor: pointer; }
 .home-faces > .home-text-link { margin-top: 30px; }
 .homepage .home-about { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 0; border-top: 1px solid #cec9b4; padding: 35px 0 48px; }
