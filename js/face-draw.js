@@ -54,6 +54,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     // class is all it takes, no JS timer driving it.
     cardEl.classList.remove(...RARITY_CLASSES);
     const tier = rarityFor(mood);
+    cardEl.querySelector('.face-draw-front').dataset.tierLabel = tier === 'normal' ? 'Everyday' : tier;
     if (tier !== 'normal') cardEl.classList.add('rarity-' + tier);
   }
 
@@ -81,8 +82,8 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   // gives way to a long deceleration, leaving time to follow the last cards.
   const CLONE_LOOPS = 1;
   const LAND_LOOP = CLONE_LOOPS;
-  const GALLERY_SPIN_MS = 8000;
-  const GALLERY_SPIN_EASE = 'cubic-bezier(.16,.55,.18,1)';
+  const GALLERY_SPIN_MS = 7200;
+  const GALLERY_SPIN_EASE = 'cubic-bezier(.18,.45,.2,1)';
   let gallerySpinCleanup = null; // non-null only while a spin (or its post-landing pause) is in flight
   let galleryRafId = null;
   let litCard = null;
@@ -323,6 +324,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     galleryTrack.querySelectorAll('.face-card').forEach(card => {
       const mood = card.querySelector('.face-label')?.textContent.trim() || '';
       card.dataset.rarity = rarityFor(mood);
+      card.dataset.tierLabel = card.dataset.rarity === 'normal' ? 'Everyday' : card.dataset.rarity;
     });
     imagesReady = Promise.all([...galleryTrack.querySelectorAll('img')].map(img => {
       img.loading = 'eager';

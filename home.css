@@ -355,68 +355,74 @@
   .home-daily { padding-top: 24px; }
 }
 
+/* Reveal: smoked glass, collectible cards, and restrained tier lighting. */
+.homepage .face-draw-stage { position: relative; isolation: isolate; width: min(940px,100%); border: 1px solid #daca963d; border-radius: 24px; padding: 32px 20px 28px; background: radial-gradient(ellipse at 50% 0%,#b9984820,transparent 60%),rgba(12,27,25,.82); box-shadow: 0 28px 90px #0008,inset 0 1px #fff1; }
+.reveal-kicker { position: relative; color: #bca981; font: 10px/1.6 sans-serif; letter-spacing: .26em; margin: 0 0 12px; }
+.homepage .face-draw-title { position: relative; color: #f8edcf; font-size: 38px; margin: 0 0 10px; text-shadow: 0 2px 15px #0003; }
+.face-draw-status { position: relative; font-size: 15px; color: #aebbb0; margin-bottom: 24px; }
+.face-draw-reel { border: 0; background: radial-gradient(ellipse at center,#57705c14,transparent 72%); }
+.face-draw-reel::before { content: ''; position: absolute; z-index: 6; pointer-events: none; top: 0; bottom: 0; left: calc(50% - 1px); width: 2px; background: linear-gradient(#f9e2a5,transparent 22%,transparent 78%,#f9e2a5); opacity: .8; }
+.face-draw-reel::after { top: -8px; color: #f9e2a5; font-size: 17px; text-shadow: 0 0 14px #f9e2a566; pointer-events: none; }
+.face-draw-reel .gallery-wrap { min-height: 304px; }
+.face-draw-reel .gallery-track { gap: 18px; padding: 22px 0 28px; }
 .face-draw-reel.is-ready .gallery-track { animation-play-state: paused; }
-.face-draw-spin { display: block; margin: 22px auto 0; min-width: 160px; padding: 13px 30px; border: 1px solid #f5dfa9; border-radius: 8px; background: #edcb83; color: #203b29; font: inherit; font-weight: 700; cursor: pointer; box-shadow: 0 3px 0 #93783c; transition: background .18s; }
-.face-draw-spin:hover { background: #ffe2a0; }
-.face-draw-spin:focus-visible { outline: 3px solid #fff0c9; outline-offset: 5px; }
-.face-draw-spin:disabled { opacity: .6; cursor: wait; }
-.face-draw-spin[hidden] { display: none; }
-
-/* A glass treasure case, illuminated by the reel's rarity colors. */
-.homepage .face-draw-stage { position: relative; isolation: isolate; width: min(900px,100%); background: radial-gradient(ellipse at 50% 0%,#b3974230,transparent 65%),rgba(15,34,28,.65); border-color: #e6cc7b70; box-shadow: 0 30px 100px #0008, inset 0 0 50px #d8bd5710, 0 0 35px #d8bd5712; }
-.reveal-kicker { position: relative; color: #d9c58a; font-size: 10px; letter-spacing: .25em; margin: 8px 0 14px; }
-.homepage .face-draw-title { position: relative; color: #fff1cc; text-shadow: 0 0 30px #edcb8340; }
-.face-draw-status { position: relative; }
-.face-draw-reel { border-block: 1px solid #d8bd5740; background: linear-gradient(0deg,#030f1580,#16302c30); }
-.face-draw-reel::before { content: ''; position: absolute; z-index: 6; pointer-events: none; width: 2px; top: 10px; bottom: 10px; left: calc(50% - 1px); background: linear-gradient(transparent,#ffe8a1 18%,#ffe8a1 82%,transparent); box-shadow: 0 0 12px #ffd57399; }
-.face-draw-reel::after { top: -7px; font-size: 20px; color: #ffe8a1; text-shadow: 0 0 12px #edcb83; pointer-events: none; }
-.face-draw-reel .gallery-track { gap: 14px; padding: 32px 0; }
-.face-draw-reel .face-card { --reel-color: #769cbd; border: 1px solid transparent; border-radius: 18px; background: radial-gradient(ellipse at 50% 42%,color-mix(in srgb,var(--reel-color) 22%,transparent),transparent 68%); box-shadow: none; transform: none; }
-.face-draw-reel [data-rarity="legendary"] { --reel-color: #ffd575; }
-.face-draw-reel [data-rarity="mythic"] { --reel-color: #de8aff; }
-.face-draw-reel [data-rarity="silver"] { --reel-color: #bde6ff; }
-.face-draw-reel [data-rarity="bronze"] { --reel-color: #e4a273; }
-.face-draw-reel .face-card.is-lit { border-color: transparent; box-shadow: none; transform: none; }
-.face-draw-reel .face-card::before,.face-draw-reel .face-card::after { content: none; display: none; }
-.face-draw-reel .face-card.is-lit .face-img { filter: drop-shadow(0 0 15px color-mix(in srgb,var(--reel-color) 55%,transparent)); }
-.face-draw-reel .face-card.is-lit .face-label { color: #fff1cc; }
-.face-draw-reel .face-img { filter: drop-shadow(0 6px 12px #0006); }
-.face-draw-spin { position: relative; overflow: hidden; text-transform: uppercase; letter-spacing: .2em; background: linear-gradient(110deg,#b88b42,#ffe6a5 50%,#d3aa58); box-shadow: 0 3px 0 #866128,0 0 25px #edcb8320; }
-.face-draw-spin::after { content: ''; position: absolute; inset: -50%; background: linear-gradient(110deg,transparent 40%,#fff7 50%,transparent 60%); transform: translateX(-100%); animation: treasure-sheen 3.2s linear infinite; pointer-events: none; }
-.reveal-stardust { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: -1; }
-.reveal-stardust i { position: absolute; color: #fce6ab; font-style: normal; font-size: 12px; opacity: .3; animation: treasure-drift 5s ease-in-out infinite alternate; }
-.reveal-stardust i:nth-child(1) { left: 7%; top: 16%; }
-.reveal-stardust i:nth-child(2) { left: 21%; top: 77%; animation-delay: -2s; }
-.reveal-stardust i:nth-child(3) { left: 89%; top: 24%; animation-delay: -3s; }
-.reveal-stardust i:nth-child(4) { left: 76%; top: 83%; animation-delay: -1s; }
-.reveal-stardust i:nth-child(5) { left: 43%; top: 8%; animation-delay: -4s; font-size: 8px; }
-.reveal-stardust i:nth-child(6) { left: 92%; top: 62%; animation-delay: -2.5s; }
-.is-winner .face-draw-card { animation: treasure-arrive .7s cubic-bezier(.16,1,.3,1) both; }
-.is-winner .face-draw-reel .face-card.is-lit .face-img { filter: drop-shadow(0 0 22px color-mix(in srgb,var(--reel-color) 75%,transparent)); }
-.is-winner .reveal-stardust i { color: #fff1c6; opacity: .85; }
-@keyframes treasure-drift { from { transform: translateY(7px) rotate(-12deg); opacity: .2; } to { transform: translateY(-10px) rotate(12deg); opacity: .8; } }
-@keyframes treasure-sheen { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
-@keyframes treasure-arrive { from { opacity: 0; transform: translateY(18px) scale(.92); } to { opacity: 1; transform: translateY(0) scale(1); } }
-@media (max-width: 480px) { .reveal-kicker { font-size: 8px; letter-spacing: .18em; } .face-draw-reel .gallery-track { gap: 12px; } }
-@media (prefers-reduced-motion: reduce) { .reveal-stardust i,.face-draw-spin::after,.is-winner .face-draw-card { animation: none; } }
-
-/* Keep the result aura tier-colored as well; no inset rings or light bars. */
-.homepage .face-draw-card { --result-color: #769cbd; border-radius: 26px; }
-.homepage .face-draw-card.rarity-legendary { --result-color: #ffd575; }
-.homepage .face-draw-card.rarity-mythic { --result-color: #de8aff; }
-.homepage .face-draw-card.rarity-silver { --result-color: #bde6ff; }
-.homepage .face-draw-card.rarity-bronze { --result-color: #e4a273; }
-.homepage .face-draw-card .face-draw-face { border: 1px solid #ffffff12; box-shadow: 0 0 42px -12px color-mix(in srgb,var(--result-color) 40%,transparent); background: radial-gradient(ellipse at 50% 35%,color-mix(in srgb,var(--result-color) 15%,transparent),transparent 75%),#10231e; }
-.homepage .face-draw-card .face-draw-front::before,.homepage .face-draw-card .face-draw-front::after { content: none; display: none; }
-.homepage .face-draw-card .face-draw-img { filter: drop-shadow(0 0 16px color-mix(in srgb,var(--result-color) 48%,transparent)); }
-.homepage .face-draw-card:focus-visible { outline: 1px solid color-mix(in srgb,var(--result-color) 30%,transparent); outline-offset: 6px; }
-
-/* Keep the reel geometry fixed while spinning; only its transform moves. */
-.face-draw-spin { transition: transform .2s ease, opacity .2s ease; }
-.face-draw-spin:not(:disabled):hover { transform: translateY(-2px); }
+.face-draw-reel .face-card { --reel-color: #8eacbc; box-sizing: border-box; width: 192px; height: 250px; padding: 37px 17px 20px; border: 1px solid #d6e1d51f; border-radius: 16px; background: radial-gradient(ellipse at 50% 40%,color-mix(in srgb,var(--reel-color) 18%,transparent),transparent 72%),linear-gradient(155deg,#263a33,#101d1c); box-shadow: 0 8px 15px #0003,inset 0 1px #ffffff0a; transform: none; transition: none; overflow: hidden; }
+.face-draw-reel [data-rarity="legendary"] { --reel-color: #f3cd82; }
+.face-draw-reel [data-rarity="mythic"] { --reel-color: #c5a0f2; }
+.face-draw-reel [data-rarity="silver"] { --reel-color: #c7e0ee; }
+.face-draw-reel [data-rarity="bronze"] { --reel-color: #d5a480; }
+.face-draw-reel .face-card::before { content: attr(data-tier-label); position: absolute; top: 15px; left: 0; right: 0; color: var(--reel-color); font: 8px/1 sans-serif; letter-spacing: .2em; text-transform: uppercase; }
+.face-draw-reel .face-card::after { content: none; display: none; }
+.face-draw-reel .face-img { width: 100%; height: 151px; margin: 0 auto 16px; filter: none; }
+.face-draw-reel .face-label { font-size: 17px; color: #f1ead8; }
+.face-draw-reel .face-card.is-lit { transform: none; border-color: color-mix(in srgb,var(--reel-color) 40%,transparent); box-shadow: 0 0 24px -9px var(--reel-color),inset 0 0 30px color-mix(in srgb,var(--reel-color) 12%,transparent); transition: box-shadow .5s ease,border-color .5s ease; }
+.face-draw-reel .face-card.is-lit .face-label { color: #fff3d7; }
+.face-draw-spin { position: relative; display: flex; align-items: center; justify-content: center; gap: 12px; width: 202px; min-height: 50px; margin: 24px auto 0; padding: 13px 24px; border: 1px solid #ffe8b06b; border-radius: 12px; background: linear-gradient(135deg,#ebd5a2,#bda06a); color: #24362c; font: 600 12px/1.5 sans-serif; letter-spacing: .2em; text-transform: uppercase; cursor: pointer; box-shadow: 0 5px 20px #0003,inset 0 1px #fff6; transition: transform .22s ease,box-shadow .22s ease,opacity .22s ease; }
+.face-draw-spin::before { content: '✦'; font-size: 17px; font-weight: 400; }
+.face-draw-spin::after { content: none; }
+.face-draw-spin:not(:disabled):hover { background: linear-gradient(135deg,#f4e1b6,#c9ae7c); transform: translateY(-2px); box-shadow: 0 8px 25px #0004,0 0 20px #e8ce9220,inset 0 1px #fff6; }
 .face-draw-spin:not(:disabled):active { transform: translateY(0); }
-.face-draw-spin:disabled::after { animation-play-state: paused; opacity: 0; }
-.face-draw-reel .face-img { transition: filter .45s ease; }
-.is-spinning .face-draw-reel .face-img { filter: none; }
+.face-draw-spin:focus-visible { outline: 2px solid #eed7a2; outline-offset: 5px; }
+.face-draw-spin:disabled { opacity: .7; cursor: wait; }
+.is-spinning .face-draw-spin::before { animation: reveal-orbit 3s linear infinite; }
+.face-draw-spin[hidden] { display: none; }
+.reveal-stardust { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: -1; }
+.reveal-stardust i { position: absolute; color: #eed7a2; font-size: 7px; font-style: normal; opacity: .35; animation: reveal-breathe 5s ease-in-out infinite alternate; }
+.reveal-stardust i:nth-child(1) { left: 6%; top: 18%; }
+.reveal-stardust i:nth-child(2) { left: 19%; top: 87%; animation-delay: -2s; }
+.reveal-stardust i:nth-child(3) { right: 8%; top: 20%; animation-delay: -3s; }
+.reveal-stardust i:nth-child(4) { right: 22%; bottom: 10%; animation-delay: -1s; }
+.reveal-stardust i:nth-child(5) { left: 36%; top: 7%; animation-delay: -4s; }
+.reveal-stardust i:nth-child(6) { right: 6%; bottom: 32%; animation-delay: -2s; }
 .is-spinning .reveal-stardust i { animation-play-state: paused; }
-.face-draw-reel .face-card { transition: none; }
+.homepage .face-draw-card { --result-color: #8eacbc; border-radius: 20px; }
+.homepage .face-draw-card.rarity-legendary { --result-color: #f3cd82; }
+.homepage .face-draw-card.rarity-mythic { --result-color: #c5a0f2; }
+.homepage .face-draw-card.rarity-silver { --result-color: #c7e0ee; }
+.homepage .face-draw-card.rarity-bronze { --result-color: #d5a480; }
+.homepage .face-draw-card .face-draw-face { border-radius: 20px; border: 1px solid color-mix(in srgb,var(--result-color) 26%,transparent); padding: 25px 20px; box-shadow: 0 16px 40px #0004,0 0 48px -20px var(--result-color),inset 0 1px #fff1; background: radial-gradient(ellipse at 50% 38%,color-mix(in srgb,var(--result-color) 20%,transparent),transparent 70%),linear-gradient(145deg,#263a33,#101d1c); }
+.homepage .face-draw-card .face-draw-front::before { content: attr(data-tier-label); position: static; color: var(--result-color); font: 9px/1.5 sans-serif; letter-spacing: .23em; text-transform: uppercase; margin-bottom: 4px; }
+.homepage .face-draw-card .face-draw-front::after { content: none; display: none; }
+.homepage .face-draw-card .face-draw-img { width: 82%; margin: 12px 0 18px; filter: drop-shadow(0 0 15px color-mix(in srgb,var(--result-color) 30%,transparent)); }
+.homepage .face-draw-card .face-draw-mood { font-size: 26px; color: #f4ecd8; }
+.homepage .face-draw-card .face-draw-tap-hint { color: #b3bca9; font-size: 8px; letter-spacing: .18em; margin-top: 12px; }
+.homepage .face-draw-card:focus-visible { outline: 1px solid color-mix(in srgb,var(--result-color) 30%,transparent); outline-offset: 6px; }
+.is-winner .face-draw-card { animation: reveal-card-enter .65s cubic-bezier(.16,1,.3,1) both; }
+@keyframes reveal-card-enter { from { opacity: 0; transform: translateY(12px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes reveal-breathe { from { opacity: .15; } to { opacity: .55; } }
+@keyframes reveal-orbit { to { transform: rotate(360deg); } }
+@media (max-width: 480px) {
+  .homepage .face-draw-stage { padding: 26px 16px 22px; border-radius: 18px; }
+  .homepage .face-draw-title { font-size: 30px; }
+  .reveal-kicker { font-size: 8px; letter-spacing: .2em; }
+  .face-draw-status { font-size: 13px; margin-bottom: 20px; }
+  .face-draw-reel .gallery-track { gap: 12px; }
+  .face-draw-reel .face-card { width: 164px; height: 222px; padding: 34px 13px 17px; }
+  .face-draw-reel .face-img { height: 128px; margin-bottom: 14px; }
+  .face-draw-reel .face-label { font-size: 16px; }
+  .face-draw-reel .gallery-wrap { min-height: 272px; }
+  .homepage .face-draw-card .face-draw-face { padding: 19px 16px; }
+  .homepage .face-draw-card .face-draw-img { margin: 8px 0 10px; }
+  .homepage .face-draw-card .face-draw-mood { font-size: 23px; }
+}
+@media (prefers-reduced-motion: reduce) { .reveal-stardust i,.is-spinning .face-draw-spin::before,.is-winner .face-draw-card { animation: none; } }
