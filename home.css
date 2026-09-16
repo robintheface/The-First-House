@@ -353,3 +353,10 @@
   .arcade-spark { display: none; }
   .home-daily { padding-top: 24px; }
 }
+
+.face-draw-reel.is-ready .gallery-track { animation-play-state: paused; }
+.face-draw-spin { display: block; margin: 22px auto 0; min-width: 160px; padding: 13px 30px; border: 1px solid #f5dfa9; border-radius: 8px; background: #edcb83; color: #203b29; font: inherit; font-weight: 700; cursor: pointer; box-shadow: 0 3px 0 #93783c; transition: background .18s; }
+.face-draw-spin:hover { background: #ffe2a0; }
+.face-draw-spin:focus-visible { outline: 3px solid #fff0c9; outline-offset: 5px; }
+.face-draw-spin:disabled { opacity: .6; cursor: wait; }
+.face-draw-spin[hidden] { display: none; }

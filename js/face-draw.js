@@ -20,6 +20,7 @@ const galleryTrack = document.querySelector('.gallery-track');
 // Face of the Day picks a winner from this set.
 const reel = document.getElementById('faceDrawReel');
 const drawStatus = document.getElementById('faceDrawStatus');
+const spinBtn = document.getElementById('faceDrawSpinBtn');
 const galleryHome = galleryWrap?.parentNode;
 const galleryNext = galleryWrap?.nextSibling;
 let drawId = 0;
@@ -372,10 +373,9 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     }
   }
 
-  async function openFaceOfTheDay(){
+  function openFaceOfTheDay(){
     if (!realCards.length || !fodBtn || fodBtn.disabled || !galleryTrack || !reel) return;
-    primeSpinSound();
-    const thisDraw = ++drawId;
+    ++drawId;
     fodBtn.disabled = true;
     hasRevealed = false;
     showFodMessage('');
@@ -383,22 +383,35 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     document.body.style.overflow = 'hidden';
     cardEl.hidden = true;
     reel.hidden = false;
-    drawStatus.textContent = 'Checking your daily draws…';
+    drawStatus.textContent = 'Ready to find your face? Press Spin to begin.';
+    spinBtn.hidden = false;
+    spinBtn.disabled = false;
+    spinBtn.textContent = 'Spin';
+    reel.classList.add('is-ready');
     reel.appendChild(galleryWrap);
     overlay.hidden = false;
     overlay.showModal();
-    document.getElementById('faceDrawTitle').focus({ preventScroll: true });
+    spinBtn.focus({ preventScroll: true });
+  }
 
+  async function startDraw(){
+    if (overlay.hidden || !overlay.open || spinBtn.disabled || spinBtn.hidden) return;
+    spinBtn.disabled = true;
+    primeSpinSound();
+    const thisDraw = ++drawId;
+    drawStatus.textContent = 'Checking your daily draws…';
     const allowance = await checkDrawAllowance();
     // A closed or replaced dialog must never restart an old request.
     if (thisDraw !== drawId || overlay.hidden) return;
     if (!allowance.allowed) {
-      restoreGallery();
-      reel.hidden = true;
+      spinBtn.disabled = false;
+      spinBtn.textContent = 'Try again';
       drawStatus.textContent = allowance.message;
       return;
     }
 
+    spinBtn.hidden = true;
+    reel.classList.remove('is-ready');
     drawStatus.textContent = 'The hood is finding your face…';
     const winnerIdx = Math.floor(Math.random() * realCards.length);
     const winnerCard = realCards[winnerIdx];
@@ -428,6 +441,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     ++drawId;
     if (gallerySpinCleanup) gallerySpinCleanup();
     restoreGallery();
+    reel.classList.remove('is-ready');
     overlay.close();
     overlay.hidden = true;
     document.body.style.overflow = previousOverflow;
@@ -460,6 +474,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   }
 
   if (fodBtn) fodBtn.addEventListener('click', openFaceOfTheDay);
+  if (spinBtn) spinBtn.addEventListener('click', startDraw);
   if (cardEl) cardEl.addEventListener('click', tapToReveal);
   cardEl.addEventListener('keydown', (e) => {
     if (e.target !== cardEl || (e.key !== 'Enter' && e.key !== ' ')) return;
