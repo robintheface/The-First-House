@@ -55,7 +55,9 @@
    link there), so #game is this grid's only child now and gets the full
    width to itself. */
 .home-play-grid { display: grid; grid-template-columns: minmax(0,1fr); gap: 22px; align-items: stretch; }
-.homepage #game.home-game { padding: 0; background: #1a3425; border-radius: 7px; min-width: 0; overflow: hidden; color: #f8efda; }
+/* Full width read as a bit much once it was the grid's only child --
+   capped a little narrower and centered instead of edge-to-edge. */
+.homepage #game.home-game { max-width: 1040px; margin: 0 auto; padding: 0; background: #1a3425; border-radius: 7px; min-width: 0; overflow: hidden; color: #f8efda; }
 .home-game-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 24px 26px 18px; }
 .home-game-heading .home-eyebrow { font-size: 9px; margin-bottom: 5px; color: #d5c9a3; }
 .home-game h3 { font-size: 35px; font-weight: 400; letter-spacing: -.03em; margin: 0; }
@@ -66,6 +68,33 @@
 .home-game-caption { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: #d5d7c0; padding: 17px 24px; }
 .home-game-caption kbd { font: 9px 'IBM Plex Mono',monospace; border: 1px solid #738574; border-radius: 3px; padding: 3px 5px; }
 .home-daily { background: #edc66e; color: #263e28; border-radius: 7px; padding: 28px 0 22px; text-align: center; min-width: 0; display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; }
+/* #meet-faces's copy of this panel keeps only the Reveal button visible
+   (see index.html) -- no more heading/intro/mini-gallery, so it no longer
+   needs to read as its own big gold callout box. .gallery-wrap stays
+   display:none at rest (it's still in the DOM -- js/face-draw.js needs it
+   there to relocate into the popup reel) and reappears automatically once
+   JS moves it out of this ancestor for the draw. */
+/* !important on the visual ones: a later decorative pass (further down
+   this file) re-declares border/background/padding-top/gradient/shadow on
+   the plain .home-daily selector, at equal specificity and later in the
+   cascade, so a plain override here would lose to it. */
+.home-daily-button-only {
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  overflow: visible;
+}
+.home-daily-button-only::before,
+.home-daily-button-only::after { content: none !important; }
+/* !important: several later, equal-specificity .home-daily .gallery-wrap
+   rules (base + a couple of breakpoints) set display:flex, and would win
+   the cascade over a plain override sitting earlier in the file. */
+.home-daily-button-only .gallery-wrap { display: none !important; }
+.home-daily-button-only .fod-row { margin: 0; }
+.home-daily-button-only .fod-message { padding: 0; margin-top: 10px; }
+.home-daily-button-only .home-daily-note { margin: 10px 0 0; }
 .home-daily > .home-eyebrow { font-size: 9px; margin-bottom: 7px; padding: 0 15px; }
 .home-daily h3 { font-size: 33px; font-weight: 400; letter-spacing: -.035em; margin: 0 12px 5px; }
 .home-daily-intro { font-size: 15px; margin: 0 12px 3px; }
@@ -150,7 +179,7 @@
   .home-actions { max-width: 410px; }
   .home-button { font-size: 16px; padding: 12px 17px; gap: 16px; }
   .home-button-small { font-size: 14px; padding: 10px 13px; }
-  .home-play-grid { grid-template-columns: minmax(0,1.8fr) minmax(0,1fr); gap: 16px; }
+  .home-play-grid { gap: 16px; }
   .home-game-heading { padding: 22px 18px 17px; }
   .home-game h3 { font-size: 31px; }
   .home-daily { padding-top: 23px; }

@@ -144,11 +144,14 @@
       <figure><img src="images/face-06.webp" alt="Robin with diamond hands" width="440" height="440" loading="lazy"><figcaption><h3>Diamond Hands</h3><p>Not leaving. Not blinking.</p></figcaption></figure>
       <figure><img src="images/face-07.webp" alt="Robin watching the chart late at night" width="440" height="440" loading="lazy"><figcaption><h3>3AM Watch</h3><p>One more candle, then bed.</p></figcaption></figure>
     </div>
-      <section id="faces" class="home-daily" aria-labelledby="daily-title">
-        <div class="daily-seal" aria-hidden="true"><span>✦</span><img src="icons/leaf.webp" alt="" width="32" height="32"><span>✦</span></div>
-        <p class="home-eyebrow">A NEW DAY. A NEW MOOD.</p>
-        <h3 id="daily-title">Face of the Day</h3>
-        <p class="home-daily-intro">What’s behind your hood today?</p>
+      <section id="faces" class="home-daily home-daily-button-only" aria-label="Face of the Day">
+  <!-- The heading/intro/decorative seal that used to sit above the mini
+       gallery here are gone -- only the Reveal button (+ its message line)
+       stays visible. .gallery-wrap itself has to stay in the DOM (hidden
+       via .home-daily-button-only .gallery-wrap in home.css): face-draw.js
+       physically relocates this exact element into the popup reel for the
+       draw, then back to this "home" slot afterward -- see that file's
+       top-of-file comment. -->
   <div class="gallery-wrap">
     <div class="gallery-track">
                 <div class="face-card">
