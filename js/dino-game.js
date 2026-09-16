@@ -7,7 +7,7 @@
 // wallet-connect.js: no 'unsafe-inline' script-src.
 
 import * as lb from './leaderboard.js';
-import { drawCandle } from './runner-style.js?v=2';
+import { drawCandle } from './runner-style.js?v=3';
 
 const canvas = document.getElementById('hoodGameCanvas');
 if (canvas) {
@@ -285,7 +285,8 @@ if (canvas) {
       startY = baseY;
     }
 
-    obstacles.push({ kind, baseX: x, x, baseY, y: startY, w, h, moveType, moveAmp, moveSpeed, moveTimer: 0 });
+    const expression = ['angry', 'shocked', 'smug', 'sad', 'confused', 'sleepy'][Math.floor(Math.random() * 6)];
+    obstacles.push({ kind, expression, baseX: x, x, baseY, y: startY, w, h, moveType, moveAmp, moveSpeed, moveTimer: 0 });
     scheduleNextObstacle();
   }
 
