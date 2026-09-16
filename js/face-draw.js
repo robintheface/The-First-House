@@ -139,7 +139,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
       const volume = ctx.createGain();
       tone.type = 'sine'; tone.frequency.value = frequency;
       volume.gain.setValueAtTime(.0001, start);
-      volume.gain.exponentialRampToValueAtTime(.065, start + .012);
+      volume.gain.exponentialRampToValueAtTime(.16, start + .012);
       volume.gain.exponentialRampToValueAtTime(.0001, start + duration);
       tone.connect(volume); volume.connect(ctx.destination);
       trackSound(tone, [volume]); tone.start(start); tone.stop(start + duration + .02);
@@ -213,7 +213,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     filter.Q.value = 3.2;
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.0945, now + 0.001); // sharp attack -- a click, not a swell (0.063 + 50%)
+    gain.gain.exponentialRampToValueAtTime(0.24, now + 0.001); // Clear short attack for the passing-card click.
     gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.02); // short decay, like a pawl clacking a gear
     src.connect(filter);
     filter.connect(gain);
