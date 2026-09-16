@@ -1,0 +1,28 @@
+/* Shared footer for every public page. */
+:is(.homepage,.site-inner) .home-footer { padding: 0 36px 26px; background: #142f23; }
+.bottom-footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; max-width: 1200px; margin: auto; padding: 48px 0; }
+:is(.homepage,.site-inner) .bottom-footer-grid .home-footer-brand { font-size: 24px; white-space: normal; color: #f1e6c7; }
+.bottom-footer-identity > p { color: #bac6ac; font-size: 16px; line-height: 1.6; margin: 16px 0 24px; }
+.bottom-footer-signature { font: 8px/1.8 'IBM Plex Mono',monospace; letter-spacing: .12em; color: #b6ad84; }
+:is(.homepage,.site-inner) .bottom-footer-grid nav { display: flex; flex-direction: column; align-items: flex-start; gap: 0; margin: 0; }
+.bottom-footer-grid nav h2 { color: #d4c18b; font: 10px/1.5 'IBM Plex Mono',monospace; text-transform: uppercase; letter-spacing: .12em; margin: 0 0 14px; }
+:is(.homepage,.site-inner) .bottom-footer-grid nav a { min-height: 44px; display: flex; align-items: center; color: #e0e6d3; font-size: 15px; text-decoration: none; }
+:is(.homepage,.site-inner) .bottom-footer-grid nav a:hover { color: #ffe0a0; text-decoration: underline; text-underline-offset: 5px; }
+.bottom-footer-note { max-width: 1200px; margin: auto; border-top: 1px solid #ffffff20; padding-top: 24px; display: grid; grid-template-columns: 1fr 2fr; gap: 40px; align-items: start; }
+.bottom-footer-note > span { color: #b6ad84; font: 9px/1.7 'IBM Plex Mono',monospace; letter-spacing: .08em; }
+:is(.homepage,.site-inner) .bottom-footer-note .disclaimer { margin: 0; text-align: left; color: #aebca3; font-size: 11px; }
+:is(.homepage,.site-inner) .home-about summary:focus-visible,:is(.homepage,.site-inner) .home-footer a:focus-visible { outline: 2px solid #b89142; outline-offset: 4px; border-radius: 4px; }
+
+:is(.homepage,.site-inner) .home-footer { width: 100%; max-width: none; margin: 0; border: 0; color: #eee5cb; text-align: left; }
+.bottom-footer-grid { text-align: left; }
+:is(.homepage,.site-inner) .bottom-footer-grid nav { flex-wrap: nowrap; }
+:is(.homepage,.site-inner) .bottom-footer-grid .home-footer-brand { text-decoration: none; }
+@media(max-width:900px) {
+ .bottom-footer-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; }
+ .bottom-footer-identity { grid-column: 1 / -1; }
+}
+@media(max-width:540px) {
+ :is(.homepage,.site-inner) .home-footer { padding: 0 24px 24px; }
+ .bottom-footer-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 28px 20px; padding: 32px 0; }
+ .bottom-footer-note { grid-template-columns: 1fr; gap: 12px; }
+}

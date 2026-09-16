@@ -80,3 +80,19 @@ body.site-inner { --bg: #f6efdd; --bg-2: #eee5ce; --ink: #193c2b; --ink-dim: #58
 .site-inner .btn-ghost.is-locked .lock-tag { color: #586650; border-color: #abb49c; background: #e7eadc; }
 .site-inner .hood-faq-item:not(.open) .hood-faq-a { visibility: hidden; }
 .site-inner .hood-faq-item.open .hood-faq-a { visibility: visible; }
+
+/* Explore pages share the same closing rhythm as the homepage. */
+.site-inner .inner-breadcrumb { display: flex; align-items: center; gap: 12px; max-width: 1152px; margin: 0 auto; padding: 28px 24px 0; font: 11px/1.5 'IBM Plex Mono',monospace; color: #6b715a; }
+.site-inner .inner-breadcrumb a { color: #254b34; min-height: 44px; display: inline-flex; align-items: center; }
+.site-inner #main > section { padding-top: 28px !important; padding-bottom: 72px; }
+.site-inner .quicklink-card { border-radius: 20px; background: linear-gradient(145deg,#fffaf0,#f0e9d5); }
+.site-inner .quicklink-card.is-disabled { opacity: 1; background: #ecebdc; }
+.site-inner .quicklink-card.is-disabled .ql-icon { opacity: .65; }
+.site-inner .inner-coming-card { max-width: 540px; margin: 0 auto; text-align: center; padding: 32px 28px; background: #fbf6e8; border: 1px solid #d9d0b9; border-radius: 22px; }
+.site-inner .inner-status { display: inline-block; padding: 7px 12px; margin-bottom: 24px; border: 1px solid #d0c398; border-radius: 30px; color: #786333; font: 9px/1.5 'IBM Plex Mono',monospace; letter-spacing: .12em; }
+.site-inner .inner-return { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; margin-top: 16px; padding: 8px 18px; border: 1px solid #bac4aa; border-radius: 8px; color: #254b34; font-size: 15px; }
+@media(max-width:600px) {
+ .site-inner .inner-breadcrumb { padding: 16px 20px 0; }
+ .site-inner #main > section { padding-top: 20px !important; padding-bottom: 44px; }
+ .site-inner .inner-coming-card { padding: 28px 20px; }
+}
