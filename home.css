@@ -426,3 +426,31 @@
   .homepage .face-draw-card .face-draw-mood { font-size: 23px; }
 }
 @media (prefers-reduced-motion: reduce) { .reveal-stardust i,.is-spinning .face-draw-spin::before,.is-winner .face-draw-card { animation: none; } }
+
+/* Tier signatures live only on the result, keeping the moving reel light. */
+.homepage .face-draw-card .face-draw-front { overflow: hidden; isolation: isolate; }
+.homepage .face-draw-card .face-draw-front > * { position: relative; z-index: 1; }
+.homepage .face-draw-card[class*="rarity-"] .face-draw-front::after { content: ''; display: block; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 0; mix-blend-mode: normal; background-size: auto; }
+.homepage .face-draw-card.rarity-bronze .face-draw-front::after {
+  background: radial-gradient(ellipse at 50% 48%,#e4a16a40,transparent 66%);
+  animation: tier-warmth 4.8s ease-in-out infinite alternate;
+}
+.homepage .face-draw-card.rarity-silver .face-draw-front::after {
+  inset: -25%; background: radial-gradient(ellipse at center,#e4f4ff38,transparent 55%);
+  animation: tier-silver 6s ease-in-out infinite alternate;
+}
+.homepage .face-draw-card.rarity-mythic .face-draw-front::after {
+  inset: -15%; background: radial-gradient(ellipse at 30% 35%,#b17af34d,transparent 48%),radial-gradient(ellipse at 75% 60%,#728ee63d,transparent 48%);
+  animation: tier-aurora 7s ease-in-out infinite alternate;
+}
+.homepage .face-draw-card.rarity-legendary .face-draw-front::after {
+  background: radial-gradient(circle at 13% 24%,#fff0b9 0 1px,transparent 2px),radial-gradient(circle at 84% 31%,#fff0b9 0 1.5px,transparent 3px),radial-gradient(circle at 20% 72%,#ffe5a0 0 1px,transparent 2px),radial-gradient(circle at 77% 81%,#ffe5a0 0 1px,transparent 2px),radial-gradient(ellipse at 50% 42%,#f3cd8245,transparent 64%);
+  animation: tier-gold 4s ease-in-out infinite alternate;
+}
+@keyframes tier-warmth { from { opacity: .3; } to { opacity: .85; } }
+@keyframes tier-silver { from { opacity: .2; transform: translate(-12%,-9%); } to { opacity: .8; transform: translate(12%,9%); } }
+@keyframes tier-aurora { from { opacity: .45; transform: rotate(-10deg) scale(.96); } to { opacity: .9; transform: rotate(10deg) scale(1.06); } }
+@keyframes tier-gold { from { opacity: .35; transform: translateY(3px); } to { opacity: 1; transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) {
+  .homepage .face-draw-card[class*="rarity-"] .face-draw-front::after { animation: none; opacity: .65; }
+}
