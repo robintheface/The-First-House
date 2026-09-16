@@ -8,7 +8,7 @@ const startButton = document.querySelector('[data-start-run]');
 function syncRunState() {
   const playing = gameOverlay.hidden;
   drawButton.disabled = playing;
-  drawNote.textContent = playing ? 'Finish your run, then reveal your face.' : 'Three draws a day. Let the hood decide.';
+  drawNote.textContent = playing ? 'Finish your run, then reveal your face.' : 'Unlimited spins. Let the hood decide.';
 }
 if (gameOverlay && drawButton) {
   new MutationObserver(syncRunState).observe(gameOverlay, { attributes: true, attributeFilter: ['hidden'] });

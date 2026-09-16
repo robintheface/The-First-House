@@ -296,21 +296,6 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     fodMessage.hidden = !text;
   }
 
-  // Server-side cap (api/face-draw.js): 3 draws per IP per UTC day. A
-  // client-only counter (localStorage) would be trivially bypassed by
-  // clearing storage or an incognito tab, so the real limit lives there --
-  // this call is what actually spends one, before anything visual starts.
-  async function checkDrawAllowance(){
-    try {
-      const res = await fetch('/api/face-draw', { method: 'POST' });
-      if (res.status === 429) return { allowed: false, message: "Out of draws for today — resets at 00:00 UTC." };
-      if (!res.ok) return { allowed: false, message: "Can't check your draws right now. Try again in a moment." };
-      return { allowed: true };
-    } catch (err) {
-      return { allowed: false, message: "Can't reach the server. Check your connection and try again." };
-    }
-  }
-
   function restoreGallery() {
     if (galleryHome && galleryWrap.parentNode !== galleryHome) {
       galleryHome.insertBefore(galleryWrap, galleryNext);
@@ -353,17 +338,10 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     spinBtn.disabled = true;
     primeSpinSound();
     const thisDraw = ++drawId;
-    drawStatus.textContent = 'Checking your daily draws…';
-    const [allowance] = await Promise.all([checkDrawAllowance(), imagesReady]);
+    drawStatus.textContent = 'Preparing your cards…';
+    await imagesReady;
     // A closed or replaced dialog must never restart an old request.
     if (thisDraw !== drawId || overlay.hidden) return;
-    if (!allowance.allowed) {
-      spinBtn.disabled = false;
-      spinBtn.textContent = 'Try again';
-      drawStatus.textContent = allowance.message;
-      return;
-    }
-
     spinBtn.textContent = 'Spinning…';
     overlay.classList.add('is-spinning');
     drawStatus.textContent = 'The hood is finding your face…';
