@@ -50,7 +50,11 @@
 .home-section-heading h2 { font-size: clamp(32px,3.4vw,46px); font-weight: 400; line-height: 1.08; letter-spacing: -.035em; margin: 0 0 12px; }
 .home-section-heading .home-eyebrow { margin-bottom: 10px; }
 .home-section-heading > p:last-child { font-size: 16px; color: var(--muted); margin: 0; }
-.home-play-grid { display: grid; grid-template-columns: minmax(0,2.12fr) minmax(0,1fr); gap: 22px; align-items: stretch; }
+/* Was a 2-up grid (game + a "Face of the Day" panel beside it) -- that
+   panel moved down into #meet-faces (replacing the "Find today's face"
+   link there), so #game is this grid's only child now and gets the full
+   width to itself. */
+.home-play-grid { display: grid; grid-template-columns: minmax(0,1fr); gap: 22px; align-items: stretch; }
 .homepage #game.home-game { padding: 0; background: #1a3425; border-radius: 7px; min-width: 0; overflow: hidden; color: #f8efda; }
 .home-game-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 24px 26px 18px; }
 .home-game-heading .home-eyebrow { font-size: 9px; margin-bottom: 5px; color: #d5c9a3; }
