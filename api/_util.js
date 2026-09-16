@@ -5,9 +5,9 @@ const crypto = require('crypto');
 // game's own numbers rather than guessed (js/dino-game.js):
 //   distance  score += dt * speed * 0.05, speed caps at MAX_SPEED 0.75
 //             -> 0.0375/ms = 37.5 points per second
-//   coins     25 base + up to 10 combo bonus, and scheduleNextCoin() is elapsed + 1000 +
-//             random*1400, so at the very best one per second = 35/s
-// A perfect run therefore tops out near 72.5/s. The cap is set well above
+//   coins     25 points per coin, and scheduleNextCoin() is elapsed + 1000 +
+//             random*1400, so at the very best one per second = 25/s
+// A perfect run therefore tops out near 62.5/s. The cap is set well above
 // that so no honest player is ever refused; it exists to stop a hand-made
 // POST claiming a million, not to police the last few points.
 const MAX_POINTS_PER_SEC = 80;

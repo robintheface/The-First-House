@@ -7,7 +7,7 @@
 // wallet-connect.js: no 'unsafe-inline' script-src.
 
 import * as lb from './leaderboard.js';
-import { coinReward, drawRobin, drawCandle } from './runner-style.js';
+import { drawCandle } from './runner-style.js';
 
 const canvas = document.getElementById('hoodGameCanvas');
 if (canvas) {
@@ -38,7 +38,7 @@ if (canvas) {
   const nickSkipBtn = document.getElementById('hoodGameNickSkip');
   const nickField = document.querySelector('.hood-game-save-field');
   const nickState = document.getElementById('hoodGameNickState');
-  const GAME_VERSION = '1.2.0';
+  const GAME_VERSION = '1.2.1';
   if (versionBadgeEl) versionBadgeEl.textContent = 'v' + GAME_VERSION;
 
   const CW = canvas.width;   // 800
@@ -114,9 +114,6 @@ if (canvas) {
     jumpTimer: 0
   };
 
-  let combo = 0;
-  let bestCombo = 0;
-  let moodUntil = 0;
   let particles = [];
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   function burst(x,y,color,count=9) {
@@ -160,7 +157,6 @@ if (canvas) {
     coins = [];
     popups = [];
     particles = [];
-    combo = 0; bestCombo = 0; moodUntil = 0;
     speed = BASE_SPEED;
     elapsed = 0;
     score = 0;
@@ -366,7 +362,6 @@ if (canvas) {
       if (isHighScore) {
         showOverlay('NEW HIGH SCORE!', [
           { text: formatted, cls: 'hood-game-overlay-score' },
-          'Best coin streak: ' + bestCombo,
           'Just a healthy correction…',
           { text: 'PRESS SPACE TO RUN AGAIN', cls: 'hood-game-overlay-continue' }
         ]);
@@ -374,7 +369,6 @@ if (canvas) {
         showOverlay('RUGGED!', [
           'You scored ' + formatted + ' points',
           ['Just a healthy correction…', 'Bought the dip. Met the floor.', 'The candle had other plans.'][(Math.random()*3)|0],
-          'Best coin streak: ' + bestCombo,
           { text: 'Click or press SPACE to continue', cls: 'hood-game-overlay-continue' }
         ]);
       }
@@ -549,7 +543,6 @@ if (canvas) {
       c.timer += dt;
       if (c.timer > 45) { c.timer = 0; c.frame = (c.frame + 1) % SPRITES.coin.frames; }
       if (c.x + c.w <= -20 || c.taken) {
-        if (!c.taken) combo = 0;
         coins.splice(i, 1);
       }
     }
@@ -581,12 +574,11 @@ if (canvas) {
       const c = coins[i];
       if (!c.taken && hit(c)) {
         c.taken = true;
-        combo++; bestCombo = Math.max(bestCombo,combo);
-        const reward = coinReward(combo);
-        score += reward; moodUntil = elapsed + 650;
+        const reward = 25;
+        score += reward;
         burst(c.x+c.w/2,c.y+c.h/2,'#ffe2a0',12);
-        popups.push({ x: c.x + c.w / 2, y: c.y, life: 0, dur: 800, text: '+' + reward + (combo>1 ? ' · COMBO '+combo : '') });
-        playSfx('coin',1+Math.min(combo-1,5)*.08);
+        popups.push({ x: c.x + c.w / 2, y: c.y, life: 0, dur: 800, text: '+' + reward });
+        playSfx('coin');
       }
     }
   }
@@ -606,22 +598,25 @@ if (canvas) {
   // so the two can't drift out of sync.
   //  - LOADING/IDLE: no player at all, just the overlay text + background.
   //  - SPAWN: blinks in (see updateSpawn()).
-  //  - OVER: seated Robin remains visible beneath the result overlay.
+  //  - OVER: blinks out after collision.
   //  - PLAYING: always visible.
   function playerVisible() {
     if (state === STATE.LOADING || state === STATE.IDLE) return false;
     if (state === STATE.SPAWN) return spawnBlinkOn;
-    if (state === STATE.OVER) return true;
+    if (state === STATE.OVER) return !resultShown && hitBlinkOn;
     return true;
   }
 
   function drawPlayer() {
-    if (state === STATE.LOADING || state === STATE.IDLE || (state === STATE.SPAWN && !spawnBlinkOn)) return;
-    const dead = state === STATE.OVER;
-    const danger = obstacles.some(o => o.x > player.x && o.x < player.x + 180);
-    const mood = danger ? 'panic' : elapsed < moodUntil ? 'happy' : 'calm';
-    const w = GROUND_HEIGHT * (player.grounded ? runAspect : jumpAspect);
-    drawRobin(ctx,player.x,dead ? GROUND_Y-GROUND_HEIGHT : player.y,w,GROUND_HEIGHT,reducedMotion.matches?0:elapsed,dead?'over':player.grounded?'run':'jump',mood);
+    if (!playerVisible()) return;
+    const h = GROUND_HEIGHT;
+    if (state === STATE.SPAWN) {
+      drawFrame(SPRITES.stand, 0, player.x, player.y, h * standAspect, h);
+    } else if (player.grounded) {
+      drawFrame(SPRITES.run, player.runFrame, player.x, player.y, h * runAspect, h);
+    } else {
+      drawFrame(SPRITES.jump, player.jumpFrame, player.x, player.y, h * jumpAspect, h);
+    }
   }
 
   // Soft contact shadows, drawn before any sprite -- a flat cutout with
@@ -696,7 +691,6 @@ if (canvas) {
     ctx.save();
     for(const p of particles){ctx.globalAlpha=1-p.life/p.dur;ctx.fillStyle=p.color;ctx.beginPath();ctx.ellipse(p.x,p.y,3,1.5,p.life*.01,0,Math.PI*2);ctx.fill();}
     ctx.restore();
-    if(state === STATE.PLAYING && combo>1){ctx.save();ctx.font="600 16px 'IBM Plex Mono',monospace";ctx.fillStyle='#ffe2a0';ctx.textAlign='center';ctx.fillText('COIN STREAK  '+combo,CW/2,42);ctx.restore();}
 
     // "+score" popups float up and fade out over their lifetime
     if (popups.length) {
