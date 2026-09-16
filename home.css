@@ -475,3 +475,33 @@
   .homepage .face-draw-card .face-draw-img { margin: 10px 0 12px; }
   .homepage .face-draw-card .face-draw-mood { font-size: 20px; }
 }
+
+/* Phone layouts: safe-area clearance, readable copy and comfortable taps. */
+@media (max-width: 600px), (max-height: 500px) and (pointer: coarse) {
+  .homepage .face-draw-overlay { height: 100dvh; padding: max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left)); }
+  .homepage .face-draw-stage { max-height: calc(100dvh - max(12px,env(safe-area-inset-top)) - max(12px,env(safe-area-inset-bottom))); overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  .face-draw-spin { width: min(220px,100%); min-height: 48px; font-size: 12px; touch-action: manipulation; }
+  .face-draw-spin:not(:disabled):hover { transform: none; }
+  .homepage .face-draw-card { touch-action: manipulation; }
+  .homepage .face-draw-card .face-draw-tap-hint { font-size: 10px; letter-spacing: .08em; opacity: .85; animation: none; }
+  .homepage .face-draw-card .face-draw-share { min-height: 44px; min-width: 120px; font-size: 14px; touch-action: manipulation; }
+  .homepage .face-draw-card .face-draw-back { overflow-y: auto; gap: 10px; }
+  .homepage .face-draw-card .face-draw-joke { font-size: 15px; line-height: 1.45; flex-shrink: 0; }
+  .face-draw-stage:has(> .face-draw-card:not([hidden])) .face-draw-status { font-size: 13px; }
+  .reveal-stardust i { animation: none; opacity: .3; }
+}
+@media (max-width: 360px) {
+  .homepage .face-draw-stage { padding: 22px 14px 20px; }
+  .homepage .face-draw-title { font-size: 26px; }
+  .face-draw-reel { margin-left: -14px; margin-right: -14px; }
+  .face-draw-reel .face-card { width: 140px; height: 198px; padding: 32px 12px 14px; }
+  .face-draw-reel .face-img { height: 108px; }
+  .face-draw-reel .gallery-wrap { min-height: 242px; }
+  .homepage .face-draw-stage:has(> .face-draw-card:not([hidden])) { padding: 22px 16px; }
+}
+@media (max-height: 500px) and (pointer: coarse) {
+  .homepage .face-draw-stage { padding-top: 18px; padding-bottom: 18px; }
+  .reveal-kicker { margin-bottom: 6px; }
+  .homepage .face-draw-title { font-size: 26px; }
+  .face-draw-status { margin-bottom: 14px; }
+}
