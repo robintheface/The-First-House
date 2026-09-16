@@ -113,15 +113,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   let spinAudioCtx = null;
   let spinClickBuffer = null;
   let lastTickAt = 0;
-  const soundBtn = document.getElementById('faceDrawSoundBtn');
-  let soundEnabled = true;
-  try { soundEnabled = localStorage.getItem('faceDrawSound') !== 'off'; } catch {}
   const soundSources = new Set();
-  function syncSoundButton() {
-    if (!soundBtn) return;
-    soundBtn.textContent = soundEnabled ? 'Sound: On' : 'Sound: Off';
-    soundBtn.setAttribute('aria-pressed', String(soundEnabled));
-  }
   function trackSound(source, nodes) {
     soundSources.add(source);
     source.onended = () => { soundSources.delete(source); source.disconnect(); nodes.forEach(node => node.disconnect()); };
@@ -132,7 +124,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   }
   function playChime(notes, spacing = .09, duration = .35) {
     const ctx = spinAudioCtx;
-    if (!soundEnabled || !ctx || ctx.state !== 'running' || document.hidden) return;
+    if (!ctx || ctx.state !== 'running' || document.hidden) return;
     notes.forEach((frequency, index) => {
       const start = ctx.currentTime + index * spacing;
       const tone = ctx.createOscillator();
@@ -153,14 +145,6 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     };
     playChime(melodies[tier] || melodies.normal, .11, .55);
   }
-  syncSoundButton();
-  soundBtn?.addEventListener('click', () => {
-    soundEnabled = !soundEnabled;
-    if (!soundEnabled) stopAllDrawSounds();
-    else primeSpinSound();
-    try { localStorage.setItem('faceDrawSound', soundEnabled ? 'on' : 'off'); } catch {}
-    syncSoundButton();
-  });
   document.addEventListener('visibilitychange', () => { if (document.hidden) stopAllDrawSounds(); });
 
   function ensureSpinAudio(){
@@ -191,7 +175,6 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   // it. Starting an actual (silent, 1-sample) buffer right here forces
   // the unlock immediately, in the same call stack as the tap.
   function primeSpinSound(){
-    if (!soundEnabled) return;
     let ctx;
     try { ctx = ensureSpinAudio(); } catch { return; }
     if (!ctx) return;
@@ -203,7 +186,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   }
   function playSpinTick(gapMs){
     const ctx = spinAudioCtx;
-    if (!soundEnabled || document.hidden || !ctx || ctx.state !== 'running' || !spinClickBuffer) return;
+    if (document.hidden || !ctx || ctx.state !== 'running' || !spinClickBuffer) return;
     const now = ctx.currentTime;
     const src = ctx.createBufferSource();
     src.buffer = spinClickBuffer;
@@ -467,7 +450,6 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   // back to the front underneath the same tap.
   function tapToReveal(e){
     if (e.target.closest('#faceDrawShareBtn')) return;
-    playChime([660, 880], .035, .09);
     if (cardInner.classList.contains('is-flipped')) resetCardToFront();
     else triggerFlip();
   }

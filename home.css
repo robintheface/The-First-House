@@ -531,6 +531,3 @@
   .homepage .home-about-column h2 { font-size: 25px; }
 }
 
-.face-draw-sound { position: absolute; top: 7px; right: 12px; min-height: 32px; padding: 4px 8px; border: 1px solid #daca9640; border-radius: 6px; background: #142a20; color: #dfd8bf; font: 10px/1.4 sans-serif; cursor: pointer; z-index: 2; }
-.homepage .face-draw-stage:has(.face-draw-sound) { padding-top: 48px; }
-@media (pointer:coarse) { .face-draw-sound { min-height: 44px; top: 0; } }
