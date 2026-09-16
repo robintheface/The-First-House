@@ -366,12 +366,12 @@
 .face-draw-reel .gallery-wrap { min-height: 304px; }
 .face-draw-reel .gallery-track { gap: 18px; padding: 22px 0 28px; }
 .face-draw-reel.is-ready .gallery-track { animation-play-state: paused; }
-.face-draw-reel .face-card { --reel-color: #8eacbc; box-sizing: border-box; width: 192px; height: 250px; padding: 37px 17px 20px; border: 1px solid #d6e1d51f; border-radius: 16px; background: radial-gradient(ellipse at 50% 40%,color-mix(in srgb,var(--reel-color) 18%,transparent),transparent 72%),linear-gradient(155deg,#263a33,#101d1c); box-shadow: 0 8px 15px #0003,inset 0 1px #ffffff0a; transform: none; transition: none; overflow: hidden; }
-.face-draw-reel [data-rarity="legendary"] { --reel-color: #f3cd82; }
-.face-draw-reel [data-rarity="mythic"] { --reel-color: #c5a0f2; }
-.face-draw-reel [data-rarity="silver"] { --reel-color: #c7e0ee; }
-.face-draw-reel [data-rarity="bronze"] { --reel-color: #d5a480; }
-.face-draw-reel .face-card::before { content: attr(data-tier-label); position: absolute; top: 15px; left: 0; right: 0; color: var(--reel-color); font: 8px/1 sans-serif; letter-spacing: .2em; text-transform: uppercase; }
+.face-draw-reel .face-card { --reel-color: #8eacbc; box-sizing: border-box; width: 192px; height: 250px; padding: 37px 17px 20px; border: 1px solid color-mix(in srgb,var(--reel-color) 48%,transparent); border-radius: 16px; background: radial-gradient(ellipse at 50% 40%,color-mix(in srgb,var(--reel-color) 48%,transparent),transparent 85%),linear-gradient(155deg,#19232b,#0d171b); box-shadow: 0 8px 15px #0003,inset 0 1px #ffffff0a; transform: none; transition: none; overflow: hidden; }
+.face-draw-reel [data-rarity="legendary"] { --reel-color: #ffd05a; }
+.face-draw-reel [data-rarity="mythic"] { --reel-color: #ce86ff; }
+.face-draw-reel [data-rarity="silver"] { --reel-color: #d6efff; }
+.face-draw-reel [data-rarity="bronze"] { --reel-color: #f0a16d; }
+.face-draw-reel .face-card::before { content: attr(data-tier-label); position: absolute; top: 15px; left: 0; right: 0; color: var(--reel-color); font: 600 10px/1 sans-serif; letter-spacing: .16em; text-shadow: 0 0 12px color-mix(in srgb,var(--reel-color) 55%,transparent); text-transform: uppercase; }
 .face-draw-reel .face-card::after { content: none; display: none; }
 .face-draw-reel .face-img { width: 100%; height: 151px; margin: 0 auto 16px; filter: none; }
 .face-draw-reel .face-label { font-size: 17px; color: #f1ead8; }
@@ -396,14 +396,14 @@
 .reveal-stardust i:nth-child(6) { right: 6%; bottom: 32%; animation-delay: -2s; }
 .is-spinning .reveal-stardust i { animation-play-state: paused; }
 .homepage .face-draw-card { --result-color: #8eacbc; border-radius: 20px; }
-.homepage .face-draw-card.rarity-legendary { --result-color: #f3cd82; }
-.homepage .face-draw-card.rarity-mythic { --result-color: #c5a0f2; }
-.homepage .face-draw-card.rarity-silver { --result-color: #c7e0ee; }
-.homepage .face-draw-card.rarity-bronze { --result-color: #d5a480; }
-.homepage .face-draw-card .face-draw-face { border-radius: 20px; border: 1px solid color-mix(in srgb,var(--result-color) 26%,transparent); padding: 25px 20px; box-shadow: 0 16px 40px #0004,0 0 48px -20px var(--result-color),inset 0 1px #fff1; background: radial-gradient(ellipse at 50% 38%,color-mix(in srgb,var(--result-color) 20%,transparent),transparent 70%),linear-gradient(145deg,#263a33,#101d1c); }
-.homepage .face-draw-card .face-draw-front::before { content: attr(data-tier-label); position: static; color: var(--result-color); font: 9px/1.5 sans-serif; letter-spacing: .23em; text-transform: uppercase; margin-bottom: 4px; }
+.homepage .face-draw-card.rarity-legendary { --result-color: #ffd05a; }
+.homepage .face-draw-card.rarity-mythic { --result-color: #ce86ff; }
+.homepage .face-draw-card.rarity-silver { --result-color: #d6efff; }
+.homepage .face-draw-card.rarity-bronze { --result-color: #f0a16d; }
+.homepage .face-draw-card .face-draw-face { border-radius: 20px; border: 1px solid color-mix(in srgb,var(--result-color) 55%,transparent); padding: 25px 20px; box-shadow: 0 16px 40px #0004,0 0 48px -20px var(--result-color),inset 0 1px #fff1; background: radial-gradient(ellipse at 50% 38%,color-mix(in srgb,var(--result-color) 40%,transparent),transparent 85%),linear-gradient(145deg,#19232b,#0d171b); }
+.homepage .face-draw-card .face-draw-front::before { content: attr(data-tier-label); position: static; color: var(--result-color); font: 600 10px/1.5 sans-serif; letter-spacing: .18em; text-shadow: 0 0 14px color-mix(in srgb,var(--result-color) 60%,transparent); text-transform: uppercase; margin-bottom: 4px; }
 .homepage .face-draw-card .face-draw-front::after { content: none; display: none; }
-.homepage .face-draw-card .face-draw-img { width: 82%; margin: 12px 0 18px; filter: drop-shadow(0 0 15px color-mix(in srgb,var(--result-color) 30%,transparent)); }
+.homepage .face-draw-card .face-draw-img { width: 82%; margin: 12px 0 18px; filter: drop-shadow(0 0 15px color-mix(in srgb,var(--result-color) 55%,transparent)); }
 .homepage .face-draw-card .face-draw-mood { font-size: 26px; color: #f4ecd8; }
 .homepage .face-draw-card .face-draw-tap-hint { color: #b3bca9; font-size: 8px; letter-spacing: .18em; margin-top: 12px; }
 .homepage .face-draw-card:focus-visible { outline: 1px solid color-mix(in srgb,var(--result-color) 30%,transparent); outline-offset: 6px; }
@@ -444,7 +444,7 @@
   animation: tier-aurora 7s ease-in-out infinite alternate;
 }
 .homepage .face-draw-card.rarity-legendary .face-draw-front::after {
-  background: radial-gradient(circle at 13% 24%,#fff0b9 0 1px,transparent 2px),radial-gradient(circle at 84% 31%,#fff0b9 0 1.5px,transparent 3px),radial-gradient(circle at 20% 72%,#ffe5a0 0 1px,transparent 2px),radial-gradient(circle at 77% 81%,#ffe5a0 0 1px,transparent 2px),radial-gradient(ellipse at 50% 42%,#f3cd8245,transparent 64%);
+  background: radial-gradient(circle at 13% 24%,#fff0b9 0 1px,transparent 2px),radial-gradient(circle at 84% 31%,#fff0b9 0 1.5px,transparent 3px),radial-gradient(circle at 20% 72%,#ffe5a0 0 1px,transparent 2px),radial-gradient(circle at 77% 81%,#ffe5a0 0 1px,transparent 2px),radial-gradient(ellipse at 50% 42%,#ffd05a45,transparent 64%);
   animation: tier-gold 4s ease-in-out infinite alternate;
 }
 @keyframes tier-warmth { from { opacity: .3; } to { opacity: .85; } }
