@@ -11,6 +11,7 @@
 .homepage [hidden] { display: none !important; }
 .homepage a { text-underline-offset: 5px; }
 .homepage :focus-visible { outline: 3px solid #af7124; outline-offset: 5px; }
+.homepage #hoodGameWrap:focus-visible { outline: none; }
 .homepage section, .homepage [id] { scroll-margin-top: 105px; }
 .skip-link { position: fixed; left: 20px; top: -100px; z-index: 200; padding: 12px 20px; background: var(--forest); color: var(--paper); }
 .skip-link:focus { top: 15px; }
