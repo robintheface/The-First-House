@@ -114,16 +114,7 @@ if (canvas) {
     jumpTimer: 0
   };
 
-  let particles = [];
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  function burst(x,y,color,count=9) {
-    if (reducedMotion.matches) return;
-    for (let i=0;i<count && particles.length<64;i++) particles.push({x,y,vx:(Math.random()-.5)*.22,vy:-.08-Math.random()*.2,life:0,dur:450+Math.random()*250,color});
-  }
-  function updateParticles(dt) {
-    for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.life+=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=.0005*dt;if(p.life>=p.dur)particles.splice(i,1);}
-  }
-
   let obstacles = [];
   let coins = [];
   let popups = []; // floating "+score" text shown when a coin is grabbed
@@ -156,7 +147,6 @@ if (canvas) {
     obstacles = [];
     coins = [];
     popups = [];
-    particles = [];
     speed = BASE_SPEED;
     elapsed = 0;
     score = 0;
@@ -344,7 +334,6 @@ if (canvas) {
 
   function endRun() {
     state = STATE.OVER;
-    burst(player.x+35,player.y+45,'#edc673',20);
     resultShown = false;
     hitTimer = 0;
     hitBlinkOn = true;
@@ -575,7 +564,6 @@ if (canvas) {
         c.taken = true;
         const reward = 25;
         score += reward;
-        burst(c.x+c.w/2,c.y+c.h/2,'#ffe2a0',12);
         popups.push({ x: c.x + c.w / 2, y: c.y, life: 0, dur: 800, text: '+' + reward });
         playSfx('coin');
       }
@@ -687,9 +675,6 @@ if (canvas) {
 
     // player -- run/jump sprite sheets, current frame picked in update()
     drawPlayer();
-    ctx.save();
-    for(const p of particles){ctx.globalAlpha=1-p.life/p.dur;ctx.fillStyle=p.color;ctx.beginPath();ctx.ellipse(p.x,p.y,3,1.5,p.life*.01,0,Math.PI*2);ctx.fill();}
-    ctx.restore();
 
     // "+score" popups float up and fade out over their lifetime
     if (popups.length) {
@@ -733,7 +718,6 @@ if (canvas) {
     if (state === STATE.PLAYING) update(dt);
     else if (state === STATE.SPAWN) updateSpawn(dt);
     else if (state === STATE.OVER && !resultShown) updateHitBlink(dt);
-    updateParticles(dt);
     if (assetsReady) draw();
 
     if (state === STATE.PLAYING || state === STATE.SPAWN || (state === STATE.OVER && !resultShown)) {
