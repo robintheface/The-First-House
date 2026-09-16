@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="images/home-hero.webp">
 <link rel="stylesheet" href="styles.css?v=66">
-<link rel="stylesheet" href="home.css?v=5">
+<link rel="stylesheet" href="home.css?v=6">
 </head>
 <body class="homepage">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -50,6 +50,7 @@
   </header>
 
   <section id="play" class="home-section" aria-labelledby="play-title">
+    <div class="play-ornament" aria-hidden="true"><span></span><img src="icons/leaf.webp" alt="" width="32" height="32"><span></span></div>
     <div class="home-section-heading">
       <p class="home-eyebrow">TAKE A BREAK FROM THE CHART</p>
       <h2 id="play-title">A little chaos. A lot of hood.</h2>
@@ -58,7 +59,7 @@
     <div class="home-play-grid">
       <section id="game" class="home-game" aria-labelledby="runner-title">
         <div class="home-game-heading">
-          <div><p class="home-eyebrow">THE HOOD’S ARCADE</p><h3 id="runner-title">Hood Runner</h3></div>
+          <div class="arcade-title"><img src="icons/hood_ticket.webp" alt="" width="46" height="46"><div><p class="home-eyebrow">THE HOOD’S ARCADE</p><h3 id="runner-title">Hood Runner</h3></div></div>
           <button class="home-game-start" type="button" data-start-run>Play now <span aria-hidden="true">→</span></button>
         </div>
   <div class="hood-game-wrap" id="hoodGameWrap" tabindex="0" aria-label="Hood Runner. Press Space or tap to play.">
@@ -121,9 +122,10 @@
     </div>
   </div>
 
-        <div class="home-game-caption"><span>Dodge the candles. Don’t get rugged.</span><span><kbd>SPACE</kbd> or tap to jump</span></div>
+        <div class="home-game-caption"><span><span class="arcade-spark" aria-hidden="true">✦</span> Dodge the candles. Don’t get rugged.</span><span><kbd>SPACE</kbd> or tap to jump</span></div>
       </section>
       <section id="faces" class="home-daily" aria-labelledby="daily-title">
+        <div class="daily-seal" aria-hidden="true"><span>✦</span><img src="icons/leaf.webp" alt="" width="32" height="32"><span>✦</span></div>
         <p class="home-eyebrow">A NEW DAY. A NEW MOOD.</p>
         <h3 id="daily-title">Face of the Day</h3>
         <p class="home-daily-intro">What’s behind your hood today?</p>

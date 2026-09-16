@@ -287,3 +287,69 @@
   .homepage .face-draw-overlay[open] .face-draw-backdrop,
   .homepage .face-draw-overlay[open] .face-draw-stage { animation: none; }
 }
+
+/* A forest arcade and a golden keepsake: two rooms in the same house. */
+.play-ornament { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 18px; }
+.play-ornament span { width: 75px; height: 1px; background: #b5b691; }
+.play-ornament img { object-fit: contain; }
+.home-play-grid { gap: 26px; }
+.homepage #game.home-game {
+  position: relative;
+  background: radial-gradient(ellipse at top left,rgba(131,158,91,.18),transparent 65%),#193526;
+  border: 1px solid #637450;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px -16px rgba(22,51,34,.45), inset 0 0 0 5px #193526, inset 0 0 0 6px rgba(222,200,132,.16);
+}
+.home-game-heading { padding: 27px 26px 22px; }
+.arcade-title { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.arcade-title > img { object-fit: contain; flex-shrink: 0; transform: rotate(-12deg); filter: drop-shadow(0 3px 5px #0005); }
+.home-game-heading .home-eyebrow { color: #d6c594; letter-spacing: .16em; }
+.home-game h3 { color: #f7eacb; text-shadow: 0 2px 0 #07180e; }
+.home-game-start { background: #edcb83; color: #203b29; border-color: #f5dfa9; border-radius: 5px; box-shadow: 0 3px 0 #93783c; transition: background .18s, box-shadow .18s; }
+.home-game-start:hover { background: #ffe2a0; box-shadow: 0 3px 0 #93783c, 0 0 18px #edcb8326; }
+.home-game-start:active { box-shadow: 0 1px 0 #93783c; }
+.homepage .home-game .hood-game-wrap:not(:fullscreen):not(.is-pseudo-fullscreen):not(.hood-game-force-landscape) { border: 1px solid #8c875b; border-radius: 7px; box-shadow: 0 0 0 4px #102b1d, 0 6px 16px #081a1466; }
+.home-game-caption { margin: 6px 6px 0; padding: 18px 19px; color: #d3d6b7; }
+.arcade-spark { color: #e5bf62; margin-right: 5px; }
+.home-game-caption kbd { background: #314b36; border-color: #84906b; box-shadow: 0 2px 0 #102b1d; color: #f4e7c5; }
+.home-daily {
+  border: 1px solid #b9994c;
+  border-radius: 16px;
+  background: radial-gradient(ellipse at 50% 44%,#f9dfa0 0%,#edc66e 64%);
+  box-shadow: 0 12px 30px -16px #92722b70, inset 0 0 0 5px #edc66e, inset 0 0 0 6px #9b803b55;
+  padding-top: 20px;
+}
+.home-daily::before,.home-daily::after { content: '✧'; position: absolute; top: 23px; color: #8b702d; font-size: 24px; pointer-events: none; }
+.home-daily::before { left: 23px; }
+.home-daily::after { right: 23px; }
+.daily-seal { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 9px; color: #957a38; font-size: 10px; }
+.daily-seal img { object-fit: contain; }
+.home-daily > .home-eyebrow { color: #705a2c; letter-spacing: .12em; }
+.home-daily h3 { text-shadow: 0 1px 0 #fff3c7; }
+.home-daily-intro { color: #5c542e; }
+.home-daily .gallery-wrap { -webkit-mask-image: linear-gradient(90deg,transparent,#000 19%,#000 81%,transparent); mask-image: linear-gradient(90deg,transparent,#000 19%,#000 81%,transparent); }
+.home-daily .gallery-wrap::before,.home-daily .gallery-wrap::after { display: none; }
+.home-daily .face-img { filter: drop-shadow(0 8px 7px #7f622935); }
+.home-daily .face-label { font-style: italic; }
+.home-daily .btn-spin { background: #25462e; border: 1px solid #183c27; color: #fff0c9; border-radius: 5px; box-shadow: 0 3px 0 #102b1d; }
+.home-daily .btn-spin:hover { background: #345a3b; }
+.home-daily-note { color: #655029; padding-top: 4px; }
+@media (max-width: 1050px) {
+  .home-play-grid { gap: 18px; }
+  .arcade-title { gap: 10px; }
+  .arcade-title > img { width: 35px; height: 35px; }
+  .home-game-heading { padding: 24px 19px 20px; }
+  .home-game-heading .home-eyebrow { font-size: 8px; }
+  .home-game h3 { font-size: 30px; }
+}
+@media (max-width: 480px) {
+  .home-game-heading { padding: 22px 16px 18px; gap: 10px; }
+  .arcade-title > img { width: 30px; height: 30px; }
+  .arcade-title { gap: 8px; }
+  .home-game h3 { font-size: 26px; }
+  .home-game-heading .home-eyebrow { font-size: 7px; letter-spacing: .1em; }
+  .home-game-start { padding: 8px 10px; font-size: 13px; }
+  .home-game-caption { padding: 16px 10px; }
+  .arcade-spark { display: none; }
+  .home-daily { padding-top: 24px; }
+}
