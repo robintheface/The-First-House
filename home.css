@@ -356,28 +356,28 @@
 }
 
 /* Reveal: smoked glass, collectible cards, and restrained tier lighting. */
-.homepage .face-draw-stage { position: relative; isolation: isolate; width: min(940px,100%); border: 1px solid #daca963d; border-radius: 24px; padding: 32px 20px 28px; background: radial-gradient(ellipse at 50% 0%,#b9984820,transparent 60%),rgba(12,27,25,.82); box-shadow: 0 28px 90px #0008,inset 0 1px #fff1; }
+.homepage .face-draw-stage { position: relative; isolation: isolate; width: min(800px,100%); border: 1px solid #daca963d; border-radius: 24px; padding: 28px 20px 24px; background: radial-gradient(ellipse at 50% 0%,#b9984820,transparent 60%),rgba(12,27,25,.82); box-shadow: 0 28px 90px #0008,inset 0 1px #fff1; }
 .reveal-kicker { position: relative; color: #bca981; font: 10px/1.6 sans-serif; letter-spacing: .26em; margin: 0 0 12px; }
-.homepage .face-draw-title { position: relative; color: #f8edcf; font-size: 38px; margin: 0 0 10px; text-shadow: 0 2px 15px #0003; }
-.face-draw-status { position: relative; font-size: 15px; color: #aebbb0; margin-bottom: 24px; }
+.homepage .face-draw-title { position: relative; color: #f8edcf; font-size: 32px; margin: 0 0 10px; text-shadow: 0 2px 15px #0003; }
+.face-draw-status { position: relative; font-size: 14px; color: #aebbb0; margin-bottom: 20px; }
 .face-draw-reel { border: 0; background: radial-gradient(ellipse at center,#57705c14,transparent 72%); }
 .face-draw-reel::before { content: ''; position: absolute; z-index: 6; pointer-events: none; top: 0; bottom: 0; left: calc(50% - 1px); width: 2px; background: linear-gradient(#f9e2a5,transparent 22%,transparent 78%,#f9e2a5); opacity: .8; }
 .face-draw-reel::after { top: -8px; color: #f9e2a5; font-size: 17px; text-shadow: 0 0 14px #f9e2a566; pointer-events: none; }
-.face-draw-reel .gallery-wrap { min-height: 304px; }
-.face-draw-reel .gallery-track { gap: 18px; padding: 22px 0 28px; }
+.face-draw-reel .gallery-wrap { min-height: 276px; }
+.face-draw-reel .gallery-track { gap: 16px; padding: 20px 0 24px; }
 .face-draw-reel.is-ready .gallery-track { animation-play-state: paused; }
-.face-draw-reel .face-card { --reel-color: #8eacbc; box-sizing: border-box; width: 192px; height: 250px; padding: 37px 17px 20px; border: 1px solid color-mix(in srgb,var(--reel-color) 48%,transparent); border-radius: 16px; background: radial-gradient(ellipse at 50% 40%,color-mix(in srgb,var(--reel-color) 48%,transparent),transparent 85%),linear-gradient(155deg,#19232b,#0d171b); box-shadow: 0 8px 15px #0003,inset 0 1px #ffffff0a; transform: none; transition: none; overflow: hidden; }
+.face-draw-reel .face-card { --reel-color: #8eacbc; box-sizing: border-box; width: 176px; height: 232px; padding: 34px 15px 18px; border: 1px solid color-mix(in srgb,var(--reel-color) 48%,transparent); border-radius: 16px; background: radial-gradient(ellipse at 50% 40%,color-mix(in srgb,var(--reel-color) 48%,transparent),transparent 85%),linear-gradient(155deg,#19232b,#0d171b); box-shadow: 0 8px 15px #0003,inset 0 1px #ffffff0a; transform: none; transition: none; overflow: hidden; }
 .face-draw-reel [data-rarity="legendary"] { --reel-color: #ffd05a; }
 .face-draw-reel [data-rarity="mythic"] { --reel-color: #ce86ff; }
 .face-draw-reel [data-rarity="silver"] { --reel-color: #d6efff; }
 .face-draw-reel [data-rarity="bronze"] { --reel-color: #f0a16d; }
 .face-draw-reel .face-card::before { content: attr(data-tier-label); position: absolute; top: 15px; left: 0; right: 0; color: var(--reel-color); font: 600 10px/1 sans-serif; letter-spacing: .16em; text-shadow: 0 0 12px color-mix(in srgb,var(--reel-color) 55%,transparent); text-transform: uppercase; }
 .face-draw-reel .face-card::after { content: none; display: none; }
-.face-draw-reel .face-img { width: 100%; height: 151px; margin: 0 auto 16px; filter: none; }
-.face-draw-reel .face-label { font-size: 17px; color: #f1ead8; }
+.face-draw-reel .face-img { width: 100%; height: 138px; margin: 0 auto 14px; filter: none; }
+.face-draw-reel .face-label { font-size: 16px; color: #f1ead8; }
 .face-draw-reel .face-card.is-lit { transform: none; border-color: color-mix(in srgb,var(--reel-color) 40%,transparent); box-shadow: 0 0 24px -9px var(--reel-color),inset 0 0 30px color-mix(in srgb,var(--reel-color) 12%,transparent); transition: box-shadow .5s ease,border-color .5s ease; }
 .face-draw-reel .face-card.is-lit .face-label { color: #fff3d7; }
-.face-draw-spin { position: relative; display: flex; align-items: center; justify-content: center; gap: 12px; width: 202px; min-height: 50px; margin: 24px auto 0; padding: 13px 24px; border: 1px solid #ffe8b06b; border-radius: 12px; background: linear-gradient(135deg,#ebd5a2,#bda06a); color: #24362c; font: 600 12px/1.5 sans-serif; letter-spacing: .2em; text-transform: uppercase; cursor: pointer; box-shadow: 0 5px 20px #0003,inset 0 1px #fff6; transition: transform .22s ease,box-shadow .22s ease,opacity .22s ease; }
+.face-draw-spin { position: relative; display: flex; align-items: center; justify-content: center; gap: 12px; width: 184px; min-height: 46px; margin: 20px auto 0; padding: 11px 20px; border: 1px solid #ffe8b06b; border-radius: 12px; background: linear-gradient(135deg,#ebd5a2,#bda06a); color: #24362c; font: 600 12px/1.5 sans-serif; letter-spacing: .2em; text-transform: uppercase; cursor: pointer; box-shadow: 0 5px 20px #0003,inset 0 1px #fff6; transition: transform .22s ease,box-shadow .22s ease,opacity .22s ease; }
 .face-draw-spin::before { content: '✦'; font-size: 17px; font-weight: 400; }
 .face-draw-spin::after { content: none; }
 .face-draw-spin:not(:disabled):hover { background: linear-gradient(135deg,#f4e1b6,#c9ae7c); transform: translateY(-2px); box-shadow: 0 8px 25px #0004,0 0 20px #e8ce9220,inset 0 1px #fff6; }
@@ -413,14 +413,14 @@
 @keyframes reveal-orbit { to { transform: rotate(360deg); } }
 @media (max-width: 480px) {
   .homepage .face-draw-stage { padding: 26px 16px 22px; border-radius: 18px; }
-  .homepage .face-draw-title { font-size: 30px; }
+  .homepage .face-draw-title { font-size: 28px; }
   .reveal-kicker { font-size: 8px; letter-spacing: .2em; }
   .face-draw-status { font-size: 13px; margin-bottom: 20px; }
   .face-draw-reel .gallery-track { gap: 12px; }
-  .face-draw-reel .face-card { width: 164px; height: 222px; padding: 34px 13px 17px; }
-  .face-draw-reel .face-img { height: 128px; margin-bottom: 14px; }
+  .face-draw-reel .face-card { width: 148px; height: 206px; padding: 32px 12px 16px; }
+  .face-draw-reel .face-img { height: 116px; margin-bottom: 12px; }
   .face-draw-reel .face-label { font-size: 16px; }
-  .face-draw-reel .gallery-wrap { min-height: 272px; }
+  .face-draw-reel .gallery-wrap { min-height: 250px; }
   .homepage .face-draw-card .face-draw-face { padding: 19px 16px; }
   .homepage .face-draw-card .face-draw-img { margin: 8px 0 10px; }
   .homepage .face-draw-card .face-draw-mood { font-size: 23px; }
@@ -456,21 +456,21 @@
 }
 
 /* Balance the single result within a smaller presentation frame. */
-.homepage .face-draw-stage:has(> .face-draw-card:not([hidden])) { width: min(560px,100%); padding: 28px 28px 30px; }
+.homepage .face-draw-stage:has(> .face-draw-card:not([hidden])) { width: min(500px,100%); padding: 26px 24px 28px; }
 .face-draw-stage:has(> .face-draw-card:not([hidden])) .reveal-kicker { font-size: 8px; margin-bottom: 10px; }
 .homepage .face-draw-stage:has(> .face-draw-card:not([hidden])) .face-draw-title { font-size: 29px; margin-bottom: 8px; }
 .face-draw-stage:has(> .face-draw-card:not([hidden])) .face-draw-status { max-width: 340px; margin: 0 auto 22px; font-size: 13px; line-height: 1.5; }
-.homepage .face-draw-stage .face-draw-card { width: min(240px,64vw); }
+.homepage .face-draw-stage .face-draw-card { width: min(224px,64vw); }
 .homepage .face-draw-card .face-draw-face { padding: 22px 20px; }
 .homepage .face-draw-card .face-draw-img { flex: 0 0 auto; width: 76%; margin: 12px 0 14px; }
 .homepage .face-draw-card .face-draw-mood { font-size: 21px; line-height: 1.25; }
-.homepage .face-draw-card .face-draw-tap-hint { font-size: 7px; margin-top: 10px; }
+.homepage .face-draw-card .face-draw-tap-hint { font-size: 8px; margin-top: 10px; }
 .homepage .face-draw-card .face-draw-joke { font-size: 16px; line-height: 1.5; }
 @media (max-width: 480px) {
   .homepage .face-draw-stage:has(> .face-draw-card:not([hidden])) { width: min(340px,100%); padding: 24px 20px; }
   .homepage .face-draw-stage:has(> .face-draw-card:not([hidden])) .face-draw-title { font-size: 26px; }
   .face-draw-stage:has(> .face-draw-card:not([hidden])) .face-draw-status { font-size: 12px; margin-bottom: 20px; }
-  .homepage .face-draw-stage .face-draw-card { width: min(218px,64vw); }
+  .homepage .face-draw-stage .face-draw-card { width: min(208px,64vw); }
   .homepage .face-draw-card .face-draw-face { padding: 18px 16px; }
   .homepage .face-draw-card .face-draw-img { margin: 10px 0 12px; }
   .homepage .face-draw-card .face-draw-mood { font-size: 20px; }
