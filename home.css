@@ -361,3 +361,40 @@
 .face-draw-spin:focus-visible { outline: 3px solid #fff0c9; outline-offset: 5px; }
 .face-draw-spin:disabled { opacity: .6; cursor: wait; }
 .face-draw-spin[hidden] { display: none; }
+
+/* A glass treasure case, illuminated by the reel's rarity colors. */
+.homepage .face-draw-stage { position: relative; isolation: isolate; width: min(900px,100%); background: radial-gradient(ellipse at 50% 0%,#b3974230,transparent 65%),rgba(15,34,28,.65); border-color: #e6cc7b70; box-shadow: 0 30px 100px #0008, inset 0 0 50px #d8bd5710, 0 0 35px #d8bd5712; }
+.reveal-kicker { position: relative; color: #d9c58a; font-size: 10px; letter-spacing: .25em; margin: 8px 0 14px; }
+.homepage .face-draw-title { position: relative; color: #fff1cc; text-shadow: 0 0 30px #edcb8340; }
+.face-draw-status { position: relative; }
+.face-draw-reel { border-block: 1px solid #d8bd5740; background: linear-gradient(0deg,#030f1580,#16302c30); }
+.face-draw-reel::before { content: ''; position: absolute; z-index: 6; pointer-events: none; width: 2px; top: 10px; bottom: 10px; left: calc(50% - 1px); background: linear-gradient(transparent,#ffe8a1 18%,#ffe8a1 82%,transparent); box-shadow: 0 0 12px #ffd57399; }
+.face-draw-reel::after { top: -7px; font-size: 20px; color: #ffe8a1; text-shadow: 0 0 12px #edcb83; pointer-events: none; }
+.face-draw-reel .gallery-track { gap: 14px; padding: 32px 0; }
+.face-draw-reel .face-card { --reel-color: #769cbd; border: 1px solid #ffffff18; border-bottom: 3px solid var(--reel-color); border-radius: 9px; background: radial-gradient(ellipse at bottom,color-mix(in srgb,var(--reel-color) 28%,transparent),transparent 75%),#132923; box-shadow: inset 0 -12px 22px #0002; transform: none; }
+.face-draw-reel [data-rarity="legendary"] { --reel-color: #ffd575; }
+.face-draw-reel [data-rarity="mythic"] { --reel-color: #de8aff; }
+.face-draw-reel [data-rarity="silver"] { --reel-color: #bde6ff; }
+.face-draw-reel [data-rarity="bronze"] { --reel-color: #e4a273; }
+.face-draw-reel .face-card::after { content: ''; position: absolute; left: 25%; right: 25%; height: 2px; bottom: 0; background: var(--reel-color); box-shadow: 0 0 15px 3px var(--reel-color); }
+.face-draw-reel .face-card.is-lit { border-color: var(--reel-color); box-shadow: 0 0 24px color-mix(in srgb,var(--reel-color) 35%,transparent),inset 0 0 20px #ffffff08; transform: none; }
+.face-draw-reel .face-card.is-lit .face-label { color: #fff1cc; }
+.face-draw-reel .face-img { filter: drop-shadow(0 6px 12px #0006); }
+.face-draw-spin { position: relative; overflow: hidden; text-transform: uppercase; letter-spacing: .2em; background: linear-gradient(110deg,#b88b42,#ffe6a5 50%,#d3aa58); box-shadow: 0 3px 0 #866128,0 0 25px #edcb8320; }
+.face-draw-spin::after { content: ''; position: absolute; inset: -50%; background: linear-gradient(110deg,transparent 40%,#fff7 50%,transparent 60%); transform: translateX(-100%); animation: treasure-sheen 4s ease-in-out infinite; pointer-events: none; }
+.reveal-stardust { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: -1; }
+.reveal-stardust i { position: absolute; color: #fce6ab; font-style: normal; font-size: 12px; opacity: .3; animation: treasure-drift 5s ease-in-out infinite alternate; }
+.reveal-stardust i:nth-child(1) { left: 7%; top: 16%; }
+.reveal-stardust i:nth-child(2) { left: 21%; top: 77%; animation-delay: -2s; }
+.reveal-stardust i:nth-child(3) { left: 89%; top: 24%; animation-delay: -3s; }
+.reveal-stardust i:nth-child(4) { left: 76%; top: 83%; animation-delay: -1s; }
+.reveal-stardust i:nth-child(5) { left: 43%; top: 8%; animation-delay: -4s; font-size: 8px; }
+.reveal-stardust i:nth-child(6) { left: 92%; top: 62%; animation-delay: -2.5s; }
+.is-winner .face-draw-card { animation: treasure-arrive .7s cubic-bezier(.16,1,.3,1) both; }
+.is-winner .face-draw-reel .face-card.is-lit { box-shadow: 0 0 35px color-mix(in srgb,var(--reel-color) 65%,transparent); }
+.is-winner .reveal-stardust i { color: #fff1c6; opacity: .85; }
+@keyframes treasure-drift { from { transform: translateY(7px) rotate(-12deg); opacity: .2; } to { transform: translateY(-10px) rotate(12deg); opacity: .8; } }
+@keyframes treasure-sheen { 0%,45% { transform: translateX(-100%); } 80%,100% { transform: translateX(100%); } }
+@keyframes treasure-arrive { from { opacity: 0; transform: translateY(18px) scale(.92); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (max-width: 480px) { .reveal-kicker { font-size: 8px; letter-spacing: .18em; } .face-draw-reel .gallery-track { gap: 12px; } }
+@media (prefers-reduced-motion: reduce) { .reveal-stardust i,.face-draw-spin::after,.is-winner .face-draw-card { animation: none; } }

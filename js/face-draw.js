@@ -77,26 +77,12 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     cardInner.style.transform = 'rotateY(0deg)';
   }
 
-  // ---------- Face of the Day spins the live gallery itself ----------
-  // Rather than a separate popup reel, this hijacks the actual auto-
-  // scrolling .gallery-track: freezes it wherever its marquee animation
-  // currently is, temporarily appends extra loops of the real 24 cards so
-  // there's room to travel several laps in the same leftward direction it
-  // was already drifting, then eases it to a stop at the dead center of
-  // .gallery-wrap. No fixed marker -- whichever card is actually passing
-  // through center gets lit live (tracked every frame) as the spin runs,
-  // and whichever one is lit when it lands hands off into the #faceDrawCard
-  // flip reveal.
-  const CLONE_LOOPS = 2;         // extra full 24-card loops appended for spin room
-  const LAND_LOOP = CLONE_LOOPS; // land in the last appended loop -- maximum room to travel
-  // 3 acts: ~2s winding up, a fast confident middle, ~2s decelerating back
-  // down into the landing -- 7s total. A single cubic-bezier can't express
-  // three literal, separately-timed phases, but a strong symmetric
-  // ease-in-out (near-flat close to both ends, steep through the middle)
-  // reads as exactly that: a real ~2s ramp on each side of a fast middle,
-  // for a curve this extreme.
-  const GALLERY_SPIN_MS = 7000;
-  const GALLERY_SPIN_EASE = 'cubic-bezier(.83,0,.17,1)';
+  // The fixed gold marker selects the card beneath it. A short launch
+  // gives way to a long deceleration, leaving time to follow the last cards.
+  const CLONE_LOOPS = 2;
+  const LAND_LOOP = CLONE_LOOPS;
+  const GALLERY_SPIN_MS = 8000;
+  const GALLERY_SPIN_EASE = 'cubic-bezier(.12,.65,.12,1)';
   let gallerySpinCleanup = null; // non-null only while a spin (or its post-landing pause) is in flight
   let galleryRafId = null;
   let litCard = null;
@@ -199,7 +185,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   // this factor -- recomputed fresh each spin from the real distance/
   // duration (see spinGallery) rather than hardcoded, so the glow gate
   // above stays calibrated if either changes again later.
-  const SPIN_PEAK_FACTOR = 5.95;
+  const SPIN_PEAK_FACTOR = 5.42;
 
   let spinPeakSpeed = 1;
   let lastTrackX = 0;
@@ -321,7 +307,8 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     lastTickAt = 0;
     glowActive = true;
     spinPeakSpeed = (Math.abs(targetX - currentX) / GALLERY_SPIN_MS) * SPIN_PEAK_FACTOR;
-    trackLitCard(step, cardWidth, centerX, galleryTrack.children.length);
+    const localCenter = centerX - galleryTrack.getBoundingClientRect().left + currentX;
+    trackLitCard(step, cardWidth, localCenter, galleryTrack.children.length);
 
     galleryTrack.style.transition = `transform ${GALLERY_SPIN_MS}ms ${GALLERY_SPIN_EASE}`;
     galleryTrack.style.transform = `translateX(${targetX}px)`;
@@ -376,6 +363,11 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   function openFaceOfTheDay(){
     if (!realCards.length || !fodBtn || fodBtn.disabled || !galleryTrack || !reel) return;
     ++drawId;
+    overlay.classList.remove('is-spinning', 'is-winner');
+    galleryTrack.querySelectorAll('.face-card').forEach(card => {
+      const mood = card.querySelector('.face-label')?.textContent.trim() || '';
+      card.dataset.rarity = rarityFor(mood);
+    });
     fodBtn.disabled = true;
     hasRevealed = false;
     showFodMessage('');
@@ -411,6 +403,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     }
 
     spinBtn.hidden = true;
+    overlay.classList.add('is-spinning');
     reel.classList.remove('is-ready');
     drawStatus.textContent = 'The hood is finding your face…';
     const winnerIdx = Math.floor(Math.random() * realCards.length);
@@ -422,6 +415,8 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     // begin loading as the fast reel carries them into view.
     realCards.forEach(card => { card.querySelector('img').loading = 'eager'; });
     spinGallery(winnerIdx, (addedClones) => {
+      overlay.classList.remove('is-spinning');
+      overlay.classList.add('is-winner');
       const revealDelay = setTimeout(() => {
         if (thisDraw !== drawId) return;
         cleanupGallerySpin(addedClones);
@@ -432,7 +427,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
         cardEl.hidden = false;
         drawStatus.textContent = 'Your face has arrived. Tap the card to reveal its story.';
         cardEl.focus({ preventScroll: true });
-      }, 650);
+      }, 1100);
       gallerySpinCleanup = () => { clearTimeout(revealDelay); cleanupGallerySpin(addedClones); };
     });
   }
@@ -442,6 +437,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     if (gallerySpinCleanup) gallerySpinCleanup();
     restoreGallery();
     reel.classList.remove('is-ready');
+    overlay.classList.remove('is-spinning', 'is-winner');
     overlay.close();
     overlay.hidden = true;
     document.body.style.overflow = previousOverflow;
