@@ -88,6 +88,17 @@
 }
 .home-daily-button-only::before,
 .home-daily-button-only::after { content: none !important; }
+/* Was full-width/45px-tall to fill the old gold box -- standing alone now,
+   sized down to match the site's other small buttons (.home-button-small)
+   instead of spanning the whole row. */
+.home-daily-button-only .fod-row { display: flex; justify-content: center; }
+.home-daily-button-only .btn-spin {
+  width: auto !important;
+  min-height: 42px !important;
+  padding: 10px 20px !important;
+  font-size: 15px !important;
+  gap: 12px !important;
+}
 /* !important: several later, equal-specificity .home-daily .gallery-wrap
    rules (base + a couple of breakpoints) set display:flex, and would win
    the cascade over a plain override sitting earlier in the file. */
