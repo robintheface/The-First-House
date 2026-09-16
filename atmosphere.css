@@ -1,0 +1,39 @@
+/* Quiet parchment and woodland scenery, shared by all public pages. */
+:is(.homepage,.site-inner) {
+  background-color: #f6efdd;
+  background-image: url('/images/paper-grain.svg'),linear-gradient(180deg,#faf3e2 0%,#f6efdd 28%,#e9ecdc 53%,#f3eddc 78%,#e2e7d2 100%);
+  background-size: 180px 180px,100% 100%;
+}
+:is(.homepage,.site-inner) #main { position: relative; isolation: isolate; }
+:is(.homepage,.site-inner) #main::before,
+:is(.homepage,.site-inner) #main::after {
+  content: ''; position: absolute; z-index: -1; pointer-events: none;
+  width: clamp(90px,12vw,210px); height: 70%; top: 18%;
+  background: url('/icons/leaf.webp') left top / 100% auto repeat-y;
+  opacity: .035;
+  -webkit-mask-image: linear-gradient(transparent,#000 18%,#000 75%,transparent);
+  mask-image: linear-gradient(transparent,#000 18%,#000 75%,transparent);
+}
+:is(.homepage,.site-inner) #main::before { left: 0; }
+:is(.homepage,.site-inner) #main::after { right: 0; transform: scaleX(-1); }
+.homepage .home-hero::after { height: 90px; background: linear-gradient(transparent,#f6efdd); }
+.homepage .home-bottom-intro { border-top: 0; }
+.homepage .home-community { border-top: 0; padding-top: 94px; }
+.homepage .home-community::before {
+  content: ''; position: absolute; inset: 0 0 auto; width: 100%; height: 64px;
+  background: linear-gradient(#e2e7d2, #e2e7d280 22%,transparent);
+  mix-blend-mode: normal; opacity: 1; pointer-events: none;
+}
+.woodland-lights { position: absolute !important; inset: 0; overflow: hidden; pointer-events: none; }
+.woodland-lights i { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #f4d891; box-shadow: 0 0 8px #f4d899; opacity: .2; animation: woodland-glimmer 7s ease-in-out infinite alternate; }
+.woodland-lights i:nth-child(1) { left: 9%; top: 49%; }
+.woodland-lights i:nth-child(2) { left: 21%; top: 77%; animation-delay: -3s; }
+.woodland-lights i:nth-child(3) { right: 11%; top: 35%; animation-delay: -5s; }
+.woodland-lights i:nth-child(4) { right: 23%; top: 82%; animation-delay: -2s; }
+@keyframes woodland-glimmer { from { opacity: .12; transform: translateY(0); } to { opacity: .5; transform: translateY(-10px); } }
+@media(max-width:600px) {
+ :is(.homepage,.site-inner) #main::before,:is(.homepage,.site-inner) #main::after { width: 55px; opacity: .02; }
+ .homepage .home-community { padding-top: 70px; }
+ .woodland-lights { display: none; }
+}
+@media(prefers-reduced-motion:reduce) { .woodland-lights i { animation: none; opacity: .25; } }
