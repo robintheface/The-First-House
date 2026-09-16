@@ -3,7 +3,7 @@
 // this same script is shared across every page.
 import { setupDropdown } from "./dropdown.js";
 
-var MOBILE_BREAKPOINT = 720;
+var MOBILE_BREAKPOINT = 1024;
 
 var navToggle = document.querySelector(".nav-toggle");
 var nav = document.querySelector(".nav-links");

@@ -1,0 +1,82 @@
+/* Shared paper-and-forest shell across the homepage and Explore routes. */
+:root { --site-paper: #f6efdd; --site-forest: #193c2b; --site-muted: #586650; --site-line: #d9d0b9; }
+[hidden] { display: none !important; }
+body.site-inner { --bg: #f6efdd; --bg-2: #eee5ce; --ink: #193c2b; --ink-dim: #586650; --cream2: #193c2b; --green-bright: #35633e; --gold: #88641f; --bronze: #95632c; --line: #d9d0b9; background: var(--site-paper); color: var(--ink); font-size: 18px; }
+.site-inner #main { min-height: 65vh; }
+.site-inner a { text-underline-offset: 4px; }
+.site-inner :focus-visible { outline: 2px solid #946822; outline-offset: 4px; }
+.site-inner section { scroll-margin-top: 90px; padding: 64px 24px; }
+.site-inner .section-title { color: var(--site-forest); font-size: clamp(34px,4.5vw,54px); line-height: 1.12; margin: 12px 0 18px; }
+.site-inner .section-desc { font-size: 18px; line-height: 1.6; }
+.site-inner .kicker { color: #786333; font-size: 10px; letter-spacing: .16em; }
+.site-inner .section-head { margin-bottom: 36px; }
+.site-inner :is(.quicklink-card,.hood-faq-item,.hood-ladder-item,.hood-stats-grid .rank-stat) { background: #fbf6e8; border-color: var(--site-line); border-radius: 14px; box-shadow: 0 6px 18px #193c2b08; }
+.site-inner .quicklink-card:hover { box-shadow: 0 8px 24px #193c2b14; border-color: #839477; }
+.site-inner .quicklink-card.is-disabled { opacity: .7; }
+.site-inner .hood-ladder-item { border-left-color: var(--tier-color); }
+.site-inner .hood-faq-item.open .hood-faq-a { max-height: none; }
+.site-inner .rank-hero-art img { max-width: 100%; height: auto; filter: drop-shadow(0 12px 24px #193c2b20); }
+.site-inner .btn-primary { color: #f6efdd; background: #254b34; border: 1px solid #254b34; box-shadow: none; animation: none; }
+.site-inner .btn-primary::before,.site-inner .btn-primary::after { display: none; }
+.site-inner .btn-ghost { color: #193c2b; border-color: #89967d; }
+.site-inner .rank-live-badge,.site-inner .rank-chain-badge { color: #35633e; border-color: #9bac8a; background: #e5ebd5; }
+.coming-soon-icon { display: block; width: 80px; height: 80px; object-fit: contain; margin: 0 auto; }
+/* Preserve contrast inside dark wallet dialogs independently of page tokens. */
+.site-inner .wallet-modal { --ink: #eef4ea; --ink-dim: #bac5b5; --cream2: #f1eadc; --green-bright: #a2cf87; --gold: #e8cc86; --bronze: #dfb888; --line: #ffffff24; color: var(--ink); }
+.site-inner .wallet-modal-card { background: #142a20; border-color: #daca9640; max-height: calc(100dvh - 32px); overscroll-behavior: contain; }
+.site-inner .wallet-modal-close { width: 44px; height: 44px; top: 12px; right: 12px; }
+/* Same navigation markup and spacing on every route. */
+:is(.homepage,.site-inner) .topbar { background: #f6efddf5; border-bottom: 1px solid var(--site-line); backdrop-filter: blur(12px); }
+:is(.homepage,.site-inner) .topbar-inner { max-width: 1320px; min-height: 78px; padding: 14px 28px; gap: 22px; }
+:is(.homepage,.site-inner) .brand { text-decoration: none; gap: 10px; flex-shrink: 0; color: var(--site-forest); }
+.brand-arrow { font-size: 46px; line-height: .7; }
+.brand-lockup { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+:is(.homepage,.site-inner) .brand-name { color: var(--site-forest); background: none; -webkit-text-fill-color: currentColor; -webkit-text-stroke: 0; filter: none; animation: none; will-change: auto; font-size: 23px; font-weight: 700; letter-spacing: -.025em; }
+.brand-tagline { font: 8px 'IBM Plex Mono',monospace; letter-spacing: .26em; }
+:is(.homepage,.site-inner) .nav-links { margin-left: auto; align-items: center; gap: 22px; color: var(--site-forest); font-size: 16px; }
+:is(.homepage,.site-inner) .nav-links a { text-decoration: none; }
+:is(.homepage,.site-inner) .nav-links a:hover { text-decoration: underline; }
+:is(.homepage,.site-inner) .nav-mobile-wallet { display: none; }
+.site-inner .home-button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; padding: 10px 15px; background: #193c2b; color: #f6efdd; border: 1px solid #193c2b; border-radius: 4px; font: 15px 'IM Fell English',serif; text-decoration: none; white-space: nowrap; }
+:is(.homepage,.site-inner) .nav-toggle { border: 1px solid #193c2b; color: #193c2b; border-radius: 4px; box-shadow: none; width: 44px; height: 44px; flex-shrink: 0; }
+.skip-link { position: fixed; top: -100px; left: 16px; z-index: 250; background: #193c2b; color: #f6efdd; padding: 12px 18px; }
+.skip-link:focus { top: 12px; }
+.site-inner .home-footer { max-width: 1200px; margin: auto; padding: 32px 24px; border-top: 1px solid var(--site-line); color: #586650; background: transparent; }
+.site-inner .home-footer-row { display: flex; align-items: center; flex-wrap: wrap; gap: 20px; }
+.site-inner .home-footer-brand { color: #193c2b; font-size: 19px; text-decoration: none; }
+.site-inner .home-footer-tagline { font: 9px 'IBM Plex Mono',monospace; letter-spacing: .1em; }
+.site-inner .home-footer nav { display: flex; flex-wrap: wrap; gap: 20px; margin-left: auto; font-size: 15px; }
+.site-inner .disclaimer { color: #586650; font-size: 12px; line-height: 1.6; margin: 24px 0 0; }
+@media (max-width: 1023px) {
+  :is(.homepage,.site-inner) .topbar-inner { padding: 12px 20px; min-height: 72px; gap: 14px; }
+  :is(.homepage,.site-inner) .topbar-right { margin-left: auto; gap: 10px; }
+  :is(.homepage,.site-inner) .nav-toggle { display: inline-flex; }
+  :is(.homepage,.site-inner) .nav-links { display: none; }
+  :is(.homepage,.site-inner) .nav-links.open { display: flex; position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; align-items: stretch; margin: 0; padding: 10px 24px 18px; gap: 0; background: #f6efdd; border-bottom: 1px solid var(--site-line); max-height: calc(100dvh - 72px); overflow-y: auto; }
+  :is(.homepage,.site-inner) .nav-links.open a { display: block; padding: 13px 0; border-bottom: 1px solid var(--site-line); font-size: 18px; }
+}
+@media (max-width: 600px) {
+  :is(.homepage,.site-inner) .topbar-inner { padding: 10px 14px; min-height: 66px; gap: 10px; }
+  :is(.homepage,.site-inner) .brand-name { font-size: 18px; }
+  .brand-arrow { font-size: 32px; }
+  .brand-tagline { font-size: 6px; }
+  :is(.homepage,.site-inner) .topbar-right > .home-button { display: none; }
+  .site-inner section { padding: 40px 20px; }
+  .site-inner .section-desc { font-size: 16px; }
+  .site-inner .section-head { margin-bottom: 28px; }
+  .site-inner .quicklink-grid { gap: 12px; }
+  .site-inner .quicklink-card { padding: 24px 12px; }
+  .site-inner .hood-ladder-item { padding: 18px 16px; gap: 12px; }
+  .site-inner .hood-ladder-body { min-width: 0; flex-basis: calc(100% - 76px); }
+  .site-inner .hood-ladder-threshold { text-align: left; margin-left: 64px; }
+  .site-inner .hood-faq-q { padding: 16px; font-size: 17px; }
+  .site-inner .home-footer-row { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .site-inner .home-footer nav { margin-left: 0; }
+  .site-inner .wallet-modal { padding: 12px; }
+  .site-inner .wallet-modal-card { padding: 24px 18px; }
+}
+.site-inner .wallet-modal .kicker { color: #d8c58b; }
+.site-inner .wallet-option:disabled { opacity: .8; }
+.site-inner .btn-ghost.is-locked .lock-tag { color: #586650; border-color: #abb49c; background: #e7eadc; }
+.site-inner .hood-faq-item:not(.open) .hood-faq-a { visibility: hidden; }
+.site-inner .hood-faq-item.open .hood-faq-a { visibility: visible; }
