@@ -371,12 +371,11 @@
 .face-draw-reel::before { content: ''; position: absolute; z-index: 6; pointer-events: none; width: 2px; top: 10px; bottom: 10px; left: calc(50% - 1px); background: linear-gradient(transparent,#ffe8a1 18%,#ffe8a1 82%,transparent); box-shadow: 0 0 12px #ffd57399; }
 .face-draw-reel::after { top: -7px; font-size: 20px; color: #ffe8a1; text-shadow: 0 0 12px #edcb83; pointer-events: none; }
 .face-draw-reel .gallery-track { gap: 14px; padding: 32px 0; }
-.face-draw-reel .face-card { --reel-color: #769cbd; border: 1px solid #ffffff18; border-bottom: 3px solid var(--reel-color); border-radius: 9px; background: radial-gradient(ellipse at bottom,color-mix(in srgb,var(--reel-color) 28%,transparent),transparent 75%),#132923; box-shadow: inset 0 -12px 22px #0002; transform: none; }
+.face-draw-reel .face-card { --reel-color: #769cbd; border: 1px solid #ffffff18; border-radius: 9px; background: radial-gradient(ellipse at 50% 65%,color-mix(in srgb,var(--reel-color) 24%,transparent),transparent 80%),#132923; box-shadow: inset 0 -12px 22px #0002; transform: none; }
 .face-draw-reel [data-rarity="legendary"] { --reel-color: #ffd575; }
 .face-draw-reel [data-rarity="mythic"] { --reel-color: #de8aff; }
 .face-draw-reel [data-rarity="silver"] { --reel-color: #bde6ff; }
 .face-draw-reel [data-rarity="bronze"] { --reel-color: #e4a273; }
-.face-draw-reel .face-card::after { content: ''; position: absolute; left: 25%; right: 25%; height: 2px; bottom: 0; background: var(--reel-color); box-shadow: 0 0 15px 3px var(--reel-color); }
 .face-draw-reel .face-card.is-lit { border-color: var(--reel-color); box-shadow: 0 0 24px color-mix(in srgb,var(--reel-color) 35%,transparent),inset 0 0 20px #ffffff08; transform: none; }
 .face-draw-reel .face-card.is-lit .face-label { color: #fff1cc; }
 .face-draw-reel .face-img { filter: drop-shadow(0 6px 12px #0006); }
