@@ -454,3 +454,24 @@
 @media (prefers-reduced-motion: reduce) {
   .homepage .face-draw-card[class*="rarity-"] .face-draw-front::after { animation: none; opacity: .65; }
 }
+
+/* Balance the single result within a smaller presentation frame. */
+.homepage .face-draw-stage:has(> .face-draw-card:not([hidden])) { width: min(560px,100%); padding: 28px 28px 30px; }
+.face-draw-stage:has(> .face-draw-card:not([hidden])) .reveal-kicker { font-size: 8px; margin-bottom: 10px; }
+.homepage .face-draw-stage:has(> .face-draw-card:not([hidden])) .face-draw-title { font-size: 29px; margin-bottom: 8px; }
+.face-draw-stage:has(> .face-draw-card:not([hidden])) .face-draw-status { max-width: 340px; margin: 0 auto 22px; font-size: 13px; line-height: 1.5; }
+.homepage .face-draw-stage .face-draw-card { width: min(240px,64vw); }
+.homepage .face-draw-card .face-draw-face { padding: 22px 20px; }
+.homepage .face-draw-card .face-draw-img { flex: 0 0 auto; width: 76%; margin: 12px 0 14px; }
+.homepage .face-draw-card .face-draw-mood { font-size: 21px; line-height: 1.25; }
+.homepage .face-draw-card .face-draw-tap-hint { font-size: 7px; margin-top: 10px; }
+.homepage .face-draw-card .face-draw-joke { font-size: 16px; line-height: 1.5; }
+@media (max-width: 480px) {
+  .homepage .face-draw-stage:has(> .face-draw-card:not([hidden])) { width: min(340px,100%); padding: 24px 20px; }
+  .homepage .face-draw-stage:has(> .face-draw-card:not([hidden])) .face-draw-title { font-size: 26px; }
+  .face-draw-stage:has(> .face-draw-card:not([hidden])) .face-draw-status { font-size: 12px; margin-bottom: 20px; }
+  .homepage .face-draw-stage .face-draw-card { width: min(218px,64vw); }
+  .homepage .face-draw-card .face-draw-face { padding: 18px 16px; }
+  .homepage .face-draw-card .face-draw-img { margin: 10px 0 12px; }
+  .homepage .face-draw-card .face-draw-mood { font-size: 20px; }
+}
