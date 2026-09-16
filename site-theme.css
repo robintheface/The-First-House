@@ -40,6 +40,18 @@ body.site-inner { --bg: #f6efdd; --bg-2: #eee5ce; --ink: #193c2b; --ink-dim: #58
 .site-inner .wallet-option.is-unavailable .wallet-option-meta,
 .site-inner .wallet-option.is-locked .wallet-option-meta { color: var(--site-muted); background: #ecebdc; border-color: #c9c2a8; }
 .site-inner .wallet-modal-spinner { border-color: #e4d6b0; border-top-color: #8a6416; border-width: 3px; }
+/* Result step inner frames (Balance/Wallet tiles, next-tier progress bar,
+   Disconnect underline) all used rgba(255,255,255,...) fills/borders tuned
+   for the old near-black card -- on parchment those are nearly invisible.
+   Give them real, visible fills/borders instead. */
+.site-inner .rank-stat { background: #f3eedf; border: 1.5px solid #c7b582; }
+.site-inner .rank-stat-value { color: #193c2b; font-weight: 600; }
+.site-inner .rank-copy-btn { background: #dde8cc; border: 1.5px solid #6f8a5a; color: #1f4a2c; }
+.site-inner .rank-switch-link { text-decoration-color: rgba(25,60,43,0.4); }
+.site-inner .next-tier-track { background: #e9e0c4; border: 1px solid #d9d0b9; }
+.site-inner .next-tier-fill { background: linear-gradient(90deg,#2c5636,#4f8a55); box-shadow: none; }
+.site-inner .next-tier-remaining { color: #193c2b; }
+.site-inner .next-tier-top span:last-child { font-weight: 700; }
 @media (hover: hover) and (pointer: fine) {
   .site-inner .wallet-option:not(:disabled):hover { border-color: #193c2b; background: #fff; box-shadow: 0 10px 26px rgba(25,60,43,0.18); }
 }
