@@ -5,17 +5,6 @@
   background-size: 180px 180px,100% 100%;
 }
 :is(.homepage,.site-inner) #main { position: relative; isolation: isolate; }
-:is(.homepage,.site-inner) #main::before,
-:is(.homepage,.site-inner) #main::after {
-  content: ''; position: absolute; z-index: -1; pointer-events: none;
-  width: clamp(90px,12vw,210px); height: 70%; top: 18%;
-  background: url('/icons/leaf.webp') left top / 100% auto repeat-y;
-  opacity: .035;
-  -webkit-mask-image: linear-gradient(transparent,#000 18%,#000 75%,transparent);
-  mask-image: linear-gradient(transparent,#000 18%,#000 75%,transparent);
-}
-:is(.homepage,.site-inner) #main::before { left: 0; }
-:is(.homepage,.site-inner) #main::after { right: 0; transform: scaleX(-1); }
 .homepage .home-hero::after { height: 90px; background: linear-gradient(transparent,#f6efdd); }
 .homepage .home-bottom-intro { border-top: 0; }
 .homepage .home-community { border-top: 0; padding-top: 94px; }
@@ -32,7 +21,6 @@
 .woodland-lights i:nth-child(4) { right: 23%; top: 82%; animation-delay: -2s; }
 @keyframes woodland-glimmer { from { opacity: .12; transform: translateY(0); } to { opacity: .5; transform: translateY(-10px); } }
 @media(max-width:600px) {
- :is(.homepage,.site-inner) #main::before,:is(.homepage,.site-inner) #main::after { width: 55px; opacity: .02; }
  .homepage .home-community { padding-top: 70px; }
  .woodland-lights { display: none; }
 }
