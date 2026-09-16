@@ -1,10 +1,35 @@
-// Canvas candle illustration; collision geometry stays in dino-game.js.
+// Shared silhouettes keep drawing and collision geometry in agreement.
+export const CANDLE_TYPES = ['classic', 'hammer', 'inverted', 'doji', 'spinning', 'long'];
+const PROFILES = {
+  classic: [.14, .72], hammer: [.08, .28], inverted: [.64, .28],
+  doji: [.45, .10], spinning: [.35, .30], long: [.03, .94]
+};
+export function candleGeometry(o) {
+  const [top, height] = PROFILES[o.candleType] || PROFILES.classic;
+  return { x: o.w * .1, y: o.h * top, w: o.w * .8, h: o.h * height };
+}
+export function hitsCandle(player, o) {
+  const body = candleGeometry(o);
+  const overlaps = (x,y,w,h) => player.x < x+w && player.x+player.w > x
+    && player.y < y+h && player.y+player.h > y;
+  // A little forgiveness on the body; the thin wick never becomes a wide wall.
+  return overlaps(o.x+body.x+1,o.y+body.y+1,Math.max(1,body.w-2),Math.max(1,body.h-2))
+    || overlaps(o.x+o.w*.5-1,o.y+1,2,Math.max(1,o.h-2));
+}
 export function drawCandle(ctx,o,time){
   ctx.save();ctx.translate(o.x,o.y);
-  const w=o.w,h=o.h,bodyTop=h*.14,bodyH=h*.72;
+  const w=o.w,h=o.h;
+  const body = candleGeometry(o), bodyTop=body.y, bodyH=body.h;
   ctx.strokeStyle='#92202b';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(w*.5,0);ctx.lineTo(w*.5,h);ctx.stroke();
   const fill=ctx.createLinearGradient(0,0,w,0);fill.addColorStop(0,'#b51929');fill.addColorStop(.45,'#ed3440');fill.addColorStop(1,'#951323');
   ctx.fillStyle=fill;ctx.strokeStyle='#4b1c20';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(w*.1,bodyTop,w*.8,bodyH,Math.min(5,w*.15));ctx.fill();ctx.stroke();
+  // Doji keeps its characteristic thin body; give it a tiny pair of eyes.
+  if (o.candleType === 'doji') {
+    ctx.fillStyle = '#ffe8c3';
+    for (const side of [-1,1]) {
+      ctx.beginPath(); ctx.arc(w*(.5+side*.15),bodyTop+bodyH*.5,Math.max(1,Math.min(2,bodyH*.3)),0,Math.PI*2); ctx.fill();
+    }
+  } else {
   // A stable expression per obstacle, scaled to fit even short candles.
   ctx.save();
   ctx.translate(w * .5, bodyTop + bodyH * .46);
@@ -44,5 +69,6 @@ export function drawCandle(ctx,o,time){
     ctx.ellipse(10,6,2,3.5,-.2,0,Math.PI*2); ctx.fill();
   }
   ctx.restore();
+  }
   ctx.fillStyle='#ffc16c';ctx.beginPath();ctx.moveTo(w*.5,-7-Math.sin(time*.014+o.baseX)*2);ctx.quadraticCurveTo(w*.75,2,w*.5,4);ctx.quadraticCurveTo(w*.28,2,w*.5,-7);ctx.fill();ctx.restore();
 }

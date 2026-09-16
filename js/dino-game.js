@@ -7,7 +7,7 @@
 // wallet-connect.js: no 'unsafe-inline' script-src.
 
 import * as lb from './leaderboard.js';
-import { drawCandle } from './runner-style.js?v=3';
+import { drawCandle, CANDLE_TYPES, hitsCandle } from './runner-style.js?v=4';
 
 const canvas = document.getElementById('hoodGameCanvas');
 if (canvas) {
@@ -276,7 +276,8 @@ if (canvas) {
     }
 
     const expression = ['angry', 'shocked', 'smug', 'sad', 'confused', 'sleepy'][Math.floor(Math.random() * 6)];
-    obstacles.push({ kind, expression, baseX: x, x, baseY, y: startY, w, h, moveType, moveAmp, moveSpeed, moveTimer: 0 });
+    const candleType = CANDLE_TYPES[Math.floor(Math.random() * CANDLE_TYPES.length)];
+    obstacles.push({ kind, expression, candleType, baseX: x, x, baseY, y: startY, w, h, moveType, moveAmp, moveSpeed, moveTimer: 0 });
     scheduleNextObstacle();
   }
 
@@ -449,6 +450,7 @@ if (canvas) {
   // repeated needlessly every single time.
   const playerHitBox = { x: 0, y: 0, w: 0, h: 0 };
   function hit(b) {
+    if (b.kind === 'candle') return hitsCandle(playerHitBox, b);
     const bx = b.x + b.w * HIT_PAD, bw = b.w * (1 - HIT_PAD * 2);
     const by = b.y + b.h * HIT_PAD, bh = b.h * (1 - HIT_PAD * 2);
     return playerHitBox.x < bx + bw && playerHitBox.x + playerHitBox.w > bx
