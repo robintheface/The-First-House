@@ -412,7 +412,6 @@ if (canvas) {
     player.grounded = false;
     player.jumpFrame = 0;
     player.jumpTimer = 0;
-    burst(player.x+25,GROUND_Y-3,'#a4b875',8);
     playSfx('jump');
     stopRunSfx();
   }
@@ -480,7 +479,6 @@ if (canvas) {
         player.y = GROUND_Y - GROUND_HEIGHT;
         player.vy = 0;
         player.grounded = true;
-        burst(player.x+30,GROUND_Y-2,'#b3bc84',12);
         playSfx('land');
         startRunSfx();
       }
