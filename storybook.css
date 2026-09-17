@@ -1,0 +1,70 @@
+/* Homepage chapters: distinct compositions, using the site's original artwork. */
+.storybook .activity-previews { gap: 38px; }
+.storybook .activities-heading { padding-bottom: 18px; }
+.storybook .activities-heading h2 { font-size: clamp(36px,4.4vw,58px); }
+.chapter-mark { display: block; font: 9px/1.6 'IBM Plex Mono',monospace; letter-spacing: .2em; color: #94783f; margin-bottom: 22px; }
+.storybook .activity-preview { position: relative; min-height: 380px; border-radius: 8px 34px 8px 34px; }
+.storybook .preview-reveal { grid-template-columns: 1.05fr 1fr; background: radial-gradient(ellipse at 26% 55%,#76734444,transparent 57%),#112d21; box-shadow: 0 18px 35px #26382018,inset 0 0 0 6px #10261e,inset 0 0 0 7px #d0af6250; }
+.storybook .preview-reveal .chapter-mark { color: #d6ba7f; }
+.storybook .activity-preview-copy { padding: 38px 48px 42px 28px; }
+.storybook .activity-preview-copy > .home-eyebrow { display: none; }
+.storybook .activity-preview-copy h2 { font-size: clamp(36px,4vw,52px); max-width: 330px; }
+.storybook .activity-preview-copy > p { max-width: 315px; }
+.storybook .cards-preview-art { height: 360px; }
+.storybook .cards-preview-art > span { top: 87px; }
+.storybook .cards-preview-art > span:nth-child(2) { top: 58px; }
+.storybook .cards-preview-art::after { content: 'A FACE. A STORY. YOURS TO UNCOVER.'; position: absolute; bottom: 21px; left: 0; right: 0; text-align: center; color: #c3bb94; font: 8px 'IBM Plex Mono',monospace; letter-spacing: .15em; }
+.storybook .preview-runner { grid-template-columns: .9fr 1.1fr; background: #eee4cc; border-color: #c1ad7c; }
+.storybook .preview-runner .activity-preview-copy { padding: 38px 25px 38px 44px; }
+.storybook .runner-preview-art { height: 380px; }
+.storybook .runner-preview-art::after { background: linear-gradient(90deg,#eee4cc,transparent 25%); }
+.storybook .runner-preview-hero { width: 145px; left: 13%; bottom: 30px; }
+.storybook .runner-preview-log { width: 105px; right: 32%; bottom: 25px; }
+.runner-preview-dragon { position: absolute; width: 105px; right: 6%; bottom: 35px; }
+.storybook .home-bottom-intro { position: relative; text-align: left; display: grid; grid-template-columns: 1fr 1fr; gap: 0 50px; align-items: center; padding-top: 60px; padding-bottom: 35px; }
+.storybook .home-bottom-intro .chapter-mark { grid-column: 1/-1; margin-bottom: 15px; }
+.storybook .home-bottom-intro .home-eyebrow { display: none; }
+.storybook .home-bottom-intro h2 { margin: 0; font-size: clamp(38px,4.2vw,56px); }
+.storybook .home-bottom-intro > p:last-child { max-width: 430px; }
+.storybook .home-about { grid-template-columns: 1.2fr 1fr; gap: 34px; align-items: start; }
+.storybook .home-about #lore { border: 0; box-shadow: none; background: transparent; padding: 26px 32px 26px 0; }
+.storybook #lore > img { width: 36px; height: 36px; }
+.storybook #lore .lore-card p:first-child::first-letter { float: left; color: #38573a; font-size: 65px; line-height: .85; padding: 7px 8px 0 0; }
+.storybook .home-about #tokenomics { position: relative; margin-top: 12px; padding: 34px; background: #18372a; color: #ebe4cb; border: 1px solid #b4995b; border-radius: 7px; box-shadow: 8px 8px 0 #d9ccb04d; }
+.storybook #tokenomics h2 { color: #fff0cd; padding-right: 66px; }
+.storybook #tokenomics > p,.storybook #tokenomics summary { color: #c4cfb4; }
+.storybook #tokenomics > img { display: none; }
+.ledger-seal { position: absolute; right: 25px; top: 24px; width: 65px; height: 65px; display: grid; place-content: center; text-align: center; border: 1px solid #bfa364; border-radius: 50%; color: #d9bb7a; font: 9px/1.7 'IBM Plex Mono',monospace; letter-spacing: .1em; transform: rotate(12deg); }
+.storybook #tokenomics .ledger.ledger-strip .ledger-row { border-color: #e5d6a326; }
+.storybook #tokenomics .ledger.ledger-strip .ledger-row .k { color: #b0bea2; }
+.storybook #tokenomics .ledger.ledger-strip .ledger-row .v { color: #f3db9e; }
+.storybook #tokenomics .home-contract-actions a,.storybook #tokenomics .home-contract-actions button { background: #244b35; color: #f6e6b8; border-color: #a18e5755; }
+.storybook .home-about #roadmap { margin-top: 18px; padding: 36px; background: linear-gradient(110deg,#e9eddcdd,#f3edda); border-style: dashed; border-radius: 16px; }
+.storybook #roadmap .trail.trail-row .trail-step { padding: 28px 12px 8px 0; }
+.storybook #roadmap .trail-step.active { background: #d0daba55; border-radius: 0 0 12px 12px; }
+.storybook .home-community { padding-top: 100px; padding-bottom: 72px; }
+.storybook .community-emblem { width: 90px; height: 90px; margin-bottom: 18px; }
+@media(hover:hover) and (prefers-reduced-motion:no-preference) {
+ .storybook .cards-preview-art > span { transition: transform .3s ease; }
+ .storybook .cards-preview-art:hover > span:first-child { transform: translateX(-100px) rotate(-16deg); }
+ .storybook .cards-preview-art:hover > span:last-child { transform: translateX(100px) rotate(16deg); }
+}
+@media(max-width:900px) { .storybook .home-about { grid-template-columns: 1fr; } .storybook .home-about #lore { padding: 12px 10px; } }
+@media(max-width:720px) {
+ .storybook .activity-preview { grid-template-columns: 1fr; }
+ .storybook .activity-preview-copy,.storybook .preview-runner .activity-preview-copy { padding: 12px 24px 32px; }
+ .storybook .activity-preview-copy h2,.storybook .activity-preview-copy > p { margin-left: auto; margin-right: auto; }
+ .storybook .chapter-mark { margin-bottom: 14px; }
+ .storybook .cards-preview-art { height: 285px; }
+ .storybook .cards-preview-art > span { top: 58px; }
+ .storybook .cards-preview-art > span:nth-child(2) { top: 30px; }
+ .storybook .cards-preview-art::after { bottom: 19px; font-size: 7px; }
+ .storybook .runner-preview-art { height: 270px; }
+ .storybook .runner-preview-art::after { background: linear-gradient(0deg,#eee4cc,transparent 30%); }
+ .storybook .home-bottom-intro { grid-template-columns: 1fr; gap: 12px; padding-top: 36px; }
+ .storybook .home-about #tokenomics,.storybook .home-about #roadmap { padding: 25px 22px; }
+ .storybook #roadmap .trail.trail-row .trail-step { padding: 12px 0 12px 26px; }
+ .storybook .home-community { padding-top: 74px; padding-bottom: 44px; }
+ .runner-preview-dragon { width: 85px; }
+ .storybook .runner-preview-hero { width: 120px; left: 8%; }
+}
