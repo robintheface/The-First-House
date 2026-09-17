@@ -1,3 +1,4 @@
+import { prepareTerrain, drawTerrain } from './runner-terrain.js?v=1';
 import { wrapBackground, prepareBackground, drawBackground } from './runner-background.js?v=1';
 import { stepDinosaurEncounter, updateBreath, updateDinosaurJump, stepFireballs, hitsFireball, drawFireball, drawDinosaur } from './dinosaur-fire.js?v=3';
 // Endless-runner mini-game for the main page ("Outrun the rug"). Canvas +
@@ -83,6 +84,8 @@ if (canvas) {
   // frame -- one more small piece of "keep every frame cheap" alongside
   // the array-compaction/closure-hoisting already done elsewhere here.
   let backgroundTile = null;
+  let terrainTile = null;
+  let terrainScroll = 0;
 
   // ---------- game state ----------
   // SPAWN is a brief beat at the start of every run -- the world sits
@@ -139,6 +142,7 @@ if (canvas) {
   updateBestLabel();
 
   function resetRun() {
+    terrainScroll = 0;
     showResult = null; // drop any pending hit-blink result callback from a run that never finished blinking out
     player.y = GROUND_Y - GROUND_HEIGHT;
     player.vy = 0;
@@ -552,6 +556,8 @@ if (canvas) {
       if (p.life >= p.dur) popups.splice(i, 1);
     }
 
+    terrainScroll = (terrainScroll + dx) % 960;
+
     // background parallax
     bgScrollX = wrapBackground(bgScrollX, dx * .18, backgroundTile.width);
 
@@ -646,10 +652,7 @@ if (canvas) {
     ctx.clearRect(0, 0, CW, CH);
 
     drawBackground(ctx,backgroundTile,bgScrollX,CW,GROUND_Y);
-    ctx.fillStyle = '#d8c598';
-    ctx.fillRect(0, GROUND_Y, CW, CH - GROUND_Y);
-    ctx.fillStyle = '#6a704a';
-    ctx.fillRect(0, GROUND_Y, CW, 2);
+    drawTerrain(ctx,terrainTile,terrainScroll,CW,GROUND_Y,reducedMotion.matches ? 0 : elapsed);
     ctx.fillStyle = '#34472b';
     for (let i = 0; i < coins.length; i++) {
       const c = coins[i];
@@ -1625,6 +1628,7 @@ if (canvas) {
       if (sprite.frames) { sprite.frameW = sprite.img.naturalWidth / sprite.frames; sprite.frameH = sprite.img.naturalHeight; }
     });
     backgroundTile = prepareBackground(SPRITES.background.img,GROUND_Y);
+    terrainTile = prepareTerrain();
     // Audio priming (AudioContext creation + decode) happens on the first
     // real user gesture (see primeAudio() in the input section below), not
     // here -- creating the context this early, before any gesture, is
