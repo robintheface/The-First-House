@@ -618,7 +618,7 @@
 .homepage .face-draw-reel .face-card {
   --reel-color: #cfb477;
   --invite-color: #cfb477;
-  background: url('images/card-back-pattern.svg?v=2') center / 100% 100% no-repeat,
+  background: url('images/card-back-pattern.svg?v=3') center / 100% 100% no-repeat,
     radial-gradient(ellipse at 50% 40%,#315443,#102b22 75%);
   border: 1px solid #cbb079;
   box-shadow: inset 0 0 0 5px #10291f,inset 0 0 0 6px #b89c5959,0 12px 28px #0004;
@@ -695,4 +695,39 @@
  .treasury-faces .home-face-grid img { width: 52px; height: 52px; }
  .homepage .treasury-faces .home-face-grid h3 { font-size: 11px; }
  .homepage .reveal-treasury .btn-spin { min-height: 56px; font-size: 23px; }
+}
+
+/* Reference treasury: restrained gold, textured forest cards, generous fan. */
+.homepage .reveal-treasury { max-width: 1120px; margin-inline: auto; padding: 46px 34px 32px; border: 2px solid #c6a052; border-radius: 20px; background: radial-gradient(ellipse at 50% 49%,#9b86481a,transparent 46%),linear-gradient(125deg,#12291e,#0c2018); box-shadow: inset 0 0 0 3px #10291f,inset 0 0 0 4px #e5bf7170,0 12px 35px #15291b12; }
+.reveal-treasury .invite-kicker { display: flex; align-items: center; justify-content: center; gap: 28px; letter-spacing: .32em; }
+.reveal-treasury .invite-kicker::before,.reveal-treasury .invite-kicker::after { content: ''; width: 40px; height: 1px; background: linear-gradient(90deg,transparent,#e7c574); }
+.reveal-treasury .invite-kicker::after { transform: rotate(180deg); }
+.homepage .reveal-treasury h2 { font-size: clamp(36px,5.5vw,72px); margin-top: 18px; }
+.reveal-treasury .reveal-invite-copy > p:not(.invite-kicker) { font-size: clamp(16px,2vw,23px); color: #f0e8cf; }
+.reveal-treasury .reveal-invite-art { max-width: 610px; height: 330px; margin-top: 32px; isolation: isolate; }
+.reveal-treasury .reveal-invite-art::before { content: ''; position: absolute; inset: -12% 0 -9%; z-index: -1; background: radial-gradient(ellipse,#e6bd5d38,transparent 66%); pointer-events: none; }
+.reveal-treasury .reveal-invite-art::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 7% 55%,#ffdc83 0 1px,transparent 3px),radial-gradient(circle at 92% 32%,#ffdc83 0 1px,transparent 3px),radial-gradient(circle at 23% 8%,#ffdc83 0 1px,transparent 3px),radial-gradient(circle at 79% 90%,#ffdc83 0 1px,transparent 3px); }
+.homepage .hood-card-back,.homepage .face-draw-reel .face-card { background: url('images/card-back-pattern.svg?v=3') center / 100% 100% no-repeat,linear-gradient(135deg,#244533,#142f23); border: 1px solid #d7b466; box-shadow: inset 0 0 18px #07170f44,0 12px 26px #0005; border-radius: 11px; }
+.reveal-treasury .invite-card { width: 190px; height: 264px; top: 34px; }
+.reveal-treasury .invite-silver { left: 6%; transform: rotate(-11deg); }
+.reveal-treasury .invite-mythic { right: 6%; transform: rotate(11deg); }
+.reveal-treasury .invite-gold { left: calc(50% - 103px); top: 0; width: 206px; height: 290px; border-color: #ffe0a0; box-shadow: 0 15px 35px #0006,0 0 30px #eac46b2b,inset 0 0 18px #07170f44; }
+.homepage .reveal-treasury .btn-spin { min-height: 64px; width: min(100%,360px); border-radius: 12px; font-size: 29px; background: radial-gradient(ellipse at 35% 0%,#ffe8a8,transparent 75%),linear-gradient(#edc875,#d3a24f); box-shadow: inset 0 0 0 2px #fff0c333,0 6px 22px #e9bd5426; }
+.reveal-treasury .btn-spin > span { display: none; }
+.reveal-treasury > .invite-steps { order: 3; margin-top: 23px; color: #f1e7ca; letter-spacing: .12em; }
+.reveal-treasury .invite-steps span + span::before { content: '→'; margin-right: 18px; color: #dcc38d; }
+.homepage .reveal-treasury .home-daily-note { font-size: 10px; margin-top: 10px; color: #a0ae93; }
+.reveal-treasury .treasury-faces { margin-top: 27px; padding-top: 23px; }
+@media(max-width:600px) {
+ .homepage .reveal-treasury { padding: 30px 18px 24px; }
+ .reveal-treasury .invite-kicker { gap: 10px; font-size: 8px; letter-spacing: .2em; }
+ .reveal-treasury .invite-kicker::before,.reveal-treasury .invite-kicker::after { width: 24px; }
+ .reveal-treasury .reveal-invite-art { max-width: 330px; height: 244px; margin-top: 26px; }
+ .reveal-treasury .invite-card { width: 114px; height: 174px; top: 32px; }
+ .reveal-treasury .invite-silver { left: 2%; }
+ .reveal-treasury .invite-mythic { right: 2%; }
+ .reveal-treasury .invite-gold { left: calc(50% - 65px); width: 130px; height: 205px; top: 6px; }
+ .homepage .reveal-treasury .btn-spin { min-height: 56px; font-size: 24px; }
+ .reveal-treasury > .invite-steps { gap: 9px; font-size: 8px; letter-spacing: .02em; }
+ .reveal-treasury .invite-steps span + span::before { margin-right: 9px; }
 }
