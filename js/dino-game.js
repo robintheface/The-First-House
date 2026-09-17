@@ -1,3 +1,4 @@
+import { wrapBackground, prepareBackground, drawBackground } from './runner-background.js?v=1';
 import { stepDinosaurEncounter, updateBreath, updateDinosaurJump, stepFireballs, hitsFireball, drawFireball, drawDinosaur } from './dinosaur-fire.js?v=3';
 // Endless-runner mini-game for the main page ("Outrun the rug"). Canvas +
 // vanilla JS, no dependencies -- same zero-build-step spirit as the rest of
@@ -81,9 +82,7 @@ if (canvas) {
   // redoing the same division/multiplication in draw() on every single
   // frame -- one more small piece of "keep every frame cheap" alongside
   // the array-compaction/closure-hoisting already done elsewhere here.
-  let bgDrawW = 0;
-  let bgScaleRatio = 0;
-  let bgNaturalW = 0;
+  let backgroundTile = null;
 
   // ---------- game state ----------
   // SPAWN is a brief beat at the start of every run -- the world sits
@@ -553,8 +552,7 @@ if (canvas) {
     }
 
     // background parallax
-    bgScrollX -= dx * 0.5;
-    if (bgScrollX <= -bgNaturalW) bgScrollX += bgNaturalW;
+    bgScrollX = wrapBackground(bgScrollX, dx * .18, backgroundTile.width);
 
     // collisions -- playerHitBox is the player's box already shrunk by
     // HIT_PAD, computed once here instead of hit() redoing the same a.x/
@@ -646,15 +644,7 @@ if (canvas) {
   function draw() {
     ctx.clearRect(0, 0, CW, CH);
 
-    // background (two copies for seamless horizontal scroll) -- bgDrawW/
-    // bgScaleRatio are precomputed once at boot instead of redoing the
-    // same natural-dimension division every frame.
-    const bg = SPRITES.background.img;
-    let x = bgScrollX * bgScaleRatio;
-    while (x < CW) {
-      ctx.drawImage(bg, x, 0, bgDrawW, GROUND_Y);
-      x += bgDrawW;
-    }
+    drawBackground(ctx,backgroundTile,bgScrollX,CW,GROUND_Y);
     ctx.fillStyle = '#d8c598';
     ctx.fillRect(0, GROUND_Y, CW, CH - GROUND_Y);
     ctx.fillStyle = '#6a704a';
@@ -1633,9 +1623,7 @@ if (canvas) {
     Object.values(SPRITES).forEach((sprite) => {
       if (sprite.frames) { sprite.frameW = sprite.img.naturalWidth / sprite.frames; sprite.frameH = sprite.img.naturalHeight; }
     });
-    bgNaturalW = SPRITES.background.img.naturalWidth;
-    bgScaleRatio = GROUND_Y / SPRITES.background.img.naturalHeight;
-    bgDrawW = bgNaturalW * bgScaleRatio;
+    backgroundTile = prepareBackground(SPRITES.background.img,GROUND_Y);
     // Audio priming (AudioContext creation + decode) happens on the first
     // real user gesture (see primeAudio() in the input section below), not
     // here -- creating the context this early, before any gesture, is
