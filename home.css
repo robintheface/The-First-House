@@ -665,22 +665,3 @@
 .homepage .hood-game-overlay-lines p.hood-game-overlay-score { color: #78561d; }
 .homepage .hood-game-hud,.homepage .hood-game-best,.homepage .hood-game-settings-btn,.homepage .hood-game-version-badge { color: #25432d; text-shadow: 0 1px 3px #fff7de; }
 .homepage .hood-game-save-score { color: #193c2b; }
-
-/* Forest arcade: a quiet frame around the playable landscape. */
-.homepage #game.home-game { border-radius: 22px; padding: 8px; border: 1px solid #b59b62; box-shadow: 0 18px 46px #39432a19,inset 0 0 0 4px #fff5; }
-.homepage .home-game-heading { padding: 22px 24px 24px; }
-.homepage .home-game-heading h3 { font-size: clamp(25px,3vw,36px); line-height: 1.1; letter-spacing: -.025em; }
-.runner-subtitle { margin: 7px 0 0; font-size: 15px; color: #6c7457; }
-.homepage .home-game-start { border-radius: 24px; padding: 11px 24px; box-shadow: 0 3px 0 #163725; }
-.homepage .home-game .hood-game-wrap:not(:fullscreen):not(.is-pseudo-fullscreen):not(.hood-game-force-landscape) { width: calc(100% - 24px); border-radius: 14px; border: 1px solid #8d9564; box-shadow: 0 0 0 4px #fdf5df,0 5px 18px #37422a15; overflow: hidden; }
-.homepage .home-game-caption { margin: 0; padding: 20px 24px 15px; font-size: 12px; align-items: center; }
-.homepage .hood-game-overlay { background: linear-gradient(90deg,#f6efddcf,#f6efdd85,#f6efddad); }
-@media(max-width:600px) {
-  .homepage #game.home-game { padding: 5px; border-radius: 16px; }
-  .homepage .home-game-heading { padding: 17px 12px 19px; gap: 10px; }
-  .homepage .home-game-heading .arcade-title { gap: 9px; }
-  .homepage .home-game-heading .arcade-title img { width: 32px; height: 32px; }
-  .runner-subtitle { font-size: 11px; }
-  .homepage .home-game-start { padding: 9px 13px; font-size: 14px; flex-shrink: 0; }
-  .homepage .home-game-caption { padding: 15px 12px 10px; flex-wrap: wrap; gap: 8px; font-size: 11px; }
-}
