@@ -1,0 +1,115 @@
+/* Modern homepage experiment. Gameplay routes retain their existing theme. */
+body.homepage.modern-home { --paper:#fafaf5; --forest:#09251c; --muted:#69706a; background:#fafaf5; color:#09251c; font-family:Arial,Helvetica,sans-serif; }
+.modern-home * { box-sizing:border-box; }
+.homepage.modern-home :is(h1,h2,h3,p,a,button,summary) { font-family:Arial,Helvetica,sans-serif; }
+.homepage.modern-home .topbar { background:#fafaf5f5; border:0; box-shadow:none; backdrop-filter:blur(12px); }
+.homepage.modern-home .topbar-inner { max-width:1320px; min-height:82px; padding:14px 32px; }
+.homepage.modern-home .brand-logo { width:43px; height:43px; filter:none; }
+.homepage.modern-home .brand-name { flex-direction:row; gap:5px; font:bold 18px/1 Arial,sans-serif; letter-spacing:-.035em; }
+.modern-home .brand-tagline { display:none; }
+.homepage.modern-home .nav-links { font-size:14px; }
+.homepage.modern-home .topbar-right > .home-button { background:#09251c; border:0; box-shadow:none; border-radius:30px; font-size:13px; min-height:42px; }
+.homepage.modern-home .home-section { max-width:1240px; width:calc(100% - 48px); }
+.homepage.modern-home .home-hero { min-height:610px; max-width:1320px; background:none; }
+.homepage.modern-home .home-hero-art { width:54%; left:auto; right:0; height:100%; object-position:right center; border-radius:45% 0 0 45%; -webkit-mask-image:linear-gradient(0deg,transparent,#000 15%,#000 92%,transparent); mask-image:linear-gradient(0deg,transparent,#000 15%,#000 92%,transparent); }
+.homepage.modern-home .home-hero::after,.modern-home .hero-rule { display:none; }
+.homepage.modern-home .home-hero-content { padding:65px 40px 60px; max-width:none; }
+.homepage.modern-home .home-hero-content::before { content:none; }
+.homepage.modern-home .home-eyebrow { font:bold 10px/1.5 Arial,sans-serif; letter-spacing:.22em; }
+.homepage.modern-home .home-hero h1 { font:800 clamp(52px,6.4vw,88px)/.99 Arial,sans-serif; letter-spacing:-.065em; max-width:650px; margin:20px 0 25px; }
+.homepage.modern-home .home-intro { font:18px/1.55 Arial,sans-serif; max-width:510px; color:#656b65; margin-bottom:27px; }
+.homepage.modern-home .home-button { min-height:48px; border-radius:28px; border:1px solid #09251c; background:transparent; color:#09251c; box-shadow:none; font:bold 15px/1.3 Arial,sans-serif; padding:13px 24px; min-width:0; }
+.homepage.modern-home .home-button-gold { background:#b5f64d; border-color:#b5f64d; color:#09251c; }
+.modern-manifesto { color:#71766d; font-size:10px; font-weight:bold; letter-spacing:.26em; margin-top:30px; }
+.homepage.modern-home .activity-previews { display:grid; grid-template-columns:1.65fr 1fr; gap:16px; padding:0 0 18px; }
+.modern-home .activities-heading,.modern-home .chapter-mark { display:none; }
+.homepage.modern-home .activity-preview { position:relative; display:block; min-height:365px; border:0; border-radius:20px; box-shadow:none; overflow:hidden; text-align:left; }
+.modern-home .preview-reveal { grid-row:auto; background:#102e23; color:#f7faef; }
+.homepage.modern-home .activity-preview-copy { position:relative; z-index:2; padding:30px; }
+.homepage.modern-home .activity-preview-copy h2 { font-weight:800; font-size:clamp(30px,3.2vw,44px); letter-spacing:-.055em; line-height:1.02; max-width:310px; margin:18px 0; }
+.homepage.modern-home .activity-preview-copy > p:not(.home-eyebrow) { font-size:14px; line-height:1.6; max-width:275px; color:#bdc9be; margin-bottom:24px; }
+.homepage.modern-home .activity-preview-copy .home-eyebrow { display:inline-block; background:#b5f64d; color:#0b2a1d; padding:6px 12px; border-radius:15px; font-size:9px; letter-spacing:.1em; margin:0; }
+.modern-home .cards-preview-art { position:absolute; inset:0 0 0 auto; width:49%; height:100%; }
+.modern-home .cards-preview-art > span { width:112px; height:165px; top:105px; left:calc(50% - 56px); }
+.modern-home .cards-preview-art > span:nth-child(2) { top:83px; height:190px; }
+.modern-home .cards-preview-art > span:first-child { transform:translateX(-65px) rotate(-13deg); }
+.modern-home .cards-preview-art > span:last-child { transform:translateX(65px) rotate(13deg); }
+.modern-home .preview-reveal .activity-preview-copy { width:55%; pointer-events:none; }
+.modern-home .preview-reveal .activity-preview-copy a { pointer-events:auto; }
+.modern-home .preview-runner { background:#ecefdf; color:#09251c; }
+.modern-home .preview-runner .runner-preview-art { position:absolute; inset:auto 0 0; width:100%; height:200px; }
+.modern-home .runner-preview-art::after { background:linear-gradient(#ecefdf,transparent 55%); }
+.modern-home .runner-preview-hero { width:95px; bottom:10px; }
+.modern-home .runner-preview-dragon { display:none; }
+.modern-home .runner-preview-log { width:95px; bottom:8px; }
+.modern-home .preview-runner .activity-preview-copy { pointer-events:none; }
+.modern-home .preview-runner .activity-preview-copy a { pointer-events:auto; }
+.homepage.modern-home .preview-runner .activity-preview-copy > p:not(.home-eyebrow) { color:#687260; max-width:240px; }
+.homepage.modern-home .preview-runner .home-button { background:#fafaf5; border-color:#9cc348; }
+.homepage.modern-home .modern-moods { display:grid; grid-template-columns:1.1fr repeat(4,1fr); gap:16px; align-items:center; background:#f0f1e7; border-radius:20px; padding:24px; margin-bottom:34px; }
+.modern-moods h2 { font-size:25px; letter-spacing:-.045em; line-height:1.08; margin:0 0 12px; }
+.modern-moods p { color:#687065; font-size:13px; line-height:1.5; }
+.modern-moods figure { margin:0; text-align:center; }
+.modern-moods img { width:100%; height:auto; background:#e6edcf; border-radius:18px; }
+.modern-moods figcaption { font-size:11px; margin-top:8px; }
+.homepage.modern-home .home-bottom-intro { text-align:left; border:0; padding:20px 0; }
+.modern-home .home-bottom-intro .home-eyebrow { display:none; }
+.modern-home .home-bottom-intro h2 { font-size:36px; font-weight:800; letter-spacing:-.05em; margin:0 0 14px; }
+.homepage.modern-home .home-about { grid-template-columns:1fr 1fr; gap:20px; padding-bottom:45px; }
+.homepage.modern-home .home-about .home-about-column { background:none; box-shadow:none; border:1px solid #e0e4d6; border-radius:16px; padding:24px; }
+.modern-home .ledger-seal,.modern-home .home-about-column > img { display:none; }
+.homepage.modern-home .home-about-column h2 { font-size:23px; font-weight:700; margin-top:0; }
+.homepage.modern-home .home-about-column summary { font-size:13px; }
+.homepage.modern-home .home-about #roadmap { background:#f0f2e6; }
+.homepage.modern-home .home-community { text-align:left; padding:66px max(32px,calc((100vw - 1160px)/2)); background:#09291e; border:0; }
+.modern-home .home-community::before,.modern-home .community-emblem,.modern-home .woodland-lights { display:none; }
+.homepage.modern-home .home-community h2 { margin:0 0 20px; max-width:650px; font-size:clamp(38px,4.8vw,62px); font-weight:800; line-height:1; letter-spacing:-.06em; }
+.homepage.modern-home .home-community > p:not(.home-eyebrow) { margin:0 0 25px; }
+.homepage.modern-home .home-community-x { justify-content:flex-start; }
+.homepage.modern-home .home-footer { background:#fafaf5; color:#09251c; }
+.modern-home .bottom-footer-grid { gap:24px; padding:30px 0; }
+.homepage.modern-home .bottom-footer-grid :is(a,p) { color:#2d493a; }
+.homepage.modern-home .bottom-footer-grid .home-footer-brand { font-size:18px; font-weight:bold; color:#09251c; }
+.modern-home .bottom-footer-grid nav h2,.modern-home .bottom-footer-signature,.modern-home .bottom-footer-note > span { color:#66715e; }
+.homepage.modern-home .bottom-footer-note { border-color:#e1e6d8; }
+.homepage.modern-home .bottom-footer-note .disclaimer { color:#66715e; }
+@media(max-width:1000px) {
+ .homepage.modern-home .activity-previews { grid-template-columns:1fr; }
+ .homepage.modern-home .preview-runner { min-height:300px; }
+ .modern-home .preview-runner .runner-preview-art { width:55%; right:0; left:auto; height:100%; }
+ .modern-home .preview-runner .activity-preview-copy { width:50%; }
+ .homepage.modern-home .home-hero h1 { font-size:65px; }
+ .modern-home .home-intro br { display:none; }
+ .homepage.modern-home .home-intro { max-width:420px; }
+}
+@media(max-width:600px) {
+ .homepage.modern-home .topbar-inner { padding:12px 16px; min-height:68px; }
+ .homepage.modern-home .brand-name { font-size:14px; }
+ .homepage.modern-home .brand-logo { width:34px; height:34px; }
+ .homepage.modern-home .nav-links.open { background:#fafaf5; }
+ .homepage.modern-home .home-hero { min-height:790px; }
+ .homepage.modern-home .home-hero-content { padding:34px 22px 340px; }
+ .homepage.modern-home .home-hero h1 { font-size:clamp(44px,11vw,64px); }
+ .homepage.modern-home .home-intro { font-size:16px; }
+ .homepage.modern-home .home-hero-art { width:100%; height:340px; top:auto; bottom:0; border-radius:0; object-position:right center; }
+ .homepage.modern-home .home-hero .home-actions { flex-wrap:wrap; gap:10px; }
+ .homepage.modern-home .home-button { font-size:13px; padding:12px 17px; }
+ .homepage.modern-home .home-section { width:calc(100% - 28px); }
+ .homepage.modern-home .preview-reveal { min-height:530px; }
+ .modern-home .preview-reveal .activity-preview-copy { width:100%; padding:25px; }
+ .modern-home .cards-preview-art { width:100%; top:auto; height:235px; bottom:0; }
+ .modern-home .cards-preview-art > span { top:40px; }
+ .modern-home .cards-preview-art > span:nth-child(2) { top:17px; }
+ .homepage.modern-home .activity-preview-copy h2 { font-size:32px; }
+ .homepage.modern-home .preview-runner { min-height:420px; }
+ .modern-home .preview-runner .activity-preview-copy { width:100%; }
+ .modern-home .preview-runner .runner-preview-art { width:100%; height:190px; }
+ .homepage.modern-home .modern-moods { grid-template-columns:1fr 1fr; padding:18px; gap:15px; }
+ .modern-moods > div { grid-column:1/-1; }
+ .modern-moods h2 br,.modern-moods p br { display:none; }
+ .homepage.modern-home .home-about { grid-template-columns:1fr; }
+ .homepage.modern-home .home-community { padding:46px 24px; }
+ .homepage.modern-home .home-community h2 { font-size:40px; }
+}
+.homepage.modern-home .topbar-right > .home-button { color:#fafaf5; }
+.homepage.modern-home .home-hero-content .home-eyebrow { color:#163c29; }
