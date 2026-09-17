@@ -1,5 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320" fill="none">
-  <path d="M22 11H218Q218 22 229 22V298Q218 298 218 309H22Q22 298 11 298V22Q22 22 22 11Z" stroke="#e6bc63" stroke-width="1.15"/>
-  <path d="M120 121 151 160 120 199 89 160Z" stroke="#efc771" stroke-width="1.2"/>
-  <path d="M120 151 126 160 120 169 114 160Z" fill="#efc771"/>
+  <defs>
+    <linearGradient id="forest" x1="12" y1="0" x2="210" y2="320" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2c4936"/><stop offset=".48" stop-color="#1e392a"/><stop offset="1" stop-color="#12291e"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="240" y2="320" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f6d991"/><stop offset=".32" stop-color="#d4a453"/><stop offset=".68" stop-color="#f0c773"/><stop offset="1" stop-color="#a97c37"/>
+    </linearGradient>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".78" numOctaves="3" seed="12" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+    <clipPath id="card"><rect x="1" y="1" width="238" height="318" rx="13"/></clipPath>
+  </defs>
+  <g clip-path="url(#card)">
+    <path fill="url(#forest)" d="M0 0H240V320H0Z"/>
+    <path fill="#b0b399" opacity=".12" filter="url(#grain)" d="M0 0H240V320H0Z"/>
+  </g>
+  <rect x="1.5" y="1.5" width="237" height="317" rx="12" stroke="url(#gold)" stroke-width="1.5"/>
+  <rect x="4" y="4" width="232" height="312" rx="10" stroke="#efcf87" stroke-opacity=".16" stroke-width=".6"/>
+  <path d="M22 12H218Q218 22 228 22V298Q218 298 218 308H22Q22 298 12 298V22Q22 22 22 12Z" stroke="url(#gold)" stroke-width="1"/>
+  <path d="M120 125 151 160 120 195 89 160Z" stroke="#edc572" stroke-width="1.05"/>
+  <path d="M120 152 126 160 120 168 114 160Z" fill="#e4b865"/>
 </svg>
