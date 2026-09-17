@@ -56,3 +56,34 @@ body:is(.homepage,.site-inner) { --site-paper:#fafaf5; --site-forest:#09251c; --
  .homepage.activity-page .reveal-treasury { border-radius:18px; }
  .site-inner .section-title { font-size:36px; }
 }
+
+/* Audit fixes: legacy span typography, footer contrast and small-screen spacing. */
+body:is(.homepage,.site-inner) .topbar-right > .home-button,
+body:is(.homepage,.site-inner) :is(.btn,.kicker,.ql-name,.ql-desc,.ql-desc .accent,.rank-stat-value,.rank-stat-label,.lock-tag,.trail-title,.trail-desc,.ledger-row,.activity-back) { font-family:Arial,Helvetica,sans-serif; }
+body:is(.homepage,.site-inner) .bottom-footer-grid nav a { color:#2d493a; font-family:Arial,Helvetica,sans-serif; font-size:14px; }
+body:is(.homepage,.site-inner) .bottom-footer-grid nav a:hover { color:#466d24; }
+body:is(.homepage,.site-inner) .topbar-right > .home-button { font-weight:600; }
+.site-inner .ql-name { font-size:20px; font-weight:700; letter-spacing:-.035em; line-height:1.2; }
+.site-inner .ql-desc { font-size:14px; line-height:1.5; }
+.site-inner .ql-icon { width:76px; height:76px; object-fit:contain; }
+.site-inner .ql-divider { display:none; }
+.site-inner .quicklink-card { padding:26px 20px; min-height:220px; }
+.site-inner .section-head { max-width:760px; margin-left:auto; margin-right:auto; }
+.site-inner .rank-hero-text .section-desc { font-size:17px; line-height:1.65; max-width:570px; }
+.site-inner .rank-hero-art img { max-height:480px; object-fit:contain; }
+body.homepage.activity-page .reveal-treasury > .invite-steps { font:12px/1.6 Arial,Helvetica,sans-serif; letter-spacing:.025em; }
+body.homepage.activity-page .reveal-treasury .home-daily-note { font-size:12px; color:#bdcdb3; }
+body.homepage.activity-page .treasury-faces .home-face-grid h3 { font-size:12px; line-height:1.4; }
+body:is(.homepage,.site-inner) .home-footer { padding-top:10px; }
+@media(max-width:600px) {
+ body.homepage.modern-home .home-hero { min-height:720px; }
+ body.homepage.modern-home .home-hero-content { padding-bottom:300px; }
+ body.homepage.modern-home .home-hero-art { height:310px; }
+ body.homepage.modern-home .modern-manifesto { margin-top:22px; }
+ .site-inner .rank-hero-grid { gap:28px; }
+ .site-inner .rank-hero-text .section-desc { font-size:16px; line-height:1.65; }
+ body.homepage.activity-page .reveal-treasury > .invite-steps { font-size:11px; gap:8px; }
+ body.homepage.activity-page .reveal-treasury .invite-steps span + span::before { margin-right:7px; }
+ body.homepage.activity-page .forest-arcade .home-game-heading { gap:16px; }
+ body:is(.homepage,.site-inner) .bottom-footer-grid { gap:24px 18px; }
+}
