@@ -1,0 +1,71 @@
+/* Shared final layout constraints: consistent gutters and restrained type scales. */
+:is(.homepage,.site-inner) { --layout-width: 1160px; }
+:is(.homepage,.site-inner) .topbar-inner { max-width: 1280px; min-height: 94px; padding: 12px 32px; gap: 26px; }
+:is(.homepage,.site-inner) .brand-logo { width: 64px; height: 64px; }
+:is(.homepage,.site-inner) .brand-name { font-size: 27px; text-align: left; }
+:is(.homepage,.site-inner) .nav-links { gap: 27px; font-size: 17px; }
+.homepage .home-section { width: calc(100% - 64px); max-width: var(--layout-width); margin-left: auto; margin-right: auto; }
+.homepage .home-hero { min-height: 680px; }
+.homepage .home-hero-content { max-width: 1280px; padding: 76px 60px 90px; }
+.homepage .home-hero h1 { font-size: clamp(62px,6.5vw,96px); max-width: 640px; margin-bottom: 26px; line-height: 1.04; }
+.homepage .home-intro { font-size: clamp(25px,2.25vw,33px); margin-bottom: 32px; }
+.homepage .home-hero .home-button { font-size: 20px; min-height: 56px; min-width: 190px; }
+.homepage .home-hero-art { object-position: center center; }
+.homepage .activity-previews { padding-top: 64px; padding-bottom: 64px; gap: 28px; }
+.activities-heading { align-items: center; margin-bottom: 6px; }
+.activities-heading h2 { font-size: clamp(32px,3.5vw,46px); }
+.activity-preview { min-height: 330px; }
+.activity-preview-copy { padding: 36px; }
+.activity-preview-copy h2 { font-size: clamp(30px,3.3vw,42px); }
+.homepage .home-bottom-intro { padding: 48px 0 28px; }
+.home-bottom-intro h2 { font-size: clamp(34px,4vw,48px); line-height: 1.12; }
+.homepage .home-about { gap: 24px; padding-bottom: 64px; }
+.homepage .home-about .home-about-column { padding: 30px; border-radius: 18px; }
+.homepage .home-about-column h2 { font-size: 29px; }
+.homepage .home-about-column .lore-card p { font-size: 16px; line-height: 1.7; }
+.homepage .home-about-column .lore-card p:first-child { font-size: 19px; }
+.homepage .home-about-column .ledger.ledger-strip .ledger-row .v { font-size: 20px; }
+.homepage .home-community { padding: 56px 24px; }
+.homepage .home-community h2 { font-size: clamp(36px,4.4vw,54px); }
+.activity-main { max-width: 1224px; padding: 28px 32px 56px; }
+.homepage .activity-main .home-faces { width: 100%; margin: 0; }
+.homepage .activity-main .reveal-treasury { padding-top: 36px; }
+.homepage .activity-main .reveal-treasury h2 { font-size: clamp(36px,4.8vw,60px); }
+.homepage .forest-arcade h3 { font-size: clamp(32px,4.5vw,52px); }
+@media(min-width:1600px) { .homepage .home-hero { min-height: 780px; } .homepage .home-hero-content { padding-top: 110px; } }
+@media(max-width:1023px) {
+ :is(.homepage,.site-inner) .topbar-inner { min-height: 84px; padding: 10px 24px; }
+ .homepage .home-hero { min-height: 620px; }
+ .homepage .home-hero-content { padding: 68px 32px 80px; }
+ .homepage .home-hero h1 { font-size: 68px; }
+ .homepage .home-hero .home-button { min-width: 165px; font-size: 18px; }
+ .homepage .home-hero .home-actions { gap: 12px; }
+ .activity-preview-copy { padding: 28px; }
+}
+@media(max-width:720px) {
+ .activities-heading { display: block; }
+ .homepage .home-about .home-about-column { padding: 24px; }
+ .homepage .home-section { width: calc(100% - 40px); }
+}
+@media(max-width:600px) {
+ :is(.homepage,.site-inner) .topbar-inner { min-height: 78px; padding: 10px 16px; gap: 12px; }
+ :is(.homepage,.site-inner) .brand-logo { width: 52px; height: 52px; }
+ :is(.homepage,.site-inner) .brand-name { font-size: 22px; }
+ .homepage .home-hero { min-height: 800px; }
+ .homepage .home-hero-content { padding: 34px 22px 370px; }
+ .homepage .home-hero h1 { font-size: clamp(42px,10vw,59px); margin-bottom: 20px; }
+ .homepage .home-intro { font-size: 23px; margin-bottom: 25px; }
+ .homepage .home-hero-art { height: 430px; inset: auto 0 0; object-position: 73% center; }
+ .homepage .home-hero-content::before { height: 435px; }
+ .homepage .home-hero .home-button { min-width: 0; min-height: 48px; font-size: 16px; padding: 11px 13px; }
+ .homepage .activity-previews { padding-top: 36px; padding-bottom: 40px; gap: 22px; }
+ .activity-preview-copy { padding: 8px 22px 27px; }
+ .activity-preview-copy h2 { font-size: 31px; }
+ .homepage .home-bottom-intro { padding-top: 34px; }
+ .homepage .home-about { padding-bottom: 40px; gap: 18px; }
+ .homepage .home-about .home-about-column { padding: 22px 20px; }
+ .homepage .home-community { padding: 40px 22px; }
+ .activity-main { padding: 22px 12px 40px; }
+ .homepage .activity-main .reveal-treasury { padding: 28px 16px 22px; }
+ .homepage .forest-arcade .home-game-heading { padding: 20px 8px; }
+}
