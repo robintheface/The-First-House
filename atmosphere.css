@@ -1,9 +1,11 @@
 /* Quiet parchment and woodland scenery, shared by all public pages. */
 body:is(.homepage,.site-inner) {
   background-color: #f6efdd;
-  background-image: linear-gradient(90deg,#b58a3920,transparent 16%,#fff8e533 50%,transparent 84%,#b58a3920),url('/images/parchment-warm.webp');
-  background-size: 100% 100%,760px 760px;
-  background-repeat: no-repeat,repeat;
+  background-image: url('/images/parchment-castle.webp');
+  background-size: 100% 100vh;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 :is(.homepage,.site-inner) #main { position: relative; isolation: isolate; }
 .homepage .home-hero::after { height: 90px; background: linear-gradient(transparent,#f6efdd); }
@@ -26,3 +28,11 @@ body:is(.homepage,.site-inner) {
  .woodland-lights { display: none; }
 }
 @media(prefers-reduced-motion:reduce) { .woodland-lights i { animation: none; opacity: .25; } }
+
+/* Keep the illustration proportional on narrow screens; paper continues below. */
+@media(max-width:600px) {
+ body:is(.homepage,.site-inner) {
+  background-size: auto 100vh;
+  background-position: center top;
+ }
+}
