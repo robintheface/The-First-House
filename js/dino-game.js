@@ -128,6 +128,7 @@ if (canvas) {
   let best = 0;
   try { best = parseInt(localStorage.getItem('hoodRunnerBest') || '0', 10) || 0; } catch (err) { best = 0; }
   let nextObstacleAt = 0;
+  let dragonPending = false;
   let nextCoinAt = 0;
   let bgScrollX = 0;
   let lastTs = 0;
@@ -139,6 +140,7 @@ if (canvas) {
   updateBestLabel();
 
   function resetRun() {
+    dragonPending = false;
     showResult = null; // drop any pending hit-blink result callback from a run that never finished blinking out
     player.y = GROUND_Y - GROUND_HEIGHT;
     player.vy = 0;
@@ -183,7 +185,14 @@ if (canvas) {
   function spawnObstacle() {
     // Give a stationary volley its own clear lane.
     if(obstacles.some(o=>o.encounter==='peek')) { nextObstacleAt=elapsed+600;return; }
-    const isRugged = elapsed >= RUGGED_MIN_ELAPSED && !obstacles.some(o=>o.kind==='rugged') && Math.random() < RUGGED_CHANCE;
+    if (!dragonPending && elapsed >= RUGGED_MIN_ELAPSED && !obstacles.some(o=>o.kind==='rugged') && Math.random() < RUGGED_CHANCE) {
+      dragonPending = true;
+      playDragonSound('roar');
+      nextObstacleAt = elapsed + 850;
+      return;
+    }
+    const isRugged = dragonPending;
+    dragonPending = false;
     const kind = isRugged ? 'rugged' : 'candle';
     const sprite = SPRITES[kind];
     const aspect = isRugged ? sprite.img.naturalWidth / sprite.img.naturalHeight : .7;
@@ -491,7 +500,7 @@ if (canvas) {
     for(const o of obstacles) if(o.kind==='rugged') {
       updateDinosaurJump(o,elapsed);
       const shot=updateBreath(o,elapsed,CW,player.x);
-      if(shot) fireballs.push(shot);
+      if(shot) { fireballs.push(shot); playDragonSound('fire'); }
     }
 
     // move + cull + animate coins
@@ -933,6 +942,36 @@ if (canvas) {
     if (!ensureAudioCtx()) return;
     const critical = [RUN_SFX_FILE].concat(Object.values(SFX_FILES));
     critical.reduce((p, file) => p.then(() => loadBuffer(file)), Promise.resolve());
+  }
+
+  // Short synthesized creature cues, cached once and routed through the SFX controls.
+  const dragonSounds = new Map();
+  function playDragonSound(kind) {
+    if (live.muted || state !== STATE.PLAYING) return;
+    const ctx = ensureAudioCtx();
+    if (!ctx) return;
+    resumeCtx();
+    if (!dragonSounds.has(kind)) {
+      const roar = kind === 'roar';
+      const duration = roar ? .95 : .48;
+      const buffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * duration), ctx.sampleRate);
+      const samples = buffer.getChannelData(0);
+      let noise = 0, phase = 0;
+      for (let i = 0; i < samples.length; i++) {
+        const t = i / ctx.sampleRate, progress = t / duration;
+        noise += ((Math.random() * 2 - 1) - noise) * (roar ? .09 : .48);
+        phase += 2 * Math.PI * (roar ? 135 - 65 * progress : 190 - 120 * progress) / ctx.sampleRate;
+        const envelope = Math.min(1, t / .035) * Math.pow(1 - progress, roar ? .7 : 1.3);
+        const voice = roar ? (.32 * Math.sin(phase) + .14 * Math.sin(phase * 2) + noise * .8) * (.8 + .2 * Math.sin(t * 63)) : noise * 1.25 + Math.sin(phase) * .1;
+        samples[i] = Math.tanh(voice * 1.5) * envelope * .7;
+      }
+      dragonSounds.set(kind, buffer);
+    }
+    const source = ctx.createBufferSource();
+    source.buffer = dragonSounds.get(kind);
+    source.connect(sfxGain);
+    source.onended = () => source.disconnect();
+    source.start();
   }
 
   async function playSfx(name, rate = 1) {
