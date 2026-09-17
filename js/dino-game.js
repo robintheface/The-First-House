@@ -7,7 +7,7 @@
 // wallet-connect.js: no 'unsafe-inline' script-src.
 
 import * as lb from './leaderboard.js';
-import { drawCandle, CANDLE_TYPES, hitsCandle } from './runner-style.js?v=4';
+import { drawWoodland, hitsWoodland } from './woodland-obstacles.js?v=1';
 
 const canvas = document.getElementById('hoodGameCanvas');
 if (canvas) {
@@ -205,7 +205,7 @@ if (canvas) {
     const isRugged = elapsed >= RUGGED_MIN_ELAPSED && Math.random() < RUGGED_CHANCE;
     const kind = isRugged ? 'rugged' : 'candle';
     const sprite = SPRITES[kind];
-    const aspect = sprite.img.naturalWidth / sprite.img.naturalHeight;
+    const aspect = isRugged ? 1.8 : .7;
     // Candle variants: mostly a plain grounded candle, but sometimes one
     // drops in from off-screen above, and sometimes one floats at head
     // height -- clear to run under, but a jump carries you straight into it.
@@ -214,7 +214,7 @@ if (canvas) {
     // compound unfairly.
     const isClusterFollow = pendingClusterFollow;
     pendingClusterFollow = false;
-    const variantRoll = (isRugged || isClusterFollow) ? 1 : Math.random();
+    const variantRoll = 1; // Woodland obstacles stay rooted on the path.
     const variant = variantRoll < 0.12 ? 'falling' : variantRoll < 0.22 ? 'overhead' : 'ground';
     // Decided up front (before picking a height) so both members of a pair
     // -- the one starting it and its close-follow partner -- stay short.
@@ -251,19 +251,6 @@ if (canvas) {
     let moveType = 'none', moveAmp = 0, moveSpeed = 0;
     let startY = baseY;
     if (isRugged) {
-      // Rugged reads mixed up: sometimes grounded, sometimes floating in
-      // the air -- and it's always in motion, either bobbing up/down or
-      // drifting left/right in place within a small range.
-      if (Math.random() < 0.5) baseY = GROUND_Y - h - (55 + Math.random() * 70);
-      if (Math.random() < 0.5) {
-        moveType = 'vertical';
-        moveAmp = 18 + Math.random() * 14;
-        moveSpeed = 0.0028 + Math.random() * 0.0018;
-      } else {
-        moveType = 'horizontal';
-        moveAmp = 22 + Math.random() * 18;
-        moveSpeed = 0.0022 + Math.random() * 0.0016;
-      }
       startY = baseY;
     } else if (variant === 'falling') {
       moveType = 'falling';
@@ -276,8 +263,9 @@ if (canvas) {
     }
 
     const expression = ['angry', 'shocked', 'smug', 'sad', 'confused', 'sleepy'][Math.floor(Math.random() * 6)];
-    const candleType = CANDLE_TYPES[Math.floor(Math.random() * CANDLE_TYPES.length)];
-    obstacles.push({ kind, expression, candleType, baseX: x, x, baseY, y: startY, w, h, moveType, moveAmp, moveSpeed, moveTimer: 0 });
+    const woodType = Math.random() < .35 ? 'stump' : 'log';
+    if (!isRugged && woodType === 'log') { w = GROUND_HEIGHT * (isPaired ? .68 : .75 + Math.random() * .35); h = GROUND_HEIGHT * .42; baseY = startY = GROUND_Y - h; }
+    obstacles.push({ kind, expression, woodType, born: elapsed, baseX: x, x, baseY, y: startY, w, h, moveType, moveAmp, moveSpeed, moveTimer: 0 });
     scheduleNextObstacle();
   }
 
@@ -450,7 +438,7 @@ if (canvas) {
   // repeated needlessly every single time.
   const playerHitBox = { x: 0, y: 0, w: 0, h: 0 };
   function hit(b) {
-    if (b.kind === 'candle') return hitsCandle(playerHitBox, b);
+    if (b.kind === 'candle' || b.kind === 'rugged') return hitsWoodland(playerHitBox, b, elapsed);
     const bx = b.x + b.w * HIT_PAD, bw = b.w * (1 - HIT_PAD * 2);
     const by = b.y + b.h * HIT_PAD, bh = b.h * (1 - HIT_PAD * 2);
     return playerHitBox.x < bx + bw && playerHitBox.x + playerHitBox.w > bx
@@ -675,8 +663,7 @@ if (canvas) {
     // obstacles
     for (let i = 0; i < obstacles.length; i++) {
       const o = obstacles[i];
-      if(o.kind === 'candle') drawCandle(ctx,o,reducedMotion.matches?0:elapsed);
-      else ctx.drawImage(SPRITES[o.kind].img, o.x, o.y, o.w, o.h);
+      drawWoodland(ctx,o,elapsed);
     }
 
     // player -- run/jump sprite sheets, current frame picked in update()
