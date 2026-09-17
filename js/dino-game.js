@@ -9,7 +9,7 @@ import { stepDinosaurEncounter, updateBreath, updateDinosaurJump, stepFireballs,
 // wallet-connect.js: no 'unsafe-inline' script-src.
 
 import * as lb from './leaderboard.js';
-import { drawWoodland, hitsWoodland, LOG_VARIANTS, logSize } from './woodland-obstacles.js?v=3';
+import { drawWoodland, hitsWoodland, logSize } from './woodland-obstacles.js?v=3';
 
 const canvas = document.getElementById('hoodGameCanvas');
 if (canvas) {
@@ -160,32 +160,7 @@ if (canvas) {
     bgScrollX = 0;
   }
 
-  let clusterChain = 0; // remaining close-follow spawns queued after this one
-  let pendingClusterFollow = false; // true while the *next* spawn is one of those close-follows
   function scheduleNextObstacle() {
-    if (clusterChain > 0) {
-      clusterChain--;
-      pendingClusterFollow = true;
-      // Tight enough to clearly read as a paired-up candle, but still
-      // enough room to clear both -- one longer jump, or land and hop the
-      // second. Both members of a pair are always short candles (see
-      // spawnObstacle), so a tighter gap here still stays fair. Scales
-      // down toward the floor as speed rises like the normal gap does.
-      //
-      // Early in a run (speed still at/near BASE_SPEED) that gap read as
-      // too spread out to clearly land as "one paired obstacle" -- packed
-      // 50% tighter at run start, ramping back up to the untouched
-      // original value by the time speed finishes ramping to MAX_SPEED
-      // (both the floor and the raw formula scale together, so the "which
-      // one wins" relationship -- and therefore late-run behavior -- is
-      // unchanged once fully ramped).
-      const speedProgress = Math.min(1, Math.max(0, (speed - BASE_SPEED) / (MAX_SPEED - BASE_SPEED)));
-      const earlyPairScale = 0.5 + 0.5 * speedProgress;
-      const followBase = Math.max(260 * earlyPairScale, (620 - speed * 550) * earlyPairScale);
-      nextObstacleAt = elapsed + followBase + Math.random() * 80;
-      return;
-    }
-    pendingClusterFollow = false;
     // Gap shrinks as speed rises but never gets unfair -- floor keeps a
     // minimum reaction window even at max speed.
     const base = Math.max(650, 1500 - speed * 900);
@@ -208,25 +183,11 @@ if (canvas) {
   function spawnObstacle() {
     // Give a stationary volley its own clear lane.
     if(obstacles.some(o=>o.encounter==='peek')) { nextObstacleAt=elapsed+600;return; }
-    const isRugged = !pendingClusterFollow && elapsed >= RUGGED_MIN_ELAPSED && !obstacles.some(o=>o.kind==='rugged') && Math.random() < RUGGED_CHANCE;
+    const isRugged = elapsed >= RUGGED_MIN_ELAPSED && !obstacles.some(o=>o.kind==='rugged') && Math.random() < RUGGED_CHANCE;
     const kind = isRugged ? 'rugged' : 'candle';
     const sprite = SPRITES[kind];
     const aspect = isRugged ? sprite.img.naturalWidth / sprite.img.naturalHeight : .7;
-    // Candle variants: mostly a plain grounded candle, but sometimes one
-    // drops in from off-screen above, and sometimes one floats at head
-    // height -- clear to run under, but a jump carries you straight into it.
-    // A close-follow spawn from clustering is always forced to 'ground' --
-    // stacking a falling/overhead hazard right on a cluster's heels would
-    // compound unfairly.
-    const isClusterFollow = pendingClusterFollow;
-    pendingClusterFollow = false;
-    const variantRoll = 1; // Woodland obstacles stay rooted on the path.
-    const variant = variantRoll < 0.12 ? 'falling' : variantRoll < 0.22 ? 'overhead' : 'ground';
-    // Decided up front (before picking a height) so both members of a pair
-    // -- the one starting it and its close-follow partner -- stay short.
-    const startsPair = !isRugged && variant === 'ground' && !isClusterFollow && clusterChain === 0 && Math.random() < 0.14;
-    const isPaired = startsPair || isClusterFollow;
-    if (startsPair) clusterChain = 1;
+    const variant = 'ground';
     let h, w;
     if (isRugged) {
       h = GROUND_HEIGHT * .85; // Compact enough to jump, with readable sprite details
@@ -235,7 +196,7 @@ if (canvas) {
       h = GROUND_HEIGHT * 0.55; // shorter bar reads clearly as "floating", not "tall candle"
       w = GROUND_HEIGHT * aspect;
     } else {
-      const ratios = isPaired ? PAIRED_CANDLE_RATIOS : CANDLE_HEIGHT_RATIOS;
+      const ratios = CANDLE_HEIGHT_RATIOS;
       const ratio = ratios[(Math.random() * ratios.length) | 0];
       // Falling candles land on the ground -- cap their height so a fresh
       // drop-in never lands as a full tall wall with no warning.
@@ -269,11 +230,10 @@ if (canvas) {
     }
 
     const expression = ['angry', 'shocked', 'smug', 'sad', 'confused', 'sleepy'][Math.floor(Math.random() * 6)];
-    // Only short upright logs may form a close pair; horizontal logs are singles.
-    const woodType = isPaired ? 'vertical-short' : LOG_VARIANTS[Math.floor(Math.random()*LOG_VARIANTS.length)];
+    // Single upright logs in two moderate heights, with no close-follow pairs.
+    const woodType = Math.random() < .5 ? 'vertical-short' : 'vertical-long';
     if(!isRugged) {
-      // Scale the artwork and collision bounds together; both paired logs stay low.
-      ({w,h}=logSize(woodType,GROUND_HEIGHT * (isPaired ? .5 : .78)));
+      ({w,h}=logSize(woodType,GROUND_HEIGHT * .72));
       baseY=startY=GROUND_Y-h;
     }
     const encounter=isRugged && Math.random()<.55 ? 'peek' : 'charge';
