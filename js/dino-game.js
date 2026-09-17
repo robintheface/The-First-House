@@ -208,7 +208,7 @@ if (canvas) {
   function spawnObstacle() {
     // Give a stationary volley its own clear lane.
     if(obstacles.some(o=>o.encounter==='peek')) { nextObstacleAt=elapsed+600;return; }
-    const isRugged = elapsed >= RUGGED_MIN_ELAPSED && !obstacles.some(o=>o.kind==='rugged') && Math.random() < RUGGED_CHANCE;
+    const isRugged = !pendingClusterFollow && elapsed >= RUGGED_MIN_ELAPSED && !obstacles.some(o=>o.kind==='rugged') && Math.random() < RUGGED_CHANCE;
     const kind = isRugged ? 'rugged' : 'candle';
     const sprite = SPRITES[kind];
     const aspect = isRugged ? sprite.img.naturalWidth / sprite.img.naturalHeight : .7;
@@ -269,7 +269,8 @@ if (canvas) {
     }
 
     const expression = ['angry', 'shocked', 'smug', 'sad', 'confused', 'sleepy'][Math.floor(Math.random() * 6)];
-    const woodType = isPaired ? 'horizontal-short' : LOG_VARIANTS[Math.floor(Math.random()*LOG_VARIANTS.length)];
+    // Only short upright logs may form a close pair; horizontal logs are singles.
+    const woodType = isPaired ? 'vertical-short' : LOG_VARIANTS[Math.floor(Math.random()*LOG_VARIANTS.length)];
     if(!isRugged) {
       ({w,h}=logSize(woodType,GROUND_HEIGHT));
       baseY=startY=GROUND_Y-h;
