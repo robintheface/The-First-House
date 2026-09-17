@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="images/home-hero-rich.webp">
 <link rel="stylesheet" href="styles.css?v=66">
-<link rel="stylesheet" href="home.css?v=29">
+<link rel="stylesheet" href="home.css?v=30">
 <link rel="stylesheet" href="/site-theme.css?v=4">
 <link rel="stylesheet" href="home-bottom.css?v=5">
 <link rel="stylesheet" href="/site-footer.css?v=1">
@@ -132,19 +132,8 @@
     </div>
   </section>
 
-  <section id="meet-faces" class="home-section home-faces" aria-labelledby="faces-title">
-    <div class="home-section-heading">
-      <p class="home-eyebrow">DIFFERENT FACES. SAME HOOD.</p>
-      <h2 id="faces-title">Meet the faces.</h2>
-      <p>Every candle has a story. You’ve probably worn a few.</p>
-    </div>
-    <div class="home-face-grid">
-      <figure><img src="images/face-01.webp" alt="Robin’s original unimpressed face" width="440" height="440" loading="lazy"><figcaption><h3>OG</h3><p>Seen it all. Still here.</p></figcaption></figure>
-      <figure><img src="images/face-02.webp" alt="Robin celebrating a green day" width="440" height="440" loading="lazy"><figcaption><h3>Green Day</h3><p>Suddenly, a financial genius.</p></figcaption></figure>
-      <figure><img src="images/face-06.webp" alt="Robin with diamond hands" width="440" height="440" loading="lazy"><figcaption><h3>Diamond Hands</h3><p>Not leaving. Not blinking.</p></figcaption></figure>
-      <figure><img src="images/face-07.webp" alt="Robin watching the chart late at night" width="440" height="440" loading="lazy"><figcaption><h3>3AM Watch</h3><p>One more candle, then bed.</p></figcaption></figure>
-    </div>
-      <section id="faces" class="home-daily reveal-invite" aria-labelledby="reveal-invite-title">
+  <div id="meet-faces" class="home-section home-faces">
+      <section id="faces" class="home-daily reveal-invite reveal-treasury" aria-labelledby="reveal-invite-title">
   <div class="reveal-invite-art" aria-hidden="true">
     <div class="invite-card invite-silver hood-card-back"></div>
     <div class="invite-card invite-gold hood-card-back"></div>
@@ -152,9 +141,9 @@
   </div>
   <div class="reveal-invite-copy">
     <p class="invite-kicker">YOUR NEXT FACE IS ONE SPIN AWAY</p>
-    <h3 id="reveal-invite-title">Don’t just meet the faces.<br>Reveal yours.</h3>
-    <p>Spin the reel to reveal your character card and its rarity. Which face is waiting for you?</p>
-    <div class="invite-steps"><span>01 · Reveal</span><span>02 · Spin</span><span>03 · Meet your face</span></div>
+    <h2 id="reveal-invite-title">Your face is waiting.</h2>
+    <p>One spin. A hidden face. Reveal your card and discover its tier.</p>
+    <div class="invite-steps"><span>Spin</span><span>Tap to reveal</span><span>Discover your tier</span></div>
   </div>
   <!-- Kept for the dialog reel; moved out of this section while spinning. -->
   <div class="gallery-wrap">
@@ -359,8 +348,16 @@
   <p id="fodMessage" class="fod-message" hidden></p>
 
         <p id="drawAvailability" class="home-daily-note">Unlimited spins. Let the hood decide.</p>
+        <div class="treasury-faces"><h3 id="faces-title">Meet the faces you could uncover</h3>
+    <div class="home-face-grid">
+      <figure><img src="images/face-01.webp" alt="Robin’s original unimpressed face" width="440" height="440" loading="lazy"><figcaption><h3>OG</h3><p>Seen it all. Still here.</p></figcaption></figure>
+      <figure><img src="images/face-02.webp" alt="Robin celebrating a green day" width="440" height="440" loading="lazy"><figcaption><h3>Green Day</h3><p>Suddenly, a financial genius.</p></figcaption></figure>
+      <figure><img src="images/face-06.webp" alt="Robin with diamond hands" width="440" height="440" loading="lazy"><figcaption><h3>Diamond Hands</h3><p>Not leaving. Not blinking.</p></figcaption></figure>
+      <figure><img src="images/face-07.webp" alt="Robin watching the chart late at night" width="440" height="440" loading="lazy"><figcaption><h3>3AM Watch</h3><p>One more candle, then bed.</p></figcaption></figure>
+    </div>
+        </div>
       </section>
-  </section>
+  </div>
 
   <div class="home-bottom-intro home-section">
     <p class="home-eyebrow">BEYOND THE CHART</p>

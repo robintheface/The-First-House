@@ -665,3 +665,34 @@
 .homepage .hood-game-overlay-lines p.hood-game-overlay-score { color: #78561d; }
 .homepage .hood-game-hud,.homepage .hood-game-best,.homepage .hood-game-settings-btn,.homepage .hood-game-version-badge { color: #25432d; text-shadow: 0 1px 3px #fff7de; }
 .homepage .hood-game-save-score { color: #193c2b; }
+
+/* One treasury: reveal first, character previews second. */
+.homepage .reveal-treasury { display: flex; flex-direction: column; margin-top: 0; padding: 48px 40px 28px; text-align: center; background: radial-gradient(ellipse at 50% 45%,#53633a55,transparent 55%),linear-gradient(135deg,#173829,#10271e); border-radius: 24px; }
+.reveal-treasury .reveal-invite-copy { order: 0; }
+.reveal-treasury .reveal-invite-art { order: 1; height: 280px; max-width: 380px; margin: 18px auto 0; }
+.homepage .reveal-treasury h2 { margin: 0 0 14px; color: #fff0d0; font-size: clamp(36px,5vw,62px); font-weight: 400; line-height: 1.08; letter-spacing: -.035em; }
+.reveal-treasury .reveal-invite-copy > p:not(.invite-kicker) { max-width: 540px; margin: 0 auto; font-size: 18px; }
+.reveal-treasury .invite-steps { justify-content: center; margin: 18px 0 0; gap: 20px; }
+.reveal-treasury .invite-card { width: 148px; height: 206px; top: 32px; }
+.reveal-treasury .invite-gold { left: calc(50% - 74px); top: 8px; height: 238px; box-shadow: 0 18px 35px #0005,0 0 65px #eac46b30; }
+.homepage .reveal-treasury .fod-row { order: 2; width: 100%; justify-content: center; }
+.homepage .reveal-treasury .btn-spin { width: min(100%,360px); min-height: 62px; font-size: 26px; }
+.homepage .reveal-treasury .home-daily-note { order: 3; margin: 18px 0 0; }
+.homepage .reveal-treasury .fod-message { order: 4; }
+.treasury-faces { order: 5; width: 100%; margin-top: 30px; padding-top: 24px; border-top: 1px solid #ceae633d; }
+.homepage .treasury-faces h3 { font-size: 17px; font-weight: 400; color: #d9d9bd; margin: 0 0 18px; }
+.treasury-faces .home-face-grid { display: grid; grid-template-columns: repeat(4,minmax(0,105px)); justify-content: center; gap: 22px; }
+.treasury-faces .home-face-grid img { width: 64px; height: 64px; object-fit: cover; border: 1px solid #b7a064; border-radius: 50%; background: #354b32; }
+.homepage .treasury-faces .home-face-grid h3 { font-size: 12px; color: #bfcbb3; margin: 10px 0 0; }
+.treasury-faces .home-face-grid p { display: none; }
+@media(max-width:600px) {
+ .homepage .reveal-treasury { padding: 30px 18px 22px; border-radius: 18px; }
+ .reveal-treasury .reveal-invite-copy > p:not(.invite-kicker) { font-size: 16px; }
+ .reveal-treasury .reveal-invite-art { max-width: 290px; height: 236px; }
+ .reveal-treasury .invite-card { width: 115px; height: 168px; }
+ .reveal-treasury .invite-gold { left: calc(50% - 57.5px); height: 203px; }
+ .treasury-faces .home-face-grid { gap: 8px; }
+ .treasury-faces .home-face-grid img { width: 52px; height: 52px; }
+ .homepage .treasury-faces .home-face-grid h3 { font-size: 11px; }
+ .homepage .reveal-treasury .btn-spin { min-height: 56px; font-size: 23px; }
+}
