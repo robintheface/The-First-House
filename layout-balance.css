@@ -69,3 +69,28 @@
  .homepage .activity-main .reveal-treasury { padding: 28px 16px 22px; }
  .homepage .forest-arcade .home-game-heading { padding: 20px 8px; }
 }
+
+/* Dissolve section edges into the shared paper, without covering content. */
+.homepage:not(.activity-page) .topbar { border-bottom: 0; box-shadow: none; }
+.homepage .home-hero { background: transparent; }
+.homepage .home-hero-art { -webkit-mask-image: linear-gradient(to bottom,#000 78%,transparent 100%); mask-image: linear-gradient(to bottom,#000 78%,transparent 100%); }
+.homepage .home-hero::after { content: none; }
+.homepage .activity-previews { padding-top: 36px; }
+.homepage .activity-preview { border: 0; box-shadow: none; }
+.homepage .preview-runner { background: radial-gradient(ellipse at center,#f2e8d2 40%,#f2e8d200 76%); }
+.homepage .runner-preview-landscape { -webkit-mask-image: linear-gradient(90deg,transparent,#000 20%,#000 85%,transparent); mask-image: linear-gradient(90deg,transparent,#000 20%,#000 85%,transparent); }
+.homepage .home-bottom-intro,.homepage .home-about { border: 0; }
+.homepage .home-about .home-about-column { border: 0; box-shadow: none; background: radial-gradient(ellipse at 50% 35%,#fffaf0c9,#f3ecd900 78%); }
+.homepage .home-about #roadmap { background: radial-gradient(ellipse at center,#e4e9d9c9,transparent 78%); }
+.homepage #roadmap .trail.trail-row .trail-step { border-top: 0; }
+.homepage .home-community { border: 0; background: linear-gradient(to bottom,transparent,#476044 145px,#193b2a 75%,#142f23); padding-top: 155px; }
+.homepage .home-community::before { content: none; }
+.homepage .home-community > .community-background { -webkit-mask-image: linear-gradient(to bottom,transparent,#000 160px,#000 72%,transparent); mask-image: linear-gradient(to bottom,transparent,#000 160px,#000 72%,transparent); }
+.homepage .home-community::after { background: linear-gradient(to bottom,transparent 80px,#142f231a 45%,#142f23); }
+.homepage .home-footer { border: 0; background: #142f23; }
+.homepage .bottom-footer-note { border-top: 0; }
+@media(max-width:600px) {
+ .homepage .activity-previews { padding-top: 22px; }
+ .homepage .home-community { padding-top: 115px; }
+ .homepage .home-community > .community-background { -webkit-mask-image: linear-gradient(to bottom,transparent,#000 120px,#000 72%,transparent); mask-image: linear-gradient(to bottom,transparent,#000 120px,#000 72%,transparent); }
+}
