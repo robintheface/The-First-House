@@ -171,3 +171,34 @@ body.site-inner { --bg: #f6efdd; --bg-2: #eee5ce; --ink: #193c2b; --ink-dim: #58
  :is(.homepage,.site-inner) .brand-logo { width: 40px; height: 40px; }
  :is(.homepage,.site-inner) .brand { gap: 8px; }
 }
+
+/* Compact heraldic lockup, shared by every route. */
+:is(.homepage,.site-inner) .topbar { background: #f8f1df url('/images/parchment-warm.webp') center / 900px; border-bottom: 1px solid #ba9a54; box-shadow: 0 3px 15px #4a3e2010; }
+:is(.homepage,.site-inner) .topbar-inner { max-width: 1360px; min-height: 104px; padding: 14px 32px; gap: 32px; }
+:is(.homepage,.site-inner) .brand { gap: 17px; align-items: center; }
+:is(.homepage,.site-inner) .brand-logo { width: 72px; height: 72px; object-fit: contain; filter: drop-shadow(0 3px 5px #47371924); }
+:is(.homepage,.site-inner) .brand-lockup { align-items: flex-start; gap: 8px; }
+:is(.homepage,.site-inner) .brand-name { display: flex; flex-direction: column; font-size: 29px; line-height: .95; letter-spacing: -.035em; font-weight: 400; }
+:is(.homepage,.site-inner) .brand-tagline { color: #836a31; font-size: 7px; letter-spacing: .28em; white-space: nowrap; }
+:is(.homepage,.site-inner) .nav-links { gap: 32px; font-size: 18px; }
+:is(.homepage,.site-inner) .nav-links a { padding: 12px 0; position: relative; text-decoration: none; }
+:is(.homepage,.site-inner) .nav-links a[aria-current="page"]::after { content: ''; position: absolute; height: 2px; background: #ac8941; bottom: 2px; left: 0; right: 0; }
+:is(.homepage,.site-inner) .nav-links a:hover { color: #8b6b2d; text-decoration: none; }
+:is(.homepage,.site-inner) .topbar-right > .home-button { min-height: 48px; padding: 11px 23px; border: 1px solid #c5a05a; border-radius: 11px; background: #183526; color: #fff1d4; box-shadow: inset 0 0 0 2px #d8bc7033; font-size: 17px; white-space: nowrap; }
+:is(.homepage,.site-inner) .topbar-right > .home-button > span { display: none; }
+:is(.homepage,.site-inner) .nav-toggle { border-color: #b5a078; background: #fff8e84d; border-radius: 9px; }
+@media(max-width:1023px) {
+ :is(.homepage,.site-inner) .topbar-inner { min-height: 92px; padding: 12px 22px; gap: 20px; }
+ :is(.homepage,.site-inner) .nav-links.open { gap: 0; max-height: calc(100dvh - 92px); }
+ :is(.homepage,.site-inner) .nav-links a[aria-current="page"]::after { display: none; }
+ :is(.homepage,.site-inner) .nav-links a[aria-current="page"] { color: #8b6b2d; }
+}
+@media(max-width:600px) {
+ :is(.homepage,.site-inner) .topbar-inner { min-height: 80px; padding: 10px 16px; gap: 12px; }
+ :is(.homepage,.site-inner) .brand { gap: 10px; }
+ :is(.homepage,.site-inner) .brand-logo { width: 54px; height: 54px; }
+ :is(.homepage,.site-inner) .brand-name { font-size: 23px; }
+ :is(.homepage,.site-inner) .brand-lockup { gap: 6px; }
+ :is(.homepage,.site-inner) .brand-tagline { font-size: 6px; letter-spacing: .2em; }
+ :is(.homepage,.site-inner) .nav-links.open { max-height: calc(100dvh - 80px); }
+}
