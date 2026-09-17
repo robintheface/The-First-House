@@ -1,5 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320" preserveAspectRatio="none" fill="none">
   <defs>
+    <pattern id="check" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45 120 160)">
+      <path d="M0 0H10V10H0ZM10 10H20V20H10Z" fill="#c3cbaa" fill-opacity=".045"/>
+      <path d="M10 0H20V10H10ZM0 10H10V20H0Z" fill="#03170d" fill-opacity=".055"/>
+    </pattern>
     <linearGradient id="forest" x1="12" y1="0" x2="210" y2="320" gradientUnits="userSpaceOnUse">
       <stop stop-color="#2c4936"/><stop offset=".48" stop-color="#1e392a"/><stop offset="1" stop-color="#12291e"/>
     </linearGradient>
@@ -14,6 +18,7 @@
   </defs>
   <g clip-path="url(#card)">
     <path fill="url(#forest)" d="M0 0H240V320H0Z"/>
+    <path fill="url(#check)" d="M0 0H240V320H0Z"/>
     <path fill="#b0b399" opacity=".12" filter="url(#grain)" d="M0 0H240V320H0Z"/>
   </g>
   <rect x="1.5" y="1.5" width="237" height="317" rx="12" stroke="url(#gold)" stroke-width="1.5"/>
