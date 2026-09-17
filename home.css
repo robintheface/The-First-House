@@ -738,3 +738,32 @@
  border: 0; border-radius: 12px; box-shadow: 0 12px 26px #0005;
 }
 .homepage .reveal-treasury .invite-gold { box-shadow: 0 15px 35px #0006,0 0 32px #eac46b35; }
+
+/* Forest arcade, matched to the treasury frame. */
+.homepage #game.forest-arcade { max-width: 1120px; width: 100%; padding: 5px 16px 16px; background: radial-gradient(ellipse at top left,#354b2b55,transparent 70%),#10291f; color: #f6edce; border: 2px solid #c6a052; border-radius: 18px; box-shadow: inset 0 0 0 3px #10291f,inset 0 0 0 4px #e5bf7170,0 12px 35px #15291b12; }
+.forest-arcade .home-game-heading { padding: 30px 20px 25px; }
+.forest-arcade .arcade-title > img { display: none; }
+.homepage .forest-arcade .home-eyebrow { color: #e1c685; letter-spacing: .25em; margin-bottom: 12px; }
+.homepage .forest-arcade h3 { color: #fff0d0; font-size: clamp(34px,5vw,64px); line-height: 1.05; font-weight: 400; }
+.runner-tagline { margin: 9px 0 0; color: #d7d7bc; font-size: 17px; font-style: italic; }
+.runner-scores { display: flex; gap: 28px; text-align: center; flex-shrink: 0; }
+.runner-scores > div + div { border-left: 1px solid #c4a66355; padding-left: 28px; }
+.runner-scores span { display: block; color: #dac083; font: 10px 'IBM Plex Mono',monospace; letter-spacing: .2em; }
+.runner-scores strong { display: block; margin-top: 7px; color: #fff0d0; font: 34px 'IM Fell English',serif; font-variant-numeric: tabular-nums; }
+.homepage .forest-arcade .hood-game-wrap:not(:fullscreen):not(.is-pseudo-fullscreen):not(.hood-game-force-landscape) { width: 100%; border: 1px solid #d1b472; border-radius: 9px; box-shadow: 0 0 0 3px #142b21,0 0 0 4px #bda26388; }
+.forest-arcade .hood-game-wrap:not(:fullscreen):not(.is-pseudo-fullscreen):not(.hood-game-force-landscape) :is(.hood-game-hud,.hood-game-best) { visibility: hidden; }
+.homepage .forest-arcade .home-game-caption { flex-direction: column; justify-content: center; gap: 15px; padding: 24px 16px 10px; margin: 0; text-align: center; color: #dbc99b; }
+.homepage .forest-arcade .home-game-start { width: min(100%,300px); min-height: 56px; background: radial-gradient(ellipse at top,#ffe8a8,transparent 80%),linear-gradient(#edc875,#d3a24f); border: 1px solid #ffe0a0; border-radius: 9px; color: #203526; font-size: 27px; box-shadow: inset 0 0 0 2px #fff0c333,0 6px 22px #e9bd541a; }
+.forest-arcade .home-game-start span { display: none; }
+.homepage .forest-arcade .home-game-caption kbd { background: transparent; border: 0; box-shadow: none; color: #f1d99e; }
+@media(max-width:600px) {
+ .homepage #game.forest-arcade { padding: 4px 10px 12px; border-radius: 14px; }
+ .forest-arcade .home-game-heading { padding: 22px 8px 20px; gap: 12px; flex-wrap: wrap; }
+ .runner-tagline { font-size: 13px; }
+ .runner-scores { gap: 16px; }
+ .runner-scores > div + div { padding-left: 16px; }
+ .runner-scores span { font-size: 8px; }
+ .runner-scores strong { font-size: 25px; }
+ .homepage .forest-arcade .home-eyebrow { font-size: 8px; letter-spacing: .15em; }
+ .homepage .forest-arcade .home-game-start { min-height: 48px; font-size: 23px; }
+}

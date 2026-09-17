@@ -35,3 +35,13 @@ function openLinkedDetails() {
 }
 window.addEventListener('hashchange', openLinkedDetails);
 openLinkedDetails();
+
+// Mirror the existing HUD without moving controls out of the fullscreen canvas.
+for (const [sourceId, targetId] of [['hoodGameScore', 'runnerScoreDisplay'], ['hoodGameBest', 'runnerBestDisplay']]) {
+  const source = document.getElementById(sourceId);
+  const target = document.getElementById(targetId);
+  if (!source || !target) continue;
+  const sync = () => { target.textContent = source.textContent.replace(/^Best:\s*/i, ''); };
+  new MutationObserver(sync).observe(source, { childList: true, characterData: true, subtree: true });
+  sync();
+}
