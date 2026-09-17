@@ -649,3 +649,19 @@
  .face-draw-mystery { transition: none; }
  .face-draw-card.is-unsealed .face-draw-card-inner { animation: none; }
 }
+
+/* A parchment frame carries the page's storybook palette into the arcade. */
+.homepage #game.home-game { background: #f4e9cf url('/images/parchment-warm.webp') center / 760px; color: #193c2b; border: 1px solid #b89a5c; box-shadow: 0 12px 32px #59422214,inset 0 0 0 5px #fff6; border-radius: 14px; }
+.homepage .home-game-heading .home-eyebrow { color: #826a39; }
+.homepage .home-game h3 { color: #193c2b; }
+.homepage .home-game-start { background: #254b34; color: #fff0d1; border-color: #254b34; }
+.homepage .home-game-start:hover { background: #356044; }
+.homepage .home-game-caption { color: #596347; }
+.homepage .home-game-caption kbd { border-color: #a19572; }
+.homepage .home-game .hood-game-wrap:not(:fullscreen):not(.is-pseudo-fullscreen):not(.hood-game-force-landscape) { border-color: #a78e55; box-shadow: 0 0 0 4px #d7c49b55; }
+.homepage .hood-game-overlay { background: #f6efddad; }
+.homepage .hood-game-overlay-title { color: #193c2b; -webkit-text-stroke: 0; }
+.homepage .hood-game-overlay-lines p { color: #29432d; }
+.homepage .hood-game-overlay-lines p.hood-game-overlay-score { color: #78561d; }
+.homepage .hood-game-hud,.homepage .hood-game-best,.homepage .hood-game-settings-btn,.homepage .hood-game-version-badge { color: #25432d; text-shadow: 0 1px 3px #fff7de; }
+.homepage .hood-game-save-score { color: #193c2b; }

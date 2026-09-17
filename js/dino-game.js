@@ -57,7 +57,7 @@ if (canvas) {
   }
 
   const SPRITES = {
-    background: { src: 'background.webp' },
+    background: { src: 'background-parchment.webp' },
     stand: { src: 'character-stand.webp', frames: 1 }, // static pose shown only during the SPAWN flicker -- the run cycle doesn't start until real movement (PLAYING) begins
     run: { src: 'character-run.webp', frames: 6 },
     jump: { src: 'character-jump.webp', frames: 24 }, // sliced from the user-supplied jump2_anim.gif (24 frames, 60ms each)
@@ -647,7 +647,11 @@ if (canvas) {
       ctx.drawImage(bg, x, 0, bgDrawW, GROUND_Y);
       x += bgDrawW;
     }
-    ctx.fillStyle = '#1a2916';
+    ctx.fillStyle = '#d8c598';
+    ctx.fillRect(0, GROUND_Y, CW, CH - GROUND_Y);
+    ctx.fillStyle = '#6a704a';
+    ctx.fillRect(0, GROUND_Y, CW, 2);
+    ctx.fillStyle = '#34472b';
     for (let i = 0; i < coins.length; i++) {
       const c = coins[i];
       if (!c.taken) drawGroundShadow(c.x + c.w / 2, c.w, (GROUND_Y - c.h) - c.y);
