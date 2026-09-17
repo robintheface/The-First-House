@@ -1,0 +1,12 @@
+/* Blur the entire document behind the top-layer dialog, not the reel itself. */
+.homepage .face-draw-overlay::backdrop {
+  background: rgba(5, 18, 12, .42);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+}
+.homepage .face-draw-backdrop { background: transparent; }
+.homepage .face-draw-stage {
+  background: rgba(14, 35, 26, .86);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
