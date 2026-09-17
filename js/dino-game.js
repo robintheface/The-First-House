@@ -272,7 +272,8 @@ if (canvas) {
     // Only short upright logs may form a close pair; horizontal logs are singles.
     const woodType = isPaired ? 'vertical-short' : LOG_VARIANTS[Math.floor(Math.random()*LOG_VARIANTS.length)];
     if(!isRugged) {
-      ({w,h}=logSize(woodType,GROUND_HEIGHT));
+      // Scale the artwork and collision bounds together; both paired logs stay low.
+      ({w,h}=logSize(woodType,GROUND_HEIGHT * (isPaired ? .5 : .78)));
       baseY=startY=GROUND_Y-h;
     }
     const encounter=isRugged && Math.random()<.55 ? 'peek' : 'charge';
