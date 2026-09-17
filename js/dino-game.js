@@ -8,7 +8,7 @@ import { updateBreath, updateDinosaurJump, stepFireballs, hitsFireball, drawFire
 // wallet-connect.js: no 'unsafe-inline' script-src.
 
 import * as lb from './leaderboard.js';
-import { drawWoodland, hitsWoodland } from './woodland-obstacles.js?v=2';
+import { drawWoodland, hitsWoodland, LOG_VARIANTS, logSize } from './woodland-obstacles.js?v=3';
 
 const canvas = document.getElementById('hoodGameCanvas');
 if (canvas) {
@@ -65,7 +65,8 @@ if (canvas) {
     coin: { src: 'coin-spin.webp', frames: 12 },
     candle: { src: 'obstacle-candle.webp', frames: 1 },
     rugged: { src: 'dinosaur-hood.webp', frames: 1 },
-    fireball: { src: 'fireball.webp' }
+    fireball: { src: 'fireball.webp' },
+    log: { src: 'log-moss.webp' }
   };
 
   let assetsReady = false;
@@ -267,8 +268,11 @@ if (canvas) {
     }
 
     const expression = ['angry', 'shocked', 'smug', 'sad', 'confused', 'sleepy'][Math.floor(Math.random() * 6)];
-    const woodType = Math.random() < .35 ? 'stump' : 'log';
-    if (!isRugged && woodType === 'log') { w = GROUND_HEIGHT * (isPaired ? .68 : .75 + Math.random() * .35); h = GROUND_HEIGHT * .42; baseY = startY = GROUND_Y - h; }
+    const woodType = isPaired ? 'horizontal-short' : LOG_VARIANTS[Math.floor(Math.random()*LOG_VARIANTS.length)];
+    if(!isRugged) {
+      ({w,h}=logSize(woodType,GROUND_HEIGHT));
+      baseY=startY=GROUND_Y-h;
+    }
     obstacles.push({ kind, expression, woodType, born: elapsed, baseX: x, x, baseY, y: startY, w, h, moveType, moveAmp, moveSpeed, moveTimer: 0 });
     scheduleNextObstacle();
   }
@@ -676,7 +680,7 @@ if (canvas) {
     for (let i = 0; i < obstacles.length; i++) {
       const o = obstacles[i];
       if(o.kind==='rugged') drawDinosaur(ctx,o,elapsed,SPRITES.rugged.img,reducedMotion.matches);
-      else drawWoodland(ctx,o,elapsed);
+      else drawWoodland(ctx,o,elapsed,SPRITES.log.img);
     }
 
     for(const f of fireballs) drawFireball(ctx,f,reducedMotion.matches?0:elapsed,SPRITES.fireball.img);
