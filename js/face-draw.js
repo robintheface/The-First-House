@@ -32,18 +32,13 @@ const realCards = [...document.querySelectorAll('.face-card')].filter((c) => c.g
 if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.length) {
   let currentMood = '';
   let currentJoke = '';
-  // True from the moment the joke's first shown until the next draw starts.
-  // Separate from is-flipped (which now just tracks which face is up, see
-  // tapToReveal below) so the backdrop/Escape close gate stays satisfied
-  // even after the user's flipped back to the front to look at the mood
-  // again -- otherwise closing would be impossible until they happened to
-  // land back on the joke side.
-  let hasRevealed = false;
+  // Keep the result out of the visible card until the user opens the seal.
+  let pendingResult = null;
 
   function setCardContent(mood, joke, imgSrc){
     currentMood = mood;
     currentJoke = joke;
-    hasRevealed = false;
+
     imgEl.src = imgSrc;
     imgEl.alt = '';
     labelEl.textContent = mood;
@@ -66,7 +61,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   }
 
   function triggerFlip(){
-    hasRevealed = true;
+
     cardInner.classList.add('is-flipped');
     cardInner.removeEventListener('transitionend', onFlipEnd);
     cardInner.style.transform = 'rotateY(180deg)';
@@ -353,7 +348,18 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
       return img.decode ? img.decode().catch(() => {}) : Promise.resolve();
     }));
     fodBtn.disabled = true;
-    hasRevealed = false;
+
+    pendingResult = null;
+    currentMood = '';
+    currentJoke = '';
+    cardEl.classList.remove(...RARITY_CLASSES, 'is-unsealed');
+    cardEl.classList.add('is-sealed');
+    cardEl.setAttribute('aria-label', 'Reveal your mystery card');
+    cardInner.inert = true;
+    cardInner.setAttribute('aria-hidden', 'true');
+    labelEl.textContent = '';
+    jokeEl.textContent = '';
+    cardEl.querySelector('.face-draw-front').removeAttribute('data-tier-label');
     showFodMessage('');
     previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -404,11 +410,10 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
         restoreGallery();
         reel.hidden = true;
         spinBtn.hidden = true;
-        setCardContent(winnerMood, winnerJoke, winnerImgSrc);
-        playResultSound(rarityFor(winnerMood));
+        pendingResult = { mood: winnerMood, joke: winnerJoke, image: winnerImgSrc };
         resetCardToFront();
         cardEl.hidden = false;
-        drawStatus.textContent = 'Your face has arrived. Tap the card to reveal its story.';
+        drawStatus.textContent = 'Your card is sealed. Tap to reveal your face and rarity.';
         cardEl.focus({ preventScroll: true });
       }, 1100);
       gallerySpinCleanup = () => { clearTimeout(revealDelay); cleanupGallerySpin(addedClones); };
@@ -444,18 +449,31 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     window.open(intent, '_blank', 'noopener,noreferrer');
   }
 
-  // Tap anywhere on the card flips it -- to the joke the first time, and
-  // back and forth between joke/mood on every tap after that. Share lives
-  // on the back face; it must only ever share, never also flip the card
-  // back to the front underneath the same tap.
+  // First open the seal, then allow flipping between face and story.
   function tapToReveal(e){
     if (e.target.closest('#faceDrawShareBtn')) return;
+    if (pendingResult) {
+      const result = pendingResult;
+      pendingResult = null;
+      setCardContent(result.mood, result.joke, result.image);
+      cardInner.inert = false;
+      cardInner.removeAttribute('aria-hidden');
+      cardEl.classList.remove('is-sealed');
+      cardEl.classList.add('is-unsealed');
+      cardEl.setAttribute('aria-label', 'Flip your face card to read its story');
+      const tier = rarityFor(result.mood);
+      drawStatus.textContent = `${result.mood} · ${tier === 'normal' ? 'Everyday' : tier}. Tap the card for your story.`;
+      playResultSound(tier);
+      return;
+    }
+    cardEl.classList.remove('is-unsealed');
     if (cardInner.classList.contains('is-flipped')) resetCardToFront();
     else triggerFlip();
   }
 
   if (fodBtn) fodBtn.addEventListener('click', openFaceOfTheDay);
   if (spinBtn) spinBtn.addEventListener('click', startDraw);
+  cardInner.addEventListener('animationend', () => cardEl.classList.remove('is-unsealed'));
   if (cardEl) cardEl.addEventListener('click', tapToReveal);
   cardEl.addEventListener('keydown', (e) => {
     if (e.target !== cardEl || (e.key !== 'Enter' && e.key !== ' ')) return;

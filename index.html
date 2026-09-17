@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="images/home-hero.webp">
 <link rel="stylesheet" href="styles.css?v=66">
-<link rel="stylesheet" href="home.css?v=23">
+<link rel="stylesheet" href="home.css?v=24">
 <link rel="stylesheet" href="/site-theme.css?v=4">
 <link rel="stylesheet" href="home-bottom.css?v=5">
 <link rel="stylesheet" href="/site-footer.css?v=1">
@@ -146,9 +146,9 @@
     </div>
       <section id="faces" class="home-daily reveal-invite" aria-labelledby="reveal-invite-title">
   <div class="reveal-invite-art" aria-hidden="true">
-    <div class="invite-card invite-silver"><img src="images/face-05.webp" alt="" width="140" height="140" loading="lazy"><span>SILVER</span></div>
-    <div class="invite-card invite-gold"><span class="invite-card-star">✦</span><img src="images/face-06.webp" alt="" width="140" height="140" loading="lazy"><span>WHAT WILL YOU FIND?</span></div>
-    <div class="invite-card invite-mythic"><img src="images/face-02.webp" alt="" width="140" height="140" loading="lazy"><span>MYTHIC</span></div>
+    <div class="invite-card invite-silver hood-card-back"></div>
+    <div class="invite-card invite-gold hood-card-back"></div>
+    <div class="invite-card invite-mythic hood-card-back"></div>
   </div>
   <div class="reveal-invite-copy">
     <p class="invite-kicker">YOUR NEXT FACE IS ONE SPIN AWAY</p>
@@ -465,14 +465,15 @@
     <p class="reveal-kicker">✦ THE HOOD’S TREASURY ✦</p>
     <h2 id="faceDrawTitle" class="face-draw-title" tabindex="-1">Face of the Day</h2>
     <p id="faceDrawStatus" class="face-draw-status" role="status">Finding your face…</p>
-    <div id="faceDrawReel" class="face-draw-reel"></div>
+    <div id="faceDrawReel" class="face-draw-reel" aria-hidden="true"></div>
     <button type="button" id="faceDrawSpinBtn" class="face-draw-spin">Spin</button>
     <div id="faceDrawCard" class="face-draw-card" tabindex="0" aria-label="Flip your face card" hidden>
+      <div class="face-draw-mystery hood-card-back" aria-hidden="true"><span>REVEAL MY CARD</span></div>
       <div class="face-draw-card-inner">
         <div class="face-draw-face face-draw-front">
           <img id="faceDrawImg" class="face-draw-img" src="images/face-01.webp" alt="">
           <span id="faceDrawLabel" class="face-draw-mood">—</span>
-          <span class="face-draw-tap-hint">Tap to reveal</span>
+          <span class="face-draw-tap-hint">Tap for your story</span>
         </div>
         <div class="face-draw-face face-draw-back">
           <span class="face-draw-back-kicker">The hood knows</span>
@@ -490,7 +491,7 @@
 <script type="module" src="js/topbar-menus.js?v=2"></script>
 <script src="js/copy.js"></script>
 <script type="module" src="js/dino-game.js?v=8"></script>
-<script type="module" src="js/face-draw.js?v=12"></script>
+<script type="module" src="js/face-draw.js?v=13"></script>
 <script type="module" src="js/home.js?v=2"></script>
 </body>
 </html>
