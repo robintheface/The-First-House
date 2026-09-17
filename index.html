@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <link rel="preload" as="image" href="images/home-hero-rich.webp">
 <link rel="stylesheet" href="styles.css?v=66">
-<link rel="stylesheet" href="home.css?v=36">
+<link rel="stylesheet" href="home.css?v=37">
 <link rel="stylesheet" href="/site-theme.css?v=4">
 <link rel="stylesheet" href="home-bottom.css?v=5">
 <link rel="stylesheet" href="/site-footer.css?v=1">
@@ -54,16 +54,17 @@
     <span class="hero-caption" aria-hidden="true">SAME HOOD.<br>DIFFERENT MOODS.</span>
   </header>
 
-  <section id="play" class="home-section activity-previews" aria-label="Play and reveal">
-    <article id="game" class="activity-preview">
+  <section id="play" class="home-section activity-previews" aria-labelledby="activities-title">
+    <div class="activities-heading"><div><p class="home-eyebrow">A LITTLE ESCAPE INTO THE HOOD</p><h2 id="activities-title">Pick your adventure.</h2></div><p>A quick run. A hidden face.<br>A little something for every mood.</p></div>
+    <article id="game" class="activity-preview preview-runner">
       <a class="runner-preview-art" href="/play.html" aria-label="Play Hood Runner">
         <img class="runner-preview-landscape" src="game/background-parchment.webp" alt="A misty forest trail" loading="lazy">
         <img class="runner-preview-hero" src="game/character-stand-aligned.webp" alt="Robin ready to run" loading="lazy">
         <img class="runner-preview-log" src="game/log-moss.webp" alt="" loading="lazy">
       </a>
-      <div class="activity-preview-copy"><p class="home-eyebrow">THE HOOD’S ARCADE</p><h2>Hood Runner</h2><p>One jump. A little courage.</p><a class="home-button home-button-gold" href="/play.html">Play now →</a></div>
+      <div class="activity-preview-copy"><p class="home-eyebrow">THE HOOD’S ARCADE</p><h2>Hood Runner</h2><p>Dodge the logs. Watch for fire.<br>How far will your courage take you?</p><a class="home-button home-button-gold" href="/play.html">Play now →</a></div>
     </article>
-    <article id="meet-faces" class="activity-preview">
+    <article id="meet-faces" class="activity-preview preview-reveal">
       <a id="faces" class="cards-preview-art" href="/reveal.html" aria-label="Reveal your card"><span class="hood-card-back"></span><span class="hood-card-back"></span><span class="hood-card-back"></span></a>
       <div class="activity-preview-copy"><p class="home-eyebrow">THE HOOD’S TREASURY</p><h2>Your face is waiting.</h2><p>One spin. A hidden face. What will you reveal?</p><a class="home-button home-button-gold" href="/reveal.html">Reveal my card →</a></div>
     </article>
