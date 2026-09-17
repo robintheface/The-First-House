@@ -1,8 +1,9 @@
 /* Quiet parchment and woodland scenery, shared by all public pages. */
-:is(.homepage,.site-inner) {
+body:is(.homepage,.site-inner) {
   background-color: #f6efdd;
-  background-image: url('/images/paper-grain.svg'),linear-gradient(180deg,#faf3e2 0%,#f6efdd 28%,#e9ecdc 53%,#f3eddc 78%,#e2e7d2 100%);
-  background-size: 180px 180px,100% 100%;
+  background-image: linear-gradient(90deg,#b58a3920,transparent 16%,#fff8e533 50%,transparent 84%,#b58a3920),url('/images/parchment-warm.webp');
+  background-size: 100% 100%,760px 760px;
+  background-repeat: no-repeat,repeat;
 }
 :is(.homepage,.site-inner) #main { position: relative; isolation: isolate; }
 .homepage .home-hero::after { height: 90px; background: linear-gradient(transparent,#f6efdd); }
@@ -10,7 +11,7 @@
 .homepage .home-community { border-top: 0; padding-top: 94px; }
 .homepage .home-community::before {
   content: ''; position: absolute; inset: 0 0 auto; width: 100%; height: 64px;
-  background: linear-gradient(#e2e7d2, #e2e7d280 22%,transparent);
+  background: linear-gradient(#f6efdd, #f6efdd80 22%,transparent);
   mix-blend-mode: normal; opacity: 1; pointer-events: none;
 }
 .woodland-lights { position: absolute !important; inset: 0; overflow: hidden; pointer-events: none; }
