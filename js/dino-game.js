@@ -1,4 +1,4 @@
-import { updateBreath, updateDinosaurJump, stepFireballs, hitsFireball, drawFireball, drawDinosaur } from './dinosaur-fire.js?v=2';
+import { stepDinosaurEncounter, updateBreath, updateDinosaurJump, stepFireballs, hitsFireball, drawFireball, drawDinosaur } from './dinosaur-fire.js?v=3';
 // Endless-runner mini-game for the main page ("Outrun the rug"). Canvas +
 // vanilla JS, no dependencies -- same zero-build-step spirit as the rest of
 // the site. Space (or tap/click on the canvas) to jump; the run continues
@@ -207,7 +207,9 @@ if (canvas) {
   const FALL_SPEED = 0.6; // px/ms -- how fast a "falling" candle drops in
 
   function spawnObstacle() {
-    const isRugged = elapsed >= RUGGED_MIN_ELAPSED && Math.random() < RUGGED_CHANCE;
+    // Give a stationary volley its own clear lane.
+    if(obstacles.some(o=>o.encounter==='peek')) { nextObstacleAt=elapsed+600;return; }
+    const isRugged = elapsed >= RUGGED_MIN_ELAPSED && !obstacles.some(o=>o.kind==='rugged') && Math.random() < RUGGED_CHANCE;
     const kind = isRugged ? 'rugged' : 'candle';
     const sprite = SPRITES[kind];
     const aspect = isRugged ? sprite.img.naturalWidth / sprite.img.naturalHeight : .7;
@@ -273,7 +275,8 @@ if (canvas) {
       ({w,h}=logSize(woodType,GROUND_HEIGHT));
       baseY=startY=GROUND_Y-h;
     }
-    obstacles.push({ kind, expression, woodType, born: elapsed, baseX: x, x, baseY, y: startY, w, h, moveType, moveAmp, moveSpeed, moveTimer: 0 });
+    const encounter=isRugged && Math.random()<.55 ? 'peek' : 'charge';
+    obstacles.push({ encounter, shotLimit:2+Math.floor(Math.random()*2), kind, expression, woodType, born: elapsed, baseX: x, x, baseY, y: startY, w, h, moveType, moveAmp, moveSpeed, moveTimer: 0 });
     scheduleNextObstacle();
   }
 
@@ -503,6 +506,10 @@ if (canvas) {
     const dx = speed * dt;
     for (let i = obstacles.length - 1; i >= 0; i--) {
       const o = obstacles[i];
+      if(o.encounter==='peek') {
+        if(stepDinosaurEncounter(o,elapsed,dt,CW))obstacles.splice(i,1);
+        continue;
+      }
       o.baseX -= dx;
       o.moveTimer += dt;
       if (o.moveType === 'vertical') {

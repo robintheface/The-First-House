@@ -1,11 +1,32 @@
+// Peek encounters enter, fire a spaced volley, then retreat offscreen.
+export function stepDinosaurEncounter(o,time,dt,width) {
+  if(o.encounter!=='peek') return false;
+  const target=width-o.w*.78;
+  o.phase ||= 'enter';
+  if(o.phase==='enter') {
+    o.x=Math.max(target,o.x-dt*.22);
+    if(o.x===target) { o.phase='volley';o.chargeAt=time; }
+  } else if(o.phase==='volley' && o.retreatAt!=null && time>=o.retreatAt) o.phase='retreat';
+  if(o.phase==='retreat') o.x+=dt*.28;
+  o.baseX=o.x;o.y=o.baseY;
+  return o.phase==='retreat'&&o.x>width+30;
+}
 export function updateBreath(o,time,viewWidth,playerX) {
-  if(o.fired) return null;
+  if(o.encounter==='peek' && o.phase!=='volley') return null;
+  if(o.fired) {
+    if(o.encounter!=='peek' || o.shots>=o.shotLimit || time<o.nextShotAt) return null;
+    o.fired=false;o.chargeAt=time;
+  }
   if(o.chargeAt == null && o.x < viewWidth-40 && o.x > playerX+280) o.chargeAt=time;
   if(o.chargeAt == null || time-o.chargeAt<700) return null;
   o.fired=true;
   if(o.x<playerX+180) return null; // Never release a shot too close to dodge.
   o.flashUntil=time+180;
-  o.jumpAt=time+220;
+  if(o.encounter==='peek') {
+    o.shots=(o.shots||0)+1;
+    o.nextShotAt=time+650;
+    if(o.shots>=o.shotLimit)o.retreatAt=time+400;
+  } else o.jumpAt=time+220;
   return {x:o.x+o.w*.17,prevX:o.x+o.w*.17,y:o.y+o.h*.49,r:10,age:0};
 }
 export function stepFireballs(list,dt,speed) {

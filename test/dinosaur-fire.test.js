@@ -1,5 +1,5 @@
 import {it,expect} from 'vitest';
-import {updateBreath,updateDinosaurJump,stepFireballs,hitsFireball} from '../js/dinosaur-fire.js';
+import {stepDinosaurEncounter,updateBreath,updateDinosaurJump,stepFireballs,hitsFireball} from '../js/dinosaur-fire.js';
 it('requires a visible warning and fires once per dinosaur',()=>{
  const o={x:700,y:200,w:100,h:90};
  expect(updateBreath(o,1000,800,100)).toBeNull();
@@ -25,4 +25,18 @@ it('jumps after firing and returns to exactly the ground position',()=>{
  updateDinosaurJump(o,1425);expect(o.y).toBeCloseTo(150.4);
  updateDinosaurJump(o,1850);expect(o.y).toBe(200);
  updateDinosaurJump(o,3000);expect(o.y).toBe(200);
+});
+
+it('peeks, fires a bounded volley with fresh warnings, and retreats',()=>{
+ const o={encounter:'peek',x:820,w:100,h:80,baseY:200,y:200,shotLimit:3};let shots=0;
+ for(let time=0;time<7000;time+=20){
+  const done=stepDinosaurEncounter(o,time,20,800);
+  if(updateBreath(o,time,800,100))shots++;
+  if(done)break;
+ }
+ expect(shots).toBe(3);expect(o.phase).toBe('retreat');expect(o.x).toBeGreaterThan(830);
+ expect(o.jumpAt).toBeUndefined();
+});
+it('does not fire during entry or retreat',()=>{
+ for(const phase of ['enter','retreat'])expect(updateBreath({encounter:'peek',phase,x:720,chargeAt:0},2000,800,100)).toBeNull();
 });
