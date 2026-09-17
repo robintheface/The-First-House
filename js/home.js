@@ -14,13 +14,13 @@ if (gameOverlay && drawButton) {
   new MutationObserver(syncRunState).observe(gameOverlay, { attributes: true, attributeFilter: ['hidden'] });
   syncRunState();
 }
-if (startButton && drawButton && gameOverlay) {
+if (startButton && gameOverlay) {
   const syncStart = () => {
-    const drawing = drawButton.disabled && !gameOverlay.hidden;
+    const drawing = Boolean(drawButton?.disabled && !gameOverlay.hidden);
     startButton.disabled = drawing;
     startButton.title = drawing ? 'Finish revealing your face first' : '';
   };
-  new MutationObserver(syncStart).observe(drawButton, { attributes: true, attributeFilter: ['disabled'] });
+  if (drawButton) new MutationObserver(syncStart).observe(drawButton, { attributes: true, attributeFilter: ['disabled'] });
   startButton.addEventListener('click', () => {
     document.getElementById('hoodGameWrap').focus({ preventScroll: true });
     document.dispatchEvent(new Event('hood-runner-start'));

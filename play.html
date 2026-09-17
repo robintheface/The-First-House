@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Welcome to the hood. Play Hood Runner, discover your Face of the Day, and explore the world of Robin The Face.">
+<title>Hood Runner — ROBIN THE FACE</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css?v=66">
+<link rel="stylesheet" href="home.css?v=36">
+<link rel="stylesheet" href="/site-theme.css?v=4">
+<link rel="stylesheet" href="home-bottom.css?v=5">
+<link rel="stylesheet" href="/site-footer.css?v=1">
+<link rel="stylesheet" href="/atmosphere.css?v=4">
+</head>
+<body class="homepage activity-page">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="topbar" id="top">
+  <div class="topbar-inner">
+    <a href="/" class="brand" aria-label="Robin The Face home">
+      <img class="brand-logo" src="/logo.webp" alt="" width="56" height="56">
+      <span class="brand-lockup"><span class="brand-name">ROBIN THE FACE</span><span class="brand-tagline">THE FIRST HOUSE</span></span>
+    </a>
+    <nav class="nav-links" id="top-nav" aria-label="Main navigation">
+      <a href="/play.html">Play</a>
+      <a href="/reveal.html">The Faces</a>
+      <a href="/explore">Explore</a>
+      <a href="/#community">Community</a>
+      <a class="nav-mobile-wallet" href="/explore/wallet">Your Wallet</a>
+    </nav>
+    <div class="topbar-right">
+      <a class="home-button home-button-small" href="/explore/wallet">Connect Wallet <span aria-hidden="true">↗</span></a>
+      <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="top-nav">☰</button>
+    </div>
+  </div>
+</div>
+<main id="main" class="activity-main"><a class="activity-back" href="/">← Back to the hood</a>
+      <section id="game" class="home-game forest-arcade" aria-labelledby="runner-title">
+        <div class="home-game-heading">
+          <div class="arcade-title"><img src="icons/hood_ticket.webp" alt="" width="46" height="46"><div><p class="home-eyebrow">THE HOOD’S ARCADE</p><h3 id="runner-title">Hood Runner</h3><p class="runner-tagline">One jump. A little courage.</p></div></div>
+          <div class="runner-scores"><div><span>SCORE</span><strong id="runnerScoreDisplay">0</strong></div><div><span>BEST</span><strong id="runnerBestDisplay">0</strong></div></div>
+        </div>
+  <div class="hood-game-wrap" id="hoodGameWrap" tabindex="0" aria-label="Hood Runner. Press Space or tap to play.">
+    <canvas id="hoodGameCanvas" width="800" height="450" role="img" aria-label="Robin The Face endless runner mini-game"></canvas>
+    <div class="hood-game-hud">
+      <span id="hoodGameScore">0</span>
+    </div>
+    <span id="hoodGameBest" class="hood-game-best">Best: 0</span>
+    <span id="hoodGameVersionBadge" class="hood-game-version-badge"></span>
+    <button id="hoodGameSettingsBtn" class="hood-game-settings-btn" type="button" aria-expanded="false" aria-controls="hoodGameSettingsPanel">Settings</button>
+    <div id="hoodGameSettingsPanel" class="hood-game-settings-panel" hidden>
+      <p class="hood-game-settings-title">Menu</p>
+      <label class="hood-game-settings-row hood-game-settings-row-toggle">
+        <span>Sound</span>
+        <span class="hood-game-toggle">
+          <input type="checkbox" id="hoodGameSoundToggle">
+          <span class="hood-game-toggle-track" aria-hidden="true"></span>
+        </span>
+      </label>
+      <label class="hood-game-settings-row">
+        <span>Music</span>
+        <input type="range" id="hoodGameMusicVol" min="0" max="100" step="1">
+      </label>
+      <label class="hood-game-settings-row">
+        <span>SFX</span>
+        <input type="range" id="hoodGameSfxVol" min="0" max="100" step="1">
+      </label>
+      <button id="hoodGameRanksBtn" class="hood-game-settings-save hood-game-ranks-btn" type="button" hidden>Leaderboard</button>
+      <button id="hoodGameSettingsSaveBtn" class="hood-game-settings-save" type="button">Save</button>
+      <div id="hoodGameVersion" class="hood-game-settings-version"></div>
+    </div>
+    <div id="hoodGameRanksPanel" class="hood-game-settings-panel hood-game-ranks-panel" hidden>
+      <p class="hood-game-settings-title">Leaderboard</p>
+      <div class="hood-game-ranks-tabs" role="tablist">
+        <button type="button" class="hood-game-ranks-tab is-active" data-board="all" role="tab" aria-selected="true">All time</button>
+        <button type="button" class="hood-game-ranks-tab" data-board="today" role="tab" aria-selected="false">Today</button>
+      </div>
+      <ol id="hoodGameRanksList" class="hood-game-ranks-list"></ol>
+      <p id="hoodGameRanksEmpty" class="hood-game-ranks-empty" hidden>No runs yet. Be the first.</p>
+      <button id="hoodGameRanksClose" class="hood-game-settings-save" type="button">Close</button>
+    </div>
+    <button id="hoodGameFullscreenBtn" class="hood-game-fullscreen-btn" type="button" aria-label="Play fullscreen">⛶</button>
+    <div id="hoodGameOverlay" class="hood-game-overlay">
+      <div class="hood-game-overlay-inner">
+        <p id="hoodGameOverlayTitle" class="hood-game-overlay-title">HOOD RUN</p>
+        <div id="hoodGameOverlayLines" class="hood-game-overlay-lines"></div>
+        <form id="hoodGameSaveScore" class="hood-game-save-score" hidden>
+          <div class="hood-game-save-row">
+            <span class="hood-game-save-field">
+              <input id="hoodGameNick" class="hood-game-save-input" type="text" maxlength="12" aria-label="Your name" autocomplete="off" spellcheck="false" placeholder="Your name" aria-describedby="hoodGameNickState">
+              <span id="hoodGameNickTick" class="hood-game-save-tick" aria-hidden="true">&#10003;</span>
+            </span>
+            <button id="hoodGameNickSave" class="hood-game-save-btn" type="submit">Save</button>
+          </div>
+          <p id="hoodGameNickState" class="hood-game-save-state" role="status" hidden></p>
+          <button id="hoodGameNickSkip" class="hood-game-save-skip" type="button">Skip</button>
+          <p id="hoodGameSaveMsg" class="hood-game-save-msg" hidden></p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+        <div class="home-game-caption"><button class="home-game-start" type="button" data-start-run>Play now <span aria-hidden="true">→</span></button><span><kbd>SPACE</kbd> or tap to jump</span></div>
+      </section>
+</main>
+<footer class="home-footer">
+  <div class="bottom-footer-grid">
+    <div class="bottom-footer-identity">
+      <a class="home-footer-brand" href="#top">➳ ROBIN THE FACE</a>
+      <p>Every candle has a face.<br>Every face has a place in the hood.</p>
+      <span class="bottom-footer-signature">THE FIRST HOUSE · BUILT FOR THE HOOD</span>
+    </div>
+    <nav aria-label="Discover"><h2>Wander</h2><a href="/play.html">Hood Runner</a><a href="/reveal.html">Face of the Day</a><a href="/#lore">Our story</a></nav>
+    <nav aria-label="Resources"><h2>Explore</h2><a href="/explore">The hub</a><a href="/explore/wallet">Your rank</a><a href="/explore/wallet/faq">Questions &amp; answers</a></nav>
+    <nav aria-label="Community links"><h2>Find the hood</h2><a href="https://t.me/robintheface" target="_blank" rel="noopener noreferrer">Telegram ↗</a><a href="https://x.com/robintheface" target="_blank" rel="noopener noreferrer">Follow on 𝕏 ↗</a><a href="#top">Back to the treetops ↑</a></nav>
+  </div>
+  <div class="bottom-footer-note"><span>GOOD COMPANY. EVERY MARKET.</span><p class="disclaimer">This is a community meme project built for entertainment and culture. Not financial advice. Nothing on this page is a promise of profit — always DYOR before interacting with any token or contract.</p></div>
+</footer>
+<script type="module" src="js/topbar-menus.js?v=2"></script>
+<script type="module" src="js/home.js?v=4"></script>
+<script type="module" src="js/dino-game.js?v=22"></script>
+</body>
+</html>
