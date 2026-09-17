@@ -618,7 +618,7 @@
 .homepage .face-draw-reel .face-card {
   --reel-color: #cfb477;
   --invite-color: #cfb477;
-  background: url('images/card-back-pattern.svg') center / 100% 100% no-repeat,
+  background: url('images/card-back-pattern.svg?v=2') center / 100% 100% no-repeat,
     radial-gradient(ellipse at 50% 40%,#315443,#102b22 75%);
   border: 1px solid #cbb079;
   box-shadow: inset 0 0 0 5px #10291f,inset 0 0 0 6px #b89c5959,0 12px 28px #0004;
