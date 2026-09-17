@@ -113,3 +113,10 @@ body.homepage.modern-home { --paper:#fafaf5; --forest:#09251c; --muted:#69706a; 
 }
 .homepage.modern-home .topbar-right > .home-button { color:#fafaf5; }
 .homepage.modern-home .home-hero-content .home-eyebrow { color:#163c29; }
+
+/* Keep a clear gutter between the hero illustration and the activity panels. */
+body.homepage.modern-home .home-hero { overflow: hidden; margin-bottom: 36px; }
+body.homepage.modern-home .activity-previews { position: relative; margin-top: 0; }
+@media(max-width:600px) {
+ body.homepage.modern-home .home-hero { margin-bottom: 24px; }
+}
