@@ -1,3 +1,4 @@
+import { updateBreath, stepFireballs, hitsFireball, drawFireball, drawDinosaur } from './dinosaur-fire.js?v=1';
 // Endless-runner mini-game for the main page ("Outrun the rug"). Canvas +
 // vanilla JS, no dependencies -- same zero-build-step spirit as the rest of
 // the site. Space (or tap/click on the canvas) to jump; the run continues
@@ -7,7 +8,7 @@
 // wallet-connect.js: no 'unsafe-inline' script-src.
 
 import * as lb from './leaderboard.js';
-import { drawWoodland, hitsWoodland } from './woodland-obstacles.js?v=1';
+import { drawWoodland, hitsWoodland } from './woodland-obstacles.js?v=2';
 
 const canvas = document.getElementById('hoodGameCanvas');
 if (canvas) {
@@ -63,7 +64,7 @@ if (canvas) {
     jump: { src: 'character-jump.webp', frames: 24 }, // sliced from the user-supplied jump2_anim.gif (24 frames, 60ms each)
     coin: { src: 'coin-spin.webp', frames: 12 },
     candle: { src: 'obstacle-candle.webp', frames: 1 },
-    rugged: { src: 'obstacle-rugged.webp', frames: 1 }
+    rugged: { src: 'dinosaur-hood.webp', frames: 1 }
   };
 
   let assetsReady = false;
@@ -116,6 +117,7 @@ if (canvas) {
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let obstacles = [];
+  let fireballs = [];
   let coins = [];
   let popups = []; // floating "+score" text shown when a coin is grabbed
   let lastDisplayedScore = -1;
@@ -145,6 +147,7 @@ if (canvas) {
     player.jumpFrame = 0;
     player.jumpTimer = 0;
     obstacles = [];
+    fireballs = [];
     coins = [];
     popups = [];
     speed = BASE_SPEED;
@@ -205,7 +208,7 @@ if (canvas) {
     const isRugged = elapsed >= RUGGED_MIN_ELAPSED && Math.random() < RUGGED_CHANCE;
     const kind = isRugged ? 'rugged' : 'candle';
     const sprite = SPRITES[kind];
-    const aspect = isRugged ? 1.8 : .7;
+    const aspect = isRugged ? sprite.img.naturalWidth / sprite.img.naturalHeight : .7;
     // Candle variants: mostly a plain grounded candle, but sometimes one
     // drops in from off-screen above, and sometimes one floats at head
     // height -- clear to run under, but a jump carries you straight into it.
@@ -223,7 +226,7 @@ if (canvas) {
     if (startsPair) clusterChain = 1;
     let h, w;
     if (isRugged) {
-      h = GROUND_HEIGHT * 0.66; // rugged reads wide, keep it a touch shorter
+      h = GROUND_HEIGHT * .85; // Compact enough to jump, with readable sprite details
       w = h * aspect;
     } else if (variant === 'overhead') {
       h = GROUND_HEIGHT * 0.55; // shorter bar reads clearly as "floating", not "tall candle"
@@ -514,6 +517,12 @@ if (canvas) {
       if (o.baseX + o.w <= -20) obstacles.splice(i, 1);
     }
 
+    stepFireballs(fireballs,dt,speed);
+    for(const o of obstacles) if(o.kind==='rugged') {
+      const shot=updateBreath(o,elapsed,CW,player.x);
+      if(shot) fireballs.push(shot);
+    }
+
     // move + cull + animate coins
     for (let i = coins.length - 1; i >= 0; i--) {
       const c = coins[i];
@@ -545,6 +554,7 @@ if (canvas) {
     playerHitBox.w = playerW * (1 - HIT_PAD * 2);
     playerHitBox.y = player.y + GROUND_HEIGHT * HIT_PAD;
     playerHitBox.h = GROUND_HEIGHT * (1 - HIT_PAD * 2);
+    for(const f of fireballs) if(hitsFireball(playerHitBox,f)){playSfx('impact');endRun();return;}
     for (let i = 0; i < obstacles.length; i++) {
       if (hit(obstacles[i])) { playSfx('impact'); endRun(); return; }
     }
@@ -663,8 +673,11 @@ if (canvas) {
     // obstacles
     for (let i = 0; i < obstacles.length; i++) {
       const o = obstacles[i];
-      drawWoodland(ctx,o,elapsed);
+      if(o.kind==='rugged') drawDinosaur(ctx,o,elapsed,SPRITES.rugged.img,reducedMotion.matches);
+      else drawWoodland(ctx,o,elapsed);
     }
+
+    for(const f of fireballs) drawFireball(ctx,f,reducedMotion.matches?0:elapsed);
 
     // player -- run/jump sprite sheets, current frame picked in update()
     drawPlayer();
