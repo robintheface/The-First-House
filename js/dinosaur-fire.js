@@ -5,6 +5,7 @@ export function updateBreath(o,time,viewWidth,playerX) {
   o.fired=true;
   if(o.x<playerX+180) return null; // Never release a shot too close to dodge.
   o.flashUntil=time+180;
+  o.jumpAt=time+220;
   return {x:o.x+o.w*.17,prevX:o.x+o.w*.17,y:o.y+o.h*.49,r:10,age:0};
 }
 export function stepFireballs(list,dt,speed) {
@@ -15,11 +16,19 @@ export function hitsFireball(p,f) {
   const r=f.r*.72;
   return p.x<Math.max(f.x,f.prevX)+r && p.x+p.w>Math.min(f.x,f.prevX)-r && p.y<f.y+r && p.y+p.h>f.y-r;
 }
-export function drawFireball(ctx,f,time) {
-  const r=f.r,flutter=Math.sin(time*.025)*r*.2;
-  ctx.save();ctx.translate(f.x,f.y);
-  ctx.fillStyle='#f36d20';ctx.beginPath();ctx.moveTo(-r,0);ctx.quadraticCurveTo(0,-r*1.3,r*3,-r*.7+flutter);ctx.lineTo(r*1.8,0);ctx.lineTo(r*3,r*.7+flutter);ctx.quadraticCurveTo(0,r*1.3,-r,0);ctx.fill();
-  const glow=ctx.createRadialGradient(0,0,0,0,0,r*1.6);glow.addColorStop(0,'#fff9cd');glow.addColorStop(.45,'#ffd54e');glow.addColorStop(.75,'#ff8b22');glow.addColorStop(1,'#ff6a0000');ctx.fillStyle=glow;ctx.beginPath();ctx.arc(0,0,r*1.6,0,Math.PI*2);ctx.fill();ctx.restore();
+export function updateDinosaurJump(o,time) {
+  if(o.jumpAt == null) { o.y=o.baseY; return; }
+  const t=(time-o.jumpAt)/850;
+  // One shallow, predictable jump after firing; no change to horizontal speed.
+  o.y=o.baseY-(t>0&&t<1 ? 4*t*(1-t)*o.h*.62 : 0);
+}
+export function drawFireball(ctx,f,time,img) {
+  const pulse=1+Math.sin(time*.018)*.045;
+  const w=f.r*5*pulse,h=w*675/1270;
+  ctx.save();ctx.translate(f.x,f.y);ctx.scale(-1,1);
+  // Source faces right. Flip at render time so the bright core leads left.
+  ctx.drawImage(img,60,240,1270,675,-w*.82,-h*.59,w,h);
+  ctx.restore();
 }
 export function drawDinosaur(ctx,o,time,img,reducedMotion=false) {
   const charging=o.chargeAt!=null&&!o.fired;

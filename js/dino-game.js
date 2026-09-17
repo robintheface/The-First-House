@@ -1,4 +1,4 @@
-import { updateBreath, stepFireballs, hitsFireball, drawFireball, drawDinosaur } from './dinosaur-fire.js?v=1';
+import { updateBreath, updateDinosaurJump, stepFireballs, hitsFireball, drawFireball, drawDinosaur } from './dinosaur-fire.js?v=2';
 // Endless-runner mini-game for the main page ("Outrun the rug"). Canvas +
 // vanilla JS, no dependencies -- same zero-build-step spirit as the rest of
 // the site. Space (or tap/click on the canvas) to jump; the run continues
@@ -64,7 +64,8 @@ if (canvas) {
     jump: { src: 'character-jump.webp', frames: 24 }, // sliced from the user-supplied jump2_anim.gif (24 frames, 60ms each)
     coin: { src: 'coin-spin.webp', frames: 12 },
     candle: { src: 'obstacle-candle.webp', frames: 1 },
-    rugged: { src: 'dinosaur-hood.webp', frames: 1 }
+    rugged: { src: 'dinosaur-hood.webp', frames: 1 },
+    fireball: { src: 'fireball.webp' }
   };
 
   let assetsReady = false;
@@ -519,6 +520,7 @@ if (canvas) {
 
     stepFireballs(fireballs,dt,speed);
     for(const o of obstacles) if(o.kind==='rugged') {
+      updateDinosaurJump(o,elapsed);
       const shot=updateBreath(o,elapsed,CW,player.x);
       if(shot) fireballs.push(shot);
     }
@@ -677,7 +679,7 @@ if (canvas) {
       else drawWoodland(ctx,o,elapsed);
     }
 
-    for(const f of fireballs) drawFireball(ctx,f,reducedMotion.matches?0:elapsed);
+    for(const f of fireballs) drawFireball(ctx,f,reducedMotion.matches?0:elapsed,SPRITES.fireball.img);
 
     // player -- run/jump sprite sheets, current frame picked in update()
     drawPlayer();
