@@ -59,9 +59,9 @@ if (canvas) {
 
   const SPRITES = {
     background: { src: 'background-parchment.webp' },
-    stand: { src: 'character-stand-hd.webp', frames: 1 }, // static pose shown only during the SPAWN flicker -- the run cycle doesn't start until real movement (PLAYING) begins
-    run: { src: 'character-run-hd.webp', frames: 6 },
-    jump: { src: 'character-jump-hd.webp', frames: 5 }, // five poses follow takeoff, ascent, apex, descent and landing
+    stand: { src: 'character-stand-aligned.webp', frames: 1 }, // static pose shown only during the SPAWN flicker -- the run cycle doesn't start until real movement (PLAYING) begins
+    run: { src: 'character-run-aligned.webp', frames: 6 },
+    jump: { src: 'character-jump-aligned.webp', frames: 5 }, // five poses follow takeoff, ascent, apex, descent and landing
     coin: { src: 'coin-spin.webp', frames: 12 },
     candle: { src: 'obstacle-candle.webp', frames: 1 },
     rugged: { src: 'dinosaur-hood.webp', frames: 1 },
