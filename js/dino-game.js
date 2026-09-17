@@ -560,8 +560,7 @@ if (canvas) {
 
   // Player draw box tracks whichever cycle is active -- run frames and jump
   // frames aren't the same aspect (arms/cape spread wider mid-jump).
-  // Single source of truth for "is there a player to draw (and shadow)
-  // this frame" -- shared by drawPlayer() and the shadow sizing in draw()
+  // Determine whether the player sprite is visible this frame.
   // so the two can't drift out of sync.
   //  - LOADING/IDLE: no player at all, just the overlay text + background.
   //  - SPAWN: blinks in (see updateSpawn()).
@@ -586,33 +585,6 @@ if (canvas) {
     }
   }
 
-  // Soft contact shadows, drawn before any sprite -- a flat cutout with
-  // nothing grounding it visually is the other half of why the scene reads
-  // flat. Airborne things (a jump, a floating rugged obstacle, a hovering
-  // coin) get a smaller, fainter shadow the higher they are. Hoisted to a
-  // real top-level function instead of an arrow function re-created inside
-  // draw() every frame -- that was allocating a fresh closure 60+ times a
-  // second, exactly the GC churn the array-compaction pass elsewhere in
-  // this file was written to avoid (mobile CPUs feel this kind of thing as
-  // stutter much more than desktop does).
-  // No save()/restore() here (each was pushing/popping the whole canvas
-  // state -- transform, clip, every style, not just the two properties
-  // this actually touches) -- fillStyle is set once by the caller before
-  // any of these run since it's always the same color, and draw() resets
-  // globalAlpha back to 1 right after the last shadow of the frame instead
-  // of every call cleaning up after itself individually.
-  function drawGroundShadow(cx, w, lift) {
-    const t = Math.min(1, Math.max(0, lift) / 140);
-    const alpha = 0.24 * (1 - t * 0.75);
-    if (alpha < 0.02) return;
-    const sw = w * (1 - t * 0.3);
-    const sh = 9 * (1 - t * 0.4);
-    ctx.globalAlpha = alpha;
-    ctx.beginPath();
-    ctx.ellipse(cx, GROUND_Y + 3, Math.max(1, sw / 2), Math.max(1, sh / 2), 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
   function draw() {
     ctx.clearRect(0, 0, CW, CH);
 
@@ -621,21 +593,6 @@ if (canvas) {
     ctx.fillRect(0, GROUND_Y, CW, CH - GROUND_Y);
     ctx.fillStyle = '#6a704a';
     ctx.fillRect(0, GROUND_Y, CW, 2);
-    ctx.fillStyle = '#34472b';
-    for (let i = 0; i < coins.length; i++) {
-      const c = coins[i];
-      if (!c.taken) drawGroundShadow(c.x + c.w / 2, c.w, (GROUND_Y - c.h) - c.y);
-    }
-    for (let i = 0; i < obstacles.length; i++) {
-      const o = obstacles[i];
-      drawGroundShadow(o.x + o.w / 2, o.w, (GROUND_Y - o.h) - o.y);
-    }
-    if (playerVisible()) {
-      const playerW = GROUND_HEIGHT * (state === STATE.SPAWN ? standAspect : player.grounded ? runAspect : jumpAspect);
-      drawGroundShadow(player.x + playerW / 2, playerW * 0.95, (GROUND_Y - GROUND_HEIGHT) - player.y);
-    }
-    ctx.globalAlpha = 1; // shadows are the only thing that touches this -- reset once instead of per-call
-
     // coins
     for (let i = 0; i < coins.length; i++) {
       const c = coins[i];
