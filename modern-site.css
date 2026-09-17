@@ -1,0 +1,58 @@
+/* Shared modern shell, independent of homepage composition and game logic. */
+body:is(.homepage,.site-inner) { --site-paper:#fafaf5; --site-forest:#09251c; --site-muted:#667064; --site-line:#e0e5d7; --paper:#fafaf5; --forest:#09251c; --ink:#09251c; --ink-dim:#667064; --cream2:#09251c; --gold:#567b22; background:#fafaf5; color:#09251c; font-family:Arial,Helvetica,sans-serif; }
+:is(.homepage,.site-inner) :is(h1,h2,h3,p,a,button,input,summary,label,select) { font-family:Arial,Helvetica,sans-serif; }
+:is(.homepage,.site-inner) .topbar { background:#fafaf5f5; border:0; box-shadow:none; }
+:is(.homepage,.site-inner) .topbar-inner { max-width:1320px; min-height:82px; padding:14px 32px; }
+:is(.homepage,.site-inner) .brand-logo { width:43px; height:43px; filter:none; }
+:is(.homepage,.site-inner) .brand-name { display:flex; flex-direction:row; gap:5px; font:bold 18px/1 Arial,sans-serif; letter-spacing:-.035em; }
+:is(.homepage,.site-inner) .brand-tagline { display:none; }
+:is(.homepage,.site-inner) .nav-links { font-size:14px; }
+:is(.homepage,.site-inner) .nav-links a[aria-current="page"]::after { background:#82b939; }
+:is(.homepage,.site-inner) .nav-toggle { border:1px solid #d4ddc8; border-radius:12px; background:transparent; }
+:is(.homepage,.site-inner) .topbar-right > .home-button { color:#fafaf5; background:#09251c; border:0; box-shadow:none; border-radius:30px; font-size:13px; min-height:42px; }
+.site-inner .section-title,.site-inner .rank-hero-title { color:#09251c; font-weight:800; letter-spacing:-.05em; line-height:1.04; }
+.site-inner .section-desc { color:#667064; font-size:17px; line-height:1.6; }
+.site-inner :is(.quicklink-card,.hood-faq-item,.hood-ladder-item,.hood-stats-grid .rank-stat) { background:#f0f2e8; border:1px solid #e0e6d6; border-radius:18px; box-shadow:none; }
+.site-inner .quicklink-card:hover { border-color:#96be61; box-shadow:0 8px 22px #163c2910; }
+.site-inner :is(.btn-primary,.wallet-modal .btn-primary) { background:#b5f64d; color:#102b1c; border:1px solid #b5f64d; border-radius:28px; font-weight:700; box-shadow:none; }
+.site-inner .btn-ghost { background:transparent; color:#153824; border:1px solid #7c9470; border-radius:28px; }
+.site-inner :is(.rank-live-badge,.rank-chain-badge) { background:#e6f6cd; border-color:#b4cf91; color:#365628; }
+.site-inner .wallet-modal-card { background:#fafaf5; border:1px solid #d9e3ce; border-radius:22px; box-shadow:0 24px 70px #09251c33; }
+.site-inner .wallet-option { background:#f0f2e8; border:1px solid #d8e2ca; border-radius:16px; box-shadow:none; }
+.site-inner .wallet-modal-close { background:#eaf0df; border:1px solid #d1dfbd; color:#153824; }
+.site-inner .wallet-option-meta { background:#d9f4b4; border-color:#abc78b; color:#23432d; }
+.site-inner .rank-stat { background:#f0f2e8; border-color:#dce3d2; }
+.site-inner .next-tier-track { background:#e0e7d6; border:0; }
+.site-inner .next-tier-fill { background:linear-gradient(90deg,#71a335,#b5f64d); }
+.homepage.activity-page #game.forest-arcade { background:#102e23; border:0; border-radius:22px; box-shadow:none; padding:8px 18px 20px; }
+.homepage.activity-page .forest-arcade h3 { font-weight:800; letter-spacing:-.05em; color:#fafaf5; }
+.homepage.activity-page .runner-tagline { font-style:normal; color:#bdc9ba; }
+.homepage.activity-page .runner-scores span { color:#bbd89c; }
+.homepage.activity-page .runner-scores strong { font-family:Arial,sans-serif; font-weight:700; color:#fafaf5; }
+.homepage.activity-page .forest-arcade .hood-game-wrap:not(:fullscreen):not(.is-pseudo-fullscreen):not(.hood-game-force-landscape) { border:0; border-radius:14px; box-shadow:none; }
+.homepage.activity-page .forest-arcade .home-game-start { background:#b5f64d; color:#09251c; border:0; border-radius:30px; box-shadow:none; font-size:19px; font-weight:700; }
+.homepage.activity-page .forest-arcade .home-game-caption { color:#c0d2b1; }
+.homepage.activity-page .reveal-treasury { background:radial-gradient(ellipse at 50% 46%,#5b773330,transparent 60%),#102e23; border:0; border-radius:24px; box-shadow:none; }
+.homepage.activity-page .reveal-treasury h2 { font-weight:800; letter-spacing:-.055em; color:#f9fbee; }
+.homepage.activity-page .reveal-treasury .invite-kicker { color:#c0ef8c; }
+.homepage.activity-page .reveal-treasury .invite-kicker::before,.homepage.activity-page .reveal-treasury .invite-kicker::after { display:none; }
+.homepage.activity-page .reveal-treasury .btn-spin { background:#b5f64d; border:0; border-radius:30px; box-shadow:none; color:#09251c; font-size:21px; font-weight:700; }
+.homepage.activity-page .reveal-treasury .treasury-faces { border-color:#d4e6b920; }
+.homepage.activity-page .face-draw-stage { border-color:#d3e3bc44; border-radius:24px; }
+.homepage.activity-page .face-draw-title { font-weight:800; letter-spacing:-.04em; }
+.homepage.activity-page .face-draw-spin { background:#b5f64d; color:#09251c; border:0; border-radius:30px; box-shadow:none; }
+:is(.homepage,.site-inner) .home-footer { background:#fafaf5; color:#09251c; }
+:is(.homepage,.site-inner) .bottom-footer-grid :is(a,p) { color:#2d493a; }
+:is(.homepage,.site-inner) .bottom-footer-grid .home-footer-brand { font-size:18px; font-weight:700; color:#09251c; }
+:is(.homepage,.site-inner) .bottom-footer-grid nav h2,:is(.homepage,.site-inner) .bottom-footer-signature,:is(.homepage,.site-inner) .bottom-footer-note > span { color:#66715e; }
+:is(.homepage,.site-inner) .bottom-footer-note { border-color:#e1e6d8; }
+:is(.homepage,.site-inner) .bottom-footer-note .disclaimer { color:#66715e; }
+@media(max-width:1023px) { :is(.homepage,.site-inner) .nav-links.open { background:#fafaf5; border-color:#e0e5d7; } }
+@media(max-width:600px) {
+ :is(.homepage,.site-inner) .topbar-inner { padding:12px 16px; min-height:68px; }
+ :is(.homepage,.site-inner) .brand-name { font-size:14px; }
+ :is(.homepage,.site-inner) .brand-logo { width:34px; height:34px; }
+ .homepage.activity-page #game.forest-arcade { padding:5px 10px 14px; border-radius:17px; }
+ .homepage.activity-page .reveal-treasury { border-radius:18px; }
+ .site-inner .section-title { font-size:36px; }
+}
