@@ -580,3 +580,35 @@
   .homepage .home-about-column h2 { font-size: 25px; }
 }
 
+
+/* An explicit invitation to the reveal, separate from the face gallery. */
+.homepage .reveal-invite { display: grid; grid-template-columns: .9fr 1.1fr; gap: 0 36px; align-items: center; margin-top: 42px; padding: 36px 44px; border: 1px solid #b99d55; border-radius: 22px; background: radial-gradient(ellipse at 12% 50%,#67824955,transparent 60%),linear-gradient(125deg,#173829,#10281e); color: #f6edce; text-align: left; box-shadow: 0 14px 32px #193c2b15,inset 0 1px #f5de9729; }
+.homepage .reveal-invite::before,.homepage .reveal-invite::after { content: none; }
+.reveal-invite > .gallery-wrap { display: none !important; }
+.reveal-invite-art { grid-row: 1 / 5; position: relative; height: 255px; width: 100%; max-width: 360px; margin: auto; }
+.invite-card { position: absolute; top: 28px; width: 138px; height: 184px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid var(--invite-color); border-radius: 14px; background: radial-gradient(ellipse at center,color-mix(in srgb,var(--invite-color) 22%,#132c23),#10231e); box-shadow: 0 12px 24px #0004; }
+.invite-card img { width: 108px; height: 108px; object-fit: contain; }
+.invite-card > span { font: 8px/1.5 'IBM Plex Mono',monospace; color: var(--invite-color); letter-spacing: .1em; }
+.invite-silver { --invite-color: #c3e0e6; left: 2%; transform: rotate(-13deg); }
+.invite-mythic { --invite-color: #d5a5f3; right: 2%; transform: rotate(13deg); }
+.invite-gold { --invite-color: #f0cd7c; z-index: 1; left: calc(50% - 69px); top: 10px; height: 211px; box-shadow: 0 12px 30px #0005,0 0 32px #edcb7025; }
+.invite-card .invite-card-star { font-size: 21px; margin-bottom: 7px; }
+.reveal-invite-copy .invite-kicker { color: #e7cb88; font: 9px/1.6 'IBM Plex Mono',monospace; letter-spacing: .14em; margin: 0 0 12px; }
+.homepage .reveal-invite h3 { color: #fff0d0; font-size: clamp(27px,3vw,39px); line-height: 1.1; margin: 0 0 16px; }
+.reveal-invite-copy > p:not(.invite-kicker) { color: #c7d2bb; font-size: 16px; line-height: 1.65; max-width: 440px; margin: 0 0 18px; }
+.invite-steps { display: flex; flex-wrap: wrap; gap: 8px 16px; color: #d8c391; font: 9px/1.6 'IBM Plex Mono',monospace; margin-bottom: 22px; }
+.homepage .reveal-invite .fod-row { padding: 0; margin: 0; justify-content: flex-start; }
+.homepage .reveal-invite .btn-spin { width: min(100%,300px); min-height: 52px; padding: 12px 24px; border: 1px solid #ffe4a2; border-radius: 9px; color: #183725; background: linear-gradient(135deg,#f7da8f,#dcb25a); box-shadow: 0 4px 0 #957331,0 7px 24px #ebc77522; font-size: 20px; }
+.homepage .reveal-invite .btn-spin:hover:not(:disabled) { background: #ffe3a1; transform: translateY(-2px); }
+.homepage .reveal-invite .home-daily-note { grid-column: 2; margin: 14px 0 0; color: #bccbb1; padding: 0; font-size: 12px; }
+.homepage .reveal-invite .fod-message { grid-column: 2; padding: 0; color: #f0cd7c; }
+@media(max-width:720px) {
+ .homepage .reveal-invite { grid-template-columns: 1fr; padding: 28px 22px; gap: 0; text-align: center; }
+ .reveal-invite-art { grid-row: auto; height: 240px; max-width: 310px; }
+ .reveal-invite-copy > p:not(.invite-kicker) { margin-left: auto; margin-right: auto; }
+ .invite-steps { justify-content: center; }
+ .homepage .reveal-invite .fod-row { justify-content: center; }
+ .homepage .reveal-invite .home-daily-note,.homepage .reveal-invite .fod-message { grid-column: 1; }
+ .invite-card { width: 120px; }
+ .invite-gold { left: calc(50% - 60px); }
+}
