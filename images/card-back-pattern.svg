@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320" fill="none">
+  <defs>
+    <pattern id="weave" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M12 0 24 12 12 24 0 12Z" stroke="#c9ae70" stroke-opacity=".10" stroke-width=".6"/>
+      <circle cx="12" cy="12" r="1" fill="#c9ae70" fill-opacity=".18"/>
+    </pattern>
+    <g id="sprig" stroke="#d6bd80" stroke-width="1.1">
+      <path d="M0 0C-26-26-28-62-8-92"/>
+      <path d="M-15-24C-37-24-39-38-35-46C-22-43-14-36-15-24ZM-20-45C-8-50-4-62-8-71C-21-66-24-57-20-45ZM-18-66C-34-70-35-84-30-92C-18-85-15-78-18-66Z" fill="#c9ae70" fill-opacity=".09"/>
+    </g>
+    <g id="quarter">
+      <path d="M26 101V40Q26 26 40 26H94M33 79V42Q33 33 42 33H77" stroke="#d6bd80" stroke-opacity=".65"/>
+      <path d="M30 30C60 31 62 55 46 60C31 64 32 43 44 44C55 45 48 52 44 49M40 28C52 14 69 25 74 35M28 40C14 52 25 69 35 74" stroke="#d6bd80" stroke-width="1.1"/>
+      <path d="M50 67Q71 61 75 45Q79 63 96 69Q76 71 69 91Q65 76 50 67Z" stroke="#bba16a" stroke-opacity=".5"/>
+      <path d="M23 112 27 118 23 124 19 118Z" fill="#d6bd80"/>
+    </g>
+  </defs>
+  <rect width="240" height="320" fill="url(#weave)"/>
+  <rect x="12" y="12" width="216" height="296" rx="16" stroke="#d6bd80" stroke-opacity=".75"/>
+  <rect x="17" y="17" width="206" height="286" rx="12" stroke="#d6bd80" stroke-opacity=".28"/>
+  <use href="#quarter"/><use href="#quarter" transform="translate(240 0) scale(-1 1)"/>
+  <use href="#quarter" transform="translate(0 320) scale(1 -1)"/><use href="#quarter" transform="translate(240 320) scale(-1 -1)"/>
+  <g transform="translate(120 160)">
+    <path d="M0-99 68 0 0 99-68 0Z" stroke="#d6bd80" stroke-opacity=".28"/>
+    <path d="M0-77 53 0 0 77-53 0Z" stroke="#d6bd80" stroke-opacity=".65"/>
+    <use href="#sprig" transform="translate(-12 51)"/><use href="#sprig" transform="translate(12 51) scale(-1 1)"/>
+    <use href="#sprig" transform="translate(-12 -51) scale(1 -1)"/><use href="#sprig" transform="translate(12 -51) scale(-1 -1)"/>
+    <circle r="28" fill="#18382b" stroke="#d6bd80"/>
+    <circle r="22" stroke="#d6bd80" stroke-opacity=".45"/>
+    <path d="M0-19C3-5 5-3 19 0C5 3 3 5 0 19C-3 5-5 3-19 0C-5-3-3-5 0-19Z" fill="#dec58a" fill-opacity=".8"/>
+    <path d="M0-8 8 0 0 8-8 0Z" fill="#17382b"/>
+  </g>
+</svg>
