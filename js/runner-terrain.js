@@ -4,13 +4,7 @@ export function prepareTerrain() {
   const c=tile.getContext('2d');
   c.fillStyle='#907047'; c.fillRect(0,8,960,82);
   c.fillStyle='#b49a65'; c.fillRect(0,10,960,31);
-  c.fillStyle='#658044'; c.fillRect(0,6,960,10);
-  c.fillStyle='#8d9d50'; c.fillRect(0,6,960,4);
-  for(let i=0;i<120;i++) {
-    const x=i*8,h=3+(i*7%6);
-    c.fillStyle=i%3?'#718847':'#a3af62';
-    c.beginPath();c.moveTo(x,10);c.lineTo(x-3,7-h);c.lineTo(x+2,7);c.lineTo(x+5,3-h/2);c.lineTo(x+5,12);c.fill();
-  }
+  c.fillStyle='#c2aa79'; c.fillRect(0,8,960,3);
   for(let i=0;i<25;i++) {
     const x=(i*137+25)%960,y=21+(i*13%20);
     c.fillStyle=i%2?'#7b795e':'#c3b28a';

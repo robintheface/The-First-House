@@ -1,4 +1,4 @@
-import { prepareTerrain, drawTerrain } from './runner-terrain.js?v=1';
+import { prepareTerrain, drawTerrain } from './runner-terrain.js?v=2';
 import { wrapBackground, prepareBackground, drawBackground } from './runner-background.js?v=1';
 import { stepDinosaurEncounter, updateBreath, updateDinosaurJump, stepFireballs, hitsFireball, drawFireball, drawDinosaur } from './dinosaur-fire.js?v=3';
 // Endless-runner mini-game for the main page ("Outrun the rug"). Canvas +
