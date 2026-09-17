@@ -9,7 +9,7 @@ import { stepDinosaurEncounter, updateBreath, updateDinosaurJump, stepFireballs,
 // wallet-connect.js: no 'unsafe-inline' script-src.
 
 import * as lb from './leaderboard.js';
-import { drawWoodland, hitsWoodland, logSize } from './woodland-obstacles.js?v=3';
+import { drawWoodland, hitsWoodland, LOG_VARIANTS, logSize } from './woodland-obstacles.js?v=4';
 
 const canvas = document.getElementById('hoodGameCanvas');
 if (canvas) {
@@ -239,14 +239,15 @@ if (canvas) {
     }
 
     const expression = ['angry', 'shocked', 'smug', 'sad', 'confused', 'sleepy'][Math.floor(Math.random() * 6)];
-    // Single upright logs in two moderate heights, with no close-follow pairs.
-    const woodType = Math.random() < .5 ? 'vertical-short' : 'vertical-long';
+    // Single logs with stable shallow, medium or deep placement in the soil.
+    const woodType = LOG_VARIANTS[Math.floor(Math.random() * LOG_VARIANTS.length)];
+    const burial = [.08, .2, .34][Math.floor(Math.random() * 3)];
     if(!isRugged) {
       ({w,h}=logSize(woodType,GROUND_HEIGHT * .72));
-      baseY=startY=GROUND_Y-h;
+      baseY=startY=GROUND_Y-h+h*burial;
     }
     const encounter=isRugged && Math.random()<.55 ? 'peek' : 'charge';
-    obstacles.push({ encounter, shotLimit:2+Math.floor(Math.random()*2), kind, expression, woodType, born: elapsed, baseX: x, x, baseY, y: startY, w, h, moveType, moveAmp, moveSpeed, moveTimer: 0 });
+    obstacles.push({ encounter, shotLimit:2+Math.floor(Math.random()*2), kind, expression, woodType, groundY: GROUND_Y, born: elapsed, baseX: x, x, baseY, y: startY, w, h, moveType, moveAmp, moveSpeed, moveTimer: 0 });
     scheduleNextObstacle();
   }
 

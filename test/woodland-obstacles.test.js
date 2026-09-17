@@ -23,3 +23,12 @@ it('offers four proportional shapes with safe transparent corners',()=>{
  expect(logSize('horizontal-long').w).toBeGreaterThan(logSize('horizontal-short').w);
  expect(logSize('vertical-long').h).toBeGreaterThan(logSize('vertical-short').h);
 });
+
+it('clips buried log collision regions at the ground for every orientation',()=>{
+ for(const woodType of LOG_VARIANTS) for(const burial of [.08,.2,.34]) {
+  const size=logSize(woodType,65), groundY=200;
+  const o={kind:'candle',woodType,x:0,y:groundY-size.h+size.h*burial,groundY,...size};
+  for(const r of obstacleBoxes(o,0)) expect(o.y+(r[1]+r[3])*o.h).toBeLessThanOrEqual(groundY+1e-8);
+  expect(hitsWoodland({x:0,y:groundY+1,w:size.w,h:10},o,0)).toBe(false);
+ }
+});
