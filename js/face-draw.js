@@ -1,20 +1,12 @@
-// The "SPIN" button below the gallery (index.html, #faces) is the only way
-// into the reveal card -- gallery face cards are decorative only, not
-// clickable. Clicking it spins the gallery's own live marquee,
-// CS:GO-case-opening style: it races past the dead center of the gallery
-// (no fixed marker -- whichever card is actually passing through center
-// lights up live, tracked every frame) and decelerates to a stop, and
-// whichever face is lit when it lands flips (tap to reveal) to show its
-// joke, with a Share on X control. Backdrop click / Escape only close once
-// the joke's actually revealed, so a stray tap outside can't lose the
-// draw before it gets there. Kept as an external module, same CSP reason
-// as wallet-connect.js: script-src has no 'unsafe-inline'.
+// Face of the Day opens a centered dialog immediately. The existing reel
+// moves into that dialog for the draw, then returns to its homepage slot.
 import { randomJoke } from "./face-jokes.js";
 import { rarityFor } from "./face-rarity.js";
 
 const RARITY_CLASSES = ["rarity-legendary", "rarity-mythic", "rarity-silver", "rarity-bronze"]; // "normal" gets none
 
 const overlay = document.getElementById('faceDrawOverlay');
+const drawStage = overlay?.querySelector('.face-draw-stage');
 const cardEl = document.getElementById('faceDrawCard');
 const cardInner = cardEl ? cardEl.querySelector('.face-draw-card-inner') : null;
 const imgEl = document.getElementById('faceDrawImg');
@@ -27,23 +19,26 @@ const galleryWrap = document.querySelector('.gallery-wrap');
 const galleryTrack = document.querySelector('.gallery-track');
 // The real 24, not the aria-hidden duplicates that pad the marquee loop --
 // Face of the Day picks a winner from this set.
+const reel = document.getElementById('faceDrawReel');
+const drawStatus = document.getElementById('faceDrawStatus');
+const spinBtn = document.getElementById('faceDrawSpinBtn');
+const galleryHome = galleryWrap?.parentNode;
+const galleryNext = galleryWrap?.nextSibling;
+let drawId = 0;
+let previousOverflow = '';
+
 const realCards = [...document.querySelectorAll('.face-card')].filter((c) => c.getAttribute('aria-hidden') !== 'true');
 
 if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.length) {
   let currentMood = '';
   let currentJoke = '';
-  // True from the moment the joke's first shown until the next draw starts.
-  // Separate from is-flipped (which now just tracks which face is up, see
-  // tapToReveal below) so the backdrop/Escape close gate stays satisfied
-  // even after the user's flipped back to the front to look at the mood
-  // again -- otherwise closing would be impossible until they happened to
-  // land back on the joke side.
-  let hasRevealed = false;
+  // Keep the result out of the visible card until the user opens the seal.
+  let pendingResult = null;
 
   function setCardContent(mood, joke, imgSrc){
     currentMood = mood;
     currentJoke = joke;
-    hasRevealed = false;
+
     imgEl.src = imgSrc;
     imgEl.alt = '';
     labelEl.textContent = mood;
@@ -55,6 +50,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     // class is all it takes, no JS timer driving it.
     cardEl.classList.remove(...RARITY_CLASSES);
     const tier = rarityFor(mood);
+    cardEl.querySelector('.face-draw-front').dataset.tierLabel = tier === 'normal' ? 'Everyday' : tier;
     if (tier !== 'normal') cardEl.classList.add('rarity-' + tier);
   }
 
@@ -65,7 +61,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   }
 
   function triggerFlip(){
-    hasRevealed = true;
+
     cardInner.classList.add('is-flipped');
     cardInner.removeEventListener('transitionend', onFlipEnd);
     cardInner.style.transform = 'rotateY(180deg)';
@@ -78,30 +74,16 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     cardInner.style.transform = 'rotateY(0deg)';
   }
 
-  // ---------- Face of the Day spins the live gallery itself ----------
-  // Rather than a separate popup reel, this hijacks the actual auto-
-  // scrolling .gallery-track: freezes it wherever its marquee animation
-  // currently is, temporarily appends extra loops of the real 24 cards so
-  // there's room to travel several laps in the same leftward direction it
-  // was already drifting, then eases it to a stop at the dead center of
-  // .gallery-wrap. No fixed marker -- whichever card is actually passing
-  // through center gets lit live (tracked every frame) as the spin runs,
-  // and whichever one is lit when it lands hands off into the #faceDrawCard
-  // flip reveal.
-  const CLONE_LOOPS = 2;         // extra full 24-card loops appended for spin room
-  const LAND_LOOP = CLONE_LOOPS; // land in the last appended loop -- maximum room to travel
-  // 3 acts: ~2s winding up, a fast confident middle, ~2s decelerating back
-  // down into the landing -- 7s total. A single cubic-bezier can't express
-  // three literal, separately-timed phases, but a strong symmetric
-  // ease-in-out (near-flat close to both ends, steep through the middle)
-  // reads as exactly that: a real ~2s ramp on each side of a fast middle,
-  // for a curve this extreme.
-  const GALLERY_SPIN_MS = 7000;
-  const GALLERY_SPIN_EASE = 'cubic-bezier(.83,0,.17,1)';
+  // The fixed gold marker selects the card beneath it. A short launch
+  // gives way to a long deceleration, leaving time to follow the last cards.
+  const CLONE_LOOPS = 1;
+  const LAND_LOOP = CLONE_LOOPS;
+  const GALLERY_SPIN_MS = 7200;
+  const GALLERY_SPIN_EASE = 'cubic-bezier(.18,.45,.2,1)';
   let gallerySpinCleanup = null; // non-null only while a spin (or its post-landing pause) is in flight
   let galleryRafId = null;
   let litCard = null;
-  let glowActive = true; // spin always starts slow, so it starts lit
+  let imagesReady = Promise.resolve();
 
   function readTranslateX(el){
     const m = getComputedStyle(el).transform;
@@ -126,6 +108,40 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   let spinAudioCtx = null;
   let spinClickBuffer = null;
   let lastTickAt = 0;
+  const soundSources = new Set();
+  function trackSound(source, nodes) {
+    soundSources.add(source);
+    source.onended = () => { soundSources.delete(source); source.disconnect(); nodes.forEach(node => node.disconnect()); };
+  }
+  function stopAllDrawSounds() {
+    soundSources.forEach(source => { try { source.stop(); } catch {} });
+    soundSources.clear();
+  }
+  function playChime(notes, spacing = .09, duration = .35) {
+    const ctx = spinAudioCtx;
+    if (!ctx || ctx.state !== 'running' || document.hidden) return;
+    notes.forEach((frequency, index) => {
+      const start = ctx.currentTime + index * spacing;
+      const tone = ctx.createOscillator();
+      const volume = ctx.createGain();
+      tone.type = 'sine'; tone.frequency.value = frequency;
+      volume.gain.setValueAtTime(.0001, start);
+      volume.gain.exponentialRampToValueAtTime(.16, start + .012);
+      volume.gain.exponentialRampToValueAtTime(.0001, start + duration);
+      tone.connect(volume); volume.connect(ctx.destination);
+      trackSound(tone, [volume]); tone.start(start); tone.stop(start + duration + .02);
+    });
+  }
+  function playResultSound(tier) {
+    const melodies = {
+      normal: [392, 523.25], bronze: [329.63, 392, 523.25],
+      silver: [523.25, 659.25, 783.99], mythic: [440, 659.25, 880, 1108.73],
+      legendary: [523.25, 659.25, 783.99, 1046.5, 1318.51]
+    };
+    playChime(melodies[tier] || melodies.normal, .11, .55);
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stopAllDrawSounds(); });
+
   function ensureSpinAudio(){
     if (spinAudioCtx) return spinAudioCtx;
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -154,9 +170,10 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   // it. Starting an actual (silent, 1-sample) buffer right here forces
   // the unlock immediately, in the same call stack as the tap.
   function primeSpinSound(){
-    const ctx = ensureSpinAudio();
+    let ctx;
+    try { ctx = ensureSpinAudio(); } catch { return; }
     if (!ctx) return;
-    if (ctx.state !== 'running') ctx.resume();
+    if (ctx.state !== 'running') ctx.resume().catch(() => {});
     const unlock = ctx.createBufferSource();
     unlock.buffer = ctx.createBuffer(1, 1, ctx.sampleRate);
     unlock.connect(ctx.destination);
@@ -164,7 +181,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   }
   function playSpinTick(gapMs){
     const ctx = spinAudioCtx;
-    if (!ctx || !spinClickBuffer) return;
+    if (document.hidden || !ctx || ctx.state !== 'running' || !spinClickBuffer) return;
     const now = ctx.currentTime;
     const src = ctx.createBufferSource();
     src.buffer = spinClickBuffer;
@@ -174,11 +191,12 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     filter.Q.value = 3.2;
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.0945, now + 0.001); // sharp attack -- a click, not a swell (0.063 + 50%)
+    gain.gain.exponentialRampToValueAtTime(0.24, now + 0.001); // Clear short attack for the passing-card click.
     gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.02); // short decay, like a pawl clacking a gear
     src.connect(filter);
     filter.connect(gain);
     gain.connect(ctx.destination);
+    trackSound(src, [filter, gain]);
     src.start(now);
     src.stop(now + 0.03);
   }
@@ -188,23 +206,6 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
 
   // Below this fraction of the spin's peak speed, the passing card
   // actually lights up; at or above it, no card lights (see trackLitCard).
-  // The fast cruise whips past many cards a second -- lighting every one
-  // of them, each with its own glow/scale pop, reads as a strobe rather
-  // than a highlight. Gating it to the slow start and the decelerating
-  // tail keeps the glow meaningful without the flicker. The tick sound
-  // above is deliberately NOT gated by this -- it fires on every real
-  // crossing so it stays audibly synced to the actual spin speed.
-  const GLOW_SPEED_RATIO = 0.18;
-  // Empirically measured against this exact easing curve: peak
-  // instantaneous speed during a spin ≈ (travel distance / duration) *
-  // this factor -- recomputed fresh each spin from the real distance/
-  // duration (see spinGallery) rather than hardcoded, so the glow gate
-  // above stays calibrated if either changes again later.
-  const SPIN_PEAK_FACTOR = 5.95;
-
-  let spinPeakSpeed = 1;
-  let lastTrackX = 0;
-  let lastTrackT = 0;
   let lastCenterCard = null; // drives the tick above -- independent of litCard/glowActive
 
   function setLitCard(el){
@@ -217,44 +218,18 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   function trackLitCard(step, cardWidth, centerX, totalCount){
     const trackX = readTranslateX(galleryTrack);
     const now = performance.now();
-    const dt = now - lastTrackT;
-    const speed = dt > 0 ? Math.abs(trackX - lastTrackX) / dt : 0;
-    lastTrackX = trackX;
-    lastTrackT = now;
-
     const centerInTrack = centerX - trackX;
     const idx = Math.max(0, Math.min(totalCount - 1, Math.round((centerInTrack - cardWidth / 2) / step)));
     const centerCard = galleryTrack.children[idx];
 
-    // Tick on every real center-crossing, independent of the glow gate --
-    // this is what keeps the sound synced to the actual spin speed even
-    // while the visual stays dark during the fast cruise. Tracked via its
-    // own reference (not litCard) since litCard is deliberately left
-    // stale/dark while the gate is closed, but the center card keeps moving.
+    // Track sound only while moving. The winner gets its glow after landing,
+    // avoiding repeated filter repaints on the fast-moving image strip.
     if (centerCard !== lastCenterCard) {
       lastCenterCard = centerCard;
       playSpinTick(lastTickAt ? now - lastTickAt : 40);
       lastTickAt = now;
     }
 
-    // Hysteresis around the threshold -- crossing a single speed value
-    // right at the boundary between the fast cruise and the slow tail lets
-    // measurement noise flicker glowActive on/off several times in as many
-    // frames. A gap between the "turn off" and "turn on" speeds keeps that
-    // crossing a single, clean transition instead of a mini strobe burst.
-    const threshold = spinPeakSpeed * GLOW_SPEED_RATIO;
-    if (glowActive) {
-      if (speed > threshold * 1.3) glowActive = false;
-    } else if (speed <= threshold * 0.75) {
-      glowActive = true;
-    }
-    if (glowActive) {
-      setLitCard(centerCard);
-    } else if (litCard) {
-      // Too fast to track by eye right now -- go dark rather than strobe.
-      litCard.classList.remove('is-lit');
-      litCard = null;
-    }
     galleryRafId = requestAnimationFrame(() => trackLitCard(step, cardWidth, centerX, totalCount));
   }
 
@@ -273,12 +248,17 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     galleryTrack.style.transition = '';
     galleryTrack.style.transform = '';
     galleryTrack.style.animation = '';
-    if (fodBtn) fodBtn.disabled = false;
+    galleryTrack.style.willChange = '';
     gallerySpinCleanup = null;
   }
 
   function spinGallery(winnerIdx, onDone){
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      onDone([]);
+      return;
+    }
     const currentX = readTranslateX(galleryTrack);
+    galleryTrack.style.willChange = 'transform';
     // Freeze the marquee exactly where it visually is right now, then
     // switch it from CSS-keyframe-driven to a plain transform this
     // function fully controls -- no jump, since the frozen value is the
@@ -292,6 +272,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
       realCards.forEach((card) => {
         const clone = card.cloneNode(true);
         clone.removeAttribute('id');
+        clone.setAttribute('aria-hidden', 'true');
         galleryTrack.appendChild(clone);
         addedClones.push(clone);
       });
@@ -313,13 +294,10 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     const targetX = currentX + (centerX - winnerCenter) + jitter;
 
     stopLitTracking();
-    lastTrackX = currentX;
-    lastTrackT = performance.now();
     lastCenterCard = null;
     lastTickAt = 0;
-    glowActive = true;
-    spinPeakSpeed = (Math.abs(targetX - currentX) / GALLERY_SPIN_MS) * SPIN_PEAK_FACTOR;
-    trackLitCard(step, cardWidth, centerX, galleryTrack.children.length);
+    const localCenter = centerX - galleryTrack.getBoundingClientRect().left + currentX;
+    trackLitCard(step, cardWidth, localCenter, galleryTrack.children.length);
 
     galleryTrack.style.transition = `transform ${GALLERY_SPIN_MS}ms ${GALLERY_SPIN_EASE}`;
     galleryTrack.style.transform = `translateX(${targetX}px)`;
@@ -327,6 +305,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     function onEnd(e){
       if (e.target !== galleryTrack || e.propertyName !== 'transform') return;
       galleryTrack.removeEventListener('transitionend', onEnd);
+      clearTimeout(fallback);
       stopLitTracking();
       // The live rAF tracking should already have landed here, but pin it
       // explicitly -- rounding across many frames of a multi-lap spin is
@@ -335,8 +314,10 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
       onDone(addedClones);
     }
     galleryTrack.addEventListener('transitionend', onEnd);
+    const fallback = setTimeout(() => onEnd({ target: galleryTrack, propertyName: 'transform' }), GALLERY_SPIN_MS + 100);
     gallerySpinCleanup = () => {
       galleryTrack.removeEventListener('transitionend', onEnd);
+      clearTimeout(fallback);
       cleanupGallerySpin(addedClones);
     };
   }
@@ -347,85 +328,112 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     fodMessage.hidden = !text;
   }
 
-  // Server-side cap (api/face-draw.js): 3 draws per IP per UTC day. A
-  // client-only counter (localStorage) would be trivially bypassed by
-  // clearing storage or an incognito tab, so the real limit lives there --
-  // this call is what actually spends one, before anything visual starts.
-  async function checkDrawAllowance(){
-    try {
-      const res = await fetch('/api/face-draw', { method: 'POST' });
-      if (res.status === 429) return { allowed: false, message: "Out of draws for today — resets at 00:00 UTC." };
-      if (!res.ok) return { allowed: false, message: "Can't check your draws right now. Try again in a moment." };
-      return { allowed: true };
-    } catch (err) {
-      return { allowed: false, message: "Can't reach the server. Check your connection and try again." };
+  function restoreGallery() {
+    if (galleryHome && galleryWrap.parentNode !== galleryHome) {
+      galleryHome.insertBefore(galleryWrap, galleryNext);
     }
   }
 
-  async function openFaceOfTheDay(){
-    if (!realCards.length || !fodBtn || fodBtn.disabled || !galleryTrack) return;
-    // Must happen synchronously inside the real click handler, before any
-    // await -- checkDrawAllowance() below awaits a fetch, so priming the
-    // spin sound after that point risks Safari (and other strict browsers)
-    // refusing to ever let it play. See primeSpinSound() above.
-    primeSpinSound();
+  function openFaceOfTheDay(){
+    if (!realCards.length || !fodBtn || fodBtn.disabled || !galleryTrack || !reel) return;
+    ++drawId;
+    overlay.classList.remove('is-spinning', 'is-winner');
+    galleryTrack.querySelectorAll('.face-card').forEach(card => {
+      const mood = card.querySelector('.face-label')?.textContent.trim() || '';
+      card.dataset.rarity = rarityFor(mood);
+      card.dataset.tierLabel = card.dataset.rarity === 'normal' ? 'Everyday' : card.dataset.rarity;
+    });
+    imagesReady = Promise.all([...galleryTrack.querySelectorAll('img')].map(img => {
+      img.loading = 'eager';
+      return img.decode ? img.decode().catch(() => {}) : Promise.resolve();
+    }));
     fodBtn.disabled = true;
-    showFodMessage('');
-    const allowance = await checkDrawAllowance();
-    if (!allowance.allowed) {
-      fodBtn.disabled = false;
-      showFodMessage(allowance.message);
-      return;
-    }
 
+    pendingResult = null;
+    currentMood = '';
+    currentJoke = '';
+    cardEl.classList.remove(...RARITY_CLASSES, 'is-unsealed');
+    cardEl.classList.add('is-sealed');
+    cardEl.setAttribute('aria-label', 'Reveal your mystery card');
+    cardInner.inert = true;
+    cardInner.setAttribute('aria-hidden', 'true');
+    labelEl.textContent = '';
+    jokeEl.textContent = '';
+    cardEl.querySelector('.face-draw-front').removeAttribute('data-tier-label');
+    showFodMessage('');
+    previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    cardEl.hidden = true;
+    reel.hidden = false;
+    drawStatus.textContent = 'Ready to find your face? Press Spin to begin.';
+    spinBtn.hidden = false;
+    spinBtn.disabled = false;
+    spinBtn.textContent = 'Spin';
+    reel.classList.add('is-ready');
+    reel.appendChild(galleryWrap);
+    drawStage.style.height = '';
+    overlay.hidden = false;
+    overlay.showModal();
+    // Keep the initial frame height when the reel is replaced by a result.
+    drawStage.style.height = `${drawStage.offsetHeight}px`;
+    spinBtn.focus({ preventScroll: true });
+  }
+
+  async function startDraw(){
+    if (overlay.hidden || !overlay.open || spinBtn.disabled || spinBtn.hidden) return;
+    spinBtn.disabled = true;
+    primeSpinSound();
+    const thisDraw = ++drawId;
+    drawStatus.textContent = 'Preparing your cards…';
+    await imagesReady;
+    // A closed or replaced dialog must never restart an old request.
+    if (thisDraw !== drawId || overlay.hidden) return;
+    playChime([220, 330, 440], .055, .18);
+    spinBtn.textContent = 'Spinning…';
+    overlay.classList.add('is-spinning');
+    drawStatus.textContent = 'The hood is finding your face…';
     const winnerIdx = Math.floor(Math.random() * realCards.length);
     const winnerCard = realCards[winnerIdx];
-    const winnerLabel = winnerCard.querySelector('.face-label');
-    const winnerMood = winnerLabel ? winnerLabel.textContent.trim() : '';
+    const winnerMood = winnerCard.querySelector('.face-label')?.textContent.trim() || '';
     const winnerJoke = randomJoke(winnerMood);
-    const winnerImg = winnerCard.querySelector('.face-img');
-    const winnerImgSrc = winnerImg ? winnerImg.src : '';
-
-    // No overlay/backdrop yet -- the spin plays out on the page itself, in
-    // the actual gallery, not behind a dialog. fodBtn is already disabled
-    // (set above, before the allowance check), so a second spin can't
-    // start before this one lands and fight it for control of the track.
-    // Two beats after landing: 1s with the winner card lit and sitting
-    // still in the gallery -> overlay backdrop appears (card still
-    // hidden) -> 0.5s later the card fades in showing the mood, with a
-    // "tap to reveal" prompt -- the joke flip is now a tap, not a timer.
+    const winnerImgSrc = winnerCard.querySelector('.face-img')?.src || '';
+    // Eager-load the moving cards: off-screen lazy images otherwise only
+    // begin loading as the fast reel carries them into view.
+    realCards.forEach(card => { card.querySelector('img').loading = 'eager'; });
     spinGallery(winnerIdx, (addedClones) => {
-      const overlayDelay = setTimeout(() => {
+      playChime([164.81], 0, .16);
+      overlay.classList.remove('is-spinning');
+      overlay.classList.add('is-winner');
+      const revealDelay = setTimeout(() => {
+        if (thisDraw !== drawId) return;
         cleanupGallerySpin(addedClones);
-        overlay.hidden = false;
-        document.body.style.overflow = 'hidden';
-        cardEl.hidden = true;
-
-        const fadeDelay = setTimeout(() => {
-          setCardContent(winnerMood, winnerJoke, winnerImgSrc);
-          resetCardToFront();
-          cardEl.hidden = false;
-          cardEl.classList.add('is-revealing');
-          void cardEl.offsetWidth; // force a reflow so the class removal below actually transitions
-          cardEl.classList.remove('is-revealing');
-        }, 500);
-        // Overlay's already up and the gallery's already restored at this
-        // point -- closing mid-fade just needs to cancel the pending reveal.
-        gallerySpinCleanup = () => { clearTimeout(fadeDelay); };
-      }, 1000);
-      gallerySpinCleanup = () => { clearTimeout(overlayDelay); cleanupGallerySpin(addedClones); };
+        restoreGallery();
+        reel.hidden = true;
+        spinBtn.hidden = true;
+        pendingResult = { mood: winnerMood, joke: winnerJoke, image: winnerImgSrc };
+        resetCardToFront();
+        cardEl.hidden = false;
+        drawStatus.textContent = 'Your card is sealed. Tap to reveal your face and rarity.';
+        cardEl.focus({ preventScroll: true });
+      }, 1100);
+      gallerySpinCleanup = () => { clearTimeout(revealDelay); cleanupGallerySpin(addedClones); };
     });
   }
 
-  // ---------- shared: close / share ----------
   function closeDraw(){
-    overlay.hidden = true;
-    document.body.style.overflow = '';
-    cardInner.removeEventListener('transitionend', onFlipEnd);
-    // Closing mid-spin (or during the post-landing pause, before the
-    // overlay even opened) needs the gallery put back exactly as much as
-    // closing after the joke's already showing does.
+    stopAllDrawSounds();
+    ++drawId;
     if (gallerySpinCleanup) gallerySpinCleanup();
+    restoreGallery();
+    reel.classList.remove('is-ready');
+    overlay.classList.remove('is-spinning', 'is-winner');
+    overlay.close();
+    overlay.hidden = true;
+    drawStage.style.height = '';
+    document.body.style.overflow = previousOverflow;
+    cardInner.removeEventListener('transitionend', onFlipEnd);
+    fodBtn.disabled = false;
+    fodBtn.focus({ preventScroll: true });
   }
 
   function shareOnX(){
@@ -441,31 +449,43 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     window.open(intent, '_blank', 'noopener,noreferrer');
   }
 
-  // Tap anywhere on the card flips it -- to the joke the first time, and
-  // back and forth between joke/mood on every tap after that. Share lives
-  // on the back face; it must only ever share, never also flip the card
-  // back to the front underneath the same tap.
+  // First open the seal, then allow flipping between face and story.
   function tapToReveal(e){
     if (e.target.closest('#faceDrawShareBtn')) return;
+    if (pendingResult) {
+      const result = pendingResult;
+      pendingResult = null;
+      setCardContent(result.mood, result.joke, result.image);
+      cardInner.inert = false;
+      cardInner.removeAttribute('aria-hidden');
+      cardEl.classList.remove('is-sealed');
+      cardEl.classList.add('is-unsealed');
+      cardEl.setAttribute('aria-label', 'Flip your face card to read its story');
+      const tier = rarityFor(result.mood);
+      drawStatus.textContent = `${result.mood} · ${tier === 'normal' ? 'Everyday' : tier}. Tap the card for your story.`;
+      playResultSound(tier);
+      return;
+    }
+    cardEl.classList.remove('is-unsealed');
     if (cardInner.classList.contains('is-flipped')) resetCardToFront();
     else triggerFlip();
   }
 
   if (fodBtn) fodBtn.addEventListener('click', openFaceOfTheDay);
+  if (spinBtn) spinBtn.addEventListener('click', startDraw);
+  cardInner.addEventListener('animationend', () => cardEl.classList.remove('is-unsealed'));
   if (cardEl) cardEl.addEventListener('click', tapToReveal);
-  // Backdrop click / Escape only actually close once the joke's been
-  // revealed at least once (hasRevealed) -- before that, a stray tap
-  // outside the card or an accidental Escape would dismiss the whole draw
-  // before the joke ever showed, losing the reveal entirely. hasRevealed,
-  // not is-flipped, so closing still works after flipping back to the
-  // mood side to look at it again.
-  overlay.querySelectorAll('[data-draw-close]').forEach((el) => {
-    el.addEventListener('click', () => {
-      if (hasRevealed) closeDraw();
-    });
+  cardEl.addEventListener('keydown', (e) => {
+    if (e.target !== cardEl || (e.key !== 'Enter' && e.key !== ' ')) return;
+    e.preventDefault();
+    tapToReveal(e);
   });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !overlay.hidden && hasRevealed) closeDraw();
+  overlay.querySelectorAll('[data-draw-close]').forEach((el) => {
+    el.addEventListener('click', closeDraw);
+  });
+  overlay.addEventListener('cancel', (e) => {
+    e.preventDefault();
+    closeDraw();
   });
   if (shareBtn) shareBtn.addEventListener('click', shareOnX);
 }

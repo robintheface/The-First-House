@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=66">
+<link rel="stylesheet" href="reveal-port.css?v=12">
 </head>
 <body>
 
@@ -125,7 +126,25 @@
     </div>
   </div>
 </div>
-<div id="faces" class="tab-panel" role="tabpanel" aria-labelledby="playTabSpin" hidden>
+<div id="faces" class="tab-panel reveal-port" role="tabpanel" aria-labelledby="playTabSpin" hidden>
+      <section id="revealTreasury" class="home-daily reveal-invite reveal-treasury" aria-labelledby="reveal-invite-title">
+  <div class="reveal-invite-art" aria-hidden="true">
+    <div class="invite-card invite-silver hood-card-back"></div>
+    <div class="invite-card invite-gold hood-card-back"></div>
+    <div class="invite-card invite-mythic hood-card-back"></div>
+
+
+
+
+
+  </div>
+  <div class="reveal-invite-copy">
+    <p class="invite-kicker">THE HOOD’S TREASURY</p>
+    <h2 id="reveal-invite-title">Your face is waiting.</h2>
+    <p>One spin. A hidden face. What will you reveal?</p>
+
+  </div>
+  <!-- Kept for the dialog reel; moved out of this section while spinning. -->
   <div class="gallery-wrap">
     <div class="gallery-track">
                 <div class="face-card">
@@ -323,9 +342,13 @@
 </div>
   </div>
   <div class="fod-row">
-    <button type="button" id="faceOfDayBtn" class="btn btn-spin">SPIN</button>
+    <button type="button" id="faceOfDayBtn" class="btn btn-spin">Reveal my card <span aria-hidden="true">✦</span></button>
   </div>
+    <div class="invite-steps"><span>Spin</span><span>Tap to reveal</span><span>Discover your tier</span></div>
   <p id="fodMessage" class="fod-message" hidden></p>
+
+        <p id="drawAvailability" class="home-daily-note">Unlimited spins. Let the hood decide.</p>
+      </section>
 </div>
 </section>
 
@@ -422,15 +445,23 @@
 
 
 <!-- FACE DRAW OVERLAY -->
-<div id="faceDrawOverlay" class="face-draw-overlay" hidden>
+<div class="reveal-port">
+<dialog id="faceDrawOverlay" class="face-draw-overlay" aria-labelledby="faceDrawTitle" hidden>
   <div class="face-draw-backdrop" data-draw-close></div>
   <div class="face-draw-stage">
-    <div id="faceDrawCard" class="face-draw-card">
+    <div class="reveal-stardust" aria-hidden="true"><i>✦</i><i>✧</i><i>✦</i><i>✧</i><i>✦</i><i>✧</i></div>
+    <p class="reveal-kicker">✦ THE HOOD’S TREASURY ✦</p>
+    <h2 id="faceDrawTitle" class="face-draw-title" tabindex="-1">Face of the Day</h2>
+    <p id="faceDrawStatus" class="face-draw-status" role="status">Finding your face…</p>
+    <div id="faceDrawReel" class="face-draw-reel" aria-hidden="true"></div>
+    <button type="button" id="faceDrawSpinBtn" class="face-draw-spin">Spin</button>
+    <div id="faceDrawCard" class="face-draw-card" tabindex="0" aria-label="Flip your face card" hidden>
+      <div class="face-draw-mystery hood-card-back" aria-hidden="true"><span>REVEAL MY CARD</span></div>
       <div class="face-draw-card-inner">
         <div class="face-draw-face face-draw-front">
           <img id="faceDrawImg" class="face-draw-img" src="images/face-01.webp" alt="">
           <span id="faceDrawLabel" class="face-draw-mood">—</span>
-          <span class="face-draw-tap-hint">Tap to reveal</span>
+          <span class="face-draw-tap-hint">Tap for your story</span>
         </div>
         <div class="face-draw-face face-draw-back">
           <span class="face-draw-back-kicker">The hood knows</span>
@@ -442,12 +473,13 @@
       </div>
     </div>
   </div>
+</dialog>
 </div>
 
 <script type="module" src="js/topbar-menus.js"></script>
 <script src="js/copy.js"></script>
 <script type="module" src="js/dino-game.js"></script>
-<script type="module" src="js/face-draw.js"></script>
+<script type="module" src="js/face-draw.js?v=14"></script>
 <script type="module" src="js/play-tabs.js"></script>
 </body>
 </html>
