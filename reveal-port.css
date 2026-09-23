@@ -721,11 +721,3 @@ body.draw-open > :not(.reveal-port) *::before,
 body.draw-open > :not(.reveal-port) *::after { animation-play-state:paused!important; }
 .reveal-port .face-draw-reel .gallery-wrap { -webkit-mask-image:none; mask-image:none; contain:paint; }
 .reveal-port .face-draw-reel .gallery-track { backface-visibility:hidden; }
-
-/* Match the sealed back's gold perimeter without covering tier lighting. */
-.reveal-port .face-draw-card .face-draw-front { border:0; border-radius:11px; }
-.reveal-port .face-draw-card .face-draw-front > .card-front-frame {
-  position:absolute;inset:0;z-index:2;pointer-events:none;
-  background:url('images/card-front-frame.svg') center / 100% 100% no-repeat;
-  border-radius:inherit;
-}
