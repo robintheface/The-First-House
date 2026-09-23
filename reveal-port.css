@@ -680,3 +680,36 @@
 .reveal-port .face-draw-reel .gallery-track { position:relative; animation:none; }
 .reveal-port .face-draw-reel .face-card { background-image:url('images/card-back-reel.svg'); box-shadow:none; filter:none; }
 .reveal-port .face-draw-reel .face-card.is-lit { box-shadow:0 0 20px #edcd7655; }
+
+/* Gentle idle motion; card angles stay intact while each seal floats. */
+#faces .reveal-treasury .invite-card {
+  animation:treasury-card-float 5.6s ease-in-out infinite;
+}
+#faces .reveal-treasury .invite-silver { animation-delay:-1.8s; }
+#faces .reveal-treasury .invite-mythic { animation-delay:-3.6s; }
+#faces .reveal-treasury .invite-gold { animation-duration:5s; }
+#faces .reveal-treasury .reveal-invite-art::before {
+  background:radial-gradient(ellipse,#f4ce7040,transparent 67%);
+  animation:treasury-gold-breathe 5s ease-in-out infinite;
+}
+#faces .reveal-treasury .reveal-invite-art::after {
+  background:radial-gradient(circle at 7% 55%,#fff0ae 0 1px,transparent 3px),radial-gradient(circle at 92% 32%,#ffe79d 0 1px,transparent 3px),radial-gradient(circle at 23% 8%,#fff7d6 0 1px,transparent 3px),radial-gradient(circle at 79% 90%,#ffdc83 0 1px,transparent 3px),radial-gradient(circle at 49% 3%,#fff7d6 0 1px,transparent 2px);
+  animation:treasury-sparkle 4.2s ease-in-out infinite;
+}
+@keyframes treasury-card-float {
+  0%,100% { translate:0 2px; }
+  50% { translate:0 -6px; }
+}
+@keyframes treasury-gold-breathe {
+  0%,100% { opacity:.45; transform:scale(.94); }
+  50% { opacity:.9; transform:scale(1.04); }
+}
+@keyframes treasury-sparkle {
+  0%,100% { opacity:.3; translate:0 2px; }
+  50% { opacity:1; translate:0 -3px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  #faces .reveal-treasury .invite-card,
+  #faces .reveal-treasury .reveal-invite-art::before,
+  #faces .reveal-treasury .reveal-invite-art::after { animation:none; }
+}
