@@ -76,7 +76,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
 
   // The fixed gold marker selects the card beneath it. A short launch
   // gives way to a long deceleration, leaving time to follow the last cards.
-  const GALLERY_SPIN_MS = 7200;
+  const GALLERY_SPIN_MS = 4200;
   const GALLERY_SPIN_EASE = 'cubic-bezier(.18,.45,.2,1)';
   let gallerySpinCleanup = null; // non-null only while a spin (or its post-landing pause) is in flight
   let galleryRafId = null;
@@ -259,21 +259,31 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     }
     // All backs are identical; a bounded strip avoids cloning hidden portraits.
     const cards = galleryTrack.children;
-    const winnerClone = cards[24];
     const cardWidth = cards[0].getBoundingClientRect().width;
     const step = cards[1].offsetLeft - cards[0].offsetLeft;
     const center = galleryWrap.clientWidth / 2;
     const jitter = (Math.random() - .5) * cardWidth * .25;
-    const targetX = center - (winnerClone.offsetLeft + cardWidth / 2) + jitter;
+    // Recycle identical backs at each card-width boundary. The GPU only
+    // composites nine cards, regardless of how far the reel travels.
+    const winnerIndex = Math.ceil((center - cardWidth / 2) / step);
+    const remainder = winnerIndex * step + cardWidth / 2 - center - jitter;
+    const distance = 18 * step + remainder;
+    const targetX = -distance;
+    const finalOffset = ((distance % step) + step) % step;
+    const winnerClone = cards[Math.round((center + finalOffset - cardWidth / 2) / step)];
+    const keyframes = [{ transform: 'translate3d(0,0,0)', offset: 0 }];
+    for (let traveled = step; traveled < distance; traveled += step) {
+      const offset = traveled / distance;
+      keyframes.push({ transform: `translate3d(${-step}px,0,0)`, offset });
+      keyframes.push({ transform: 'translate3d(0,0,0)', offset });
+    }
+    keyframes.push({ transform: `translate3d(${-finalOffset}px,0,0)`, offset: 1 });
     galleryTrack.style.willChange = 'transform';
-    const animation = galleryTrack.animate([
-      { transform: 'translate3d(0,0,0)' },
-      { transform: `translate3d(${targetX}px,0,0)` }
-    ], { duration: GALLERY_SPIN_MS, easing: GALLERY_SPIN_EASE, fill: 'forwards' });
+    const animation = galleryTrack.animate(keyframes, { duration: GALLERY_SPIN_MS, easing: GALLERY_SPIN_EASE, fill: 'forwards' });
     reelAnimation = animation;
     lastCenterCard = null;
     lastTickAt = 0;
-    trackLitCard(step, cardWidth, center, cards.length, targetX);
+    trackLitCard(step, cardWidth, center, 100, targetX);
     animation.finished.then(() => {
       if (reelAnimation !== animation) return;
       stopLitTracking();
@@ -301,7 +311,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     ++drawId;
     overlay.classList.remove('is-spinning', 'is-winner');
     const strip = document.createDocumentFragment();
-    for (let i = 0; i < 29; i++) {
+    for (let i = 0; i < 9; i++) {
       const back = document.createElement('div');
       back.className = 'face-card';
       back.setAttribute('aria-hidden', 'true');
@@ -326,6 +336,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     showFodMessage('');
     previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    document.body.classList.add('draw-open');
     cardEl.hidden = true;
     reel.hidden = false;
     drawStatus.textContent = 'Ready to find your face? Press Spin to begin.';
@@ -380,7 +391,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
         cardEl.hidden = false;
         drawStatus.textContent = 'Your card is sealed. Tap to reveal your face and rarity.';
         cardEl.focus({ preventScroll: true });
-      }, 1100);
+      }, 350);
       gallerySpinCleanup = () => { clearTimeout(revealDelay); cleanupGallerySpin(addedClones); };
     });
   }
@@ -396,6 +407,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     overlay.hidden = true;
     drawStage.style.height = '';
     document.body.style.overflow = previousOverflow;
+    document.body.classList.remove('draw-open');
     cardInner.removeEventListener('transitionend', onFlipEnd);
     fodBtn.disabled = false;
     fodBtn.focus({ preventScroll: true });

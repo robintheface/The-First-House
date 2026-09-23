@@ -713,3 +713,11 @@
   #faces .reveal-treasury .reveal-invite-art::before,
   #faces .reveal-treasury .reveal-invite-art::after { animation:none; }
 }
+
+/* Freeze the page behind the blur while the dialog is open. */
+body.draw-open > :not(.reveal-port),
+body.draw-open > :not(.reveal-port) *,
+body.draw-open > :not(.reveal-port) *::before,
+body.draw-open > :not(.reveal-port) *::after { animation-play-state:paused!important; }
+.reveal-port .face-draw-reel .gallery-wrap { -webkit-mask-image:none; mask-image:none; contain:paint; }
+.reveal-port .face-draw-reel .gallery-track { backface-visibility:hidden; }
