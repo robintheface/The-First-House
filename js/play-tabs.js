@@ -49,6 +49,39 @@
   var overlay = document.getElementById("hoodGameOverlay");
   var fodBtn = document.getElementById("faceOfDayBtn");
 
+  var pendingFaces = false;
+
+  function openFaces() {
+    if (!spinTab) return;
+    // Keep a live run visible; honor the navigation as soon as it finishes.
+    pendingFaces = spinTab.disabled;
+    if (!pendingFaces) activate(spinTab);
+    var navToggle = document.querySelector('.nav-toggle');
+    if (navToggle && navToggle.getAttribute('aria-expanded') === 'true') navToggle.click();
+    requestAnimationFrame(function () {
+      var target = document.querySelector('.tabs');
+      if (!target) return;
+      var header = document.querySelector('.topbar');
+      var offset = (header ? header.getBoundingClientRect().height : 72) + 20;
+      window.scrollTo({
+        top: Math.max(0, window.scrollY + target.getBoundingClientRect().top - offset),
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+      });
+    });
+  }
+
+  document.querySelectorAll('a[href="#faces"]').forEach(function (link) {
+    link.addEventListener('click', function (event) {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      if (window.location.hash !== '#faces') history.pushState(null, '', '#faces');
+      openFaces();
+    });
+  });
+  window.addEventListener('hashchange', function () {
+    if (window.location.hash === '#faces') openFaces();
+  });
+
   function guard(tabBtn, isBusy, busyReason) {
     if (!tabBtn) return;
     tabBtn.disabled = isBusy;
@@ -58,6 +91,7 @@
   if (spinTab && overlay) {
     var syncSpinTab = function () {
       guard(spinTab, overlay.hidden, "Finish your run first");
+      if (pendingFaces && !spinTab.disabled) openFaces();
     };
     new MutationObserver(syncSpinTab).observe(overlay, { attributes: true, attributeFilter: ["hidden"] });
     syncSpinTab();
@@ -70,4 +104,5 @@
     new MutationObserver(syncRunTab).observe(fodBtn, { attributes: true, attributeFilter: ["disabled"] });
     syncRunTab();
   }
+  if (window.location.hash === "#faces") openFaces();
 })();
