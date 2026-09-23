@@ -675,3 +675,8 @@
 #hoodGameWrap::before,
 #faces .reveal-treasury::before,
 .reveal-port .face-draw-stage::before { display:none; }
+
+/* The moving strip uses the same artwork without procedural grain or shadows. */
+.reveal-port .face-draw-reel .gallery-track { position:relative; animation:none; }
+.reveal-port .face-draw-reel .face-card { background-image:url('images/card-back-reel.svg'); box-shadow:none; filter:none; }
+.reveal-port .face-draw-reel .face-card.is-lit { box-shadow:0 0 20px #edcd7655; }

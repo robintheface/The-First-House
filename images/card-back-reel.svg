@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320" preserveAspectRatio="none" fill="none">
+  <defs>
+    <pattern id="check" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45 120 160)">
+      <path d="M0 0H10V10H0ZM10 10H20V20H10Z" fill="#c3cbaa" fill-opacity=".045"/>
+      <path d="M10 0H20V10H10ZM0 10H10V20H0Z" fill="#03170d" fill-opacity=".055"/>
+    </pattern>
+    <linearGradient id="forest" x1="12" y1="0" x2="210" y2="320" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2c4936"/><stop offset=".48" stop-color="#1e392a"/><stop offset="1" stop-color="#12291e"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="240" y2="320" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f6d991"/><stop offset=".32" stop-color="#d4a453"/><stop offset=".68" stop-color="#f0c773"/><stop offset="1" stop-color="#a97c37"/>
+    </linearGradient>
+    <clipPath id="card"><rect x="1" y="1" width="238" height="318" rx="13"/></clipPath>
+  </defs>
+  <g clip-path="url(#card)">
+    <path fill="url(#forest)" d="M0 0H240V320H0Z"/>
+    <path fill="url(#check)" d="M0 0H240V320H0Z"/>
+  </g>
+  <rect x="1.5" y="1.5" width="237" height="317" rx="12" stroke="url(#gold)" stroke-width="1.5"/>
+  <rect x="4" y="4" width="232" height="312" rx="10" stroke="#efcf87" stroke-opacity=".16" stroke-width=".6"/>
+  <path d="M22 12H218Q218 22 228 22V298Q218 298 218 308H22Q22 298 12 298V22Q22 22 22 12Z" stroke="url(#gold)" stroke-width="1"/>
+  <path d="M120 125 151 160 120 195 89 160Z" stroke="#edc572" stroke-width="1.05"/>
+  <path d="M120 152 126 160 120 168 114 160Z" fill="#e4b865"/>
+</svg>

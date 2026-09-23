@@ -76,21 +76,13 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
 
   // The fixed gold marker selects the card beneath it. A short launch
   // gives way to a long deceleration, leaving time to follow the last cards.
-  const CLONE_LOOPS = 1;
-  const LAND_LOOP = CLONE_LOOPS;
   const GALLERY_SPIN_MS = 7200;
   const GALLERY_SPIN_EASE = 'cubic-bezier(.18,.45,.2,1)';
   let gallerySpinCleanup = null; // non-null only while a spin (or its post-landing pause) is in flight
   let galleryRafId = null;
   let litCard = null;
-  let imagesReady = Promise.resolve();
-
-  function readTranslateX(el){
-    const m = getComputedStyle(el).transform;
-    if (!m || m === 'none') return 0;
-    const match = m.match(/matrix\(([^)]+)\)/);
-    return match ? (parseFloat(match[1].split(',')[4]) || 0) : 0;
-  }
+  let reelAnimation = null;
+  const galleryCards = [...galleryTrack.children];
 
   // ---------- spin tick, synthesized mono 8-bit ----------
   // Synthesized freewheel-click, like a bicycle chain/cassette ratcheting
@@ -215,22 +207,29 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     if (litCard) litCard.classList.add('is-lit');
   }
 
-  function trackLitCard(step, cardWidth, centerX, totalCount){
-    const trackX = readTranslateX(galleryTrack);
+  // Match the compositor easing without reading computed styles each frame.
+  function spinProgress(progress) {
+    let lo = 0, hi = 1;
+    for (let i = 0; i < 12; i++) {
+      const t = (lo + hi) / 2, u = 1 - t;
+      const x = 3*u*u*t*.18 + 3*u*t*t*.2 + t*t*t;
+      if (x < progress) lo = t; else hi = t;
+    }
+    const t = (lo + hi) / 2, u = 1 - t;
+    return 3*u*u*t*.45 + 3*u*t*t + t*t*t;
+  }
+  function trackLitCard(step, cardWidth, centerX, totalCount, targetX) {
+    if (!reelAnimation) return;
+    const progress = Math.min(1, Number(reelAnimation.currentTime || 0) / GALLERY_SPIN_MS);
+    const trackX = targetX * spinProgress(progress);
     const now = performance.now();
-    const centerInTrack = centerX - trackX;
-    const idx = Math.max(0, Math.min(totalCount - 1, Math.round((centerInTrack - cardWidth / 2) / step)));
-    const centerCard = galleryTrack.children[idx];
-
-    // Track sound only while moving. The winner gets its glow after landing,
-    // avoiding repeated filter repaints on the fast-moving image strip.
-    if (centerCard !== lastCenterCard) {
-      lastCenterCard = centerCard;
+    const idx = Math.max(0, Math.min(totalCount - 1, Math.round((centerX - trackX - cardWidth / 2) / step)));
+    if (idx !== lastCenterCard) {
+      lastCenterCard = idx;
       playSpinTick(lastTickAt ? now - lastTickAt : 40);
       lastTickAt = now;
     }
-
-    galleryRafId = requestAnimationFrame(() => trackLitCard(step, cardWidth, centerX, totalCount));
+    if (progress < 1) galleryRafId = requestAnimationFrame(() => trackLitCard(step, cardWidth, centerX, totalCount, targetX));
   }
 
   function stopLitTracking(){
@@ -242,6 +241,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   // closed out mid-spin/mid-reveal.
   function cleanupGallerySpin(addedClones){
     stopLitTracking();
+    if (reelAnimation) { reelAnimation.cancel(); reelAnimation = null; }
     if (litCard) { litCard.classList.remove('is-lit'); litCard = null; }
     stopSpinSound();
     addedClones.forEach((c) => c.remove());
@@ -252,74 +252,35 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     gallerySpinCleanup = null;
   }
 
-  function spinGallery(winnerIdx, onDone){
+  function spinGallery(winnerIdx, onDone) {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       onDone([]);
       return;
     }
-    const currentX = readTranslateX(galleryTrack);
+    // All backs are identical; a bounded strip avoids cloning hidden portraits.
+    const cards = galleryTrack.children;
+    const winnerClone = cards[24];
+    const cardWidth = cards[0].getBoundingClientRect().width;
+    const step = cards[1].offsetLeft - cards[0].offsetLeft;
+    const center = galleryWrap.clientWidth / 2;
+    const jitter = (Math.random() - .5) * cardWidth * .25;
+    const targetX = center - (winnerClone.offsetLeft + cardWidth / 2) + jitter;
     galleryTrack.style.willChange = 'transform';
-    // Freeze the marquee exactly where it visually is right now, then
-    // switch it from CSS-keyframe-driven to a plain transform this
-    // function fully controls -- no jump, since the frozen value is the
-    // same one the animation was already showing.
-    galleryTrack.style.animation = 'none';
-    galleryTrack.style.transform = `translateX(${currentX}px)`;
-    void galleryTrack.offsetWidth;
-
-    const addedClones = [];
-    for (let loop = 0; loop < CLONE_LOOPS; loop++) {
-      realCards.forEach((card) => {
-        const clone = card.cloneNode(true);
-        clone.removeAttribute('id');
-        clone.setAttribute('aria-hidden', 'true');
-        galleryTrack.appendChild(clone);
-        addedClones.push(clone);
-      });
-    }
-    const winnerClone = addedClones[(LAND_LOOP - 1) * realCards.length + winnerIdx];
-
-    const card0 = galleryTrack.children[0];
-    const card1 = galleryTrack.children[1];
-    const step = card1.getBoundingClientRect().left - card0.getBoundingClientRect().left; // card width + gap, measured rather than assumed
-    const cardWidth = card0.getBoundingClientRect().width;
-    const wrapRect = galleryWrap.getBoundingClientRect();
-    const centerX = wrapRect.left + wrapRect.width / 2;
-    const winnerRect = winnerClone.getBoundingClientRect();
-    const winnerCenter = winnerRect.left + winnerRect.width / 2;
-    // A little jitter so it doesn't land dead-center every single time,
-    // same touch real case-opening reels use -- still well inside the
-    // card, nowhere near its edge.
-    const jitter = (Math.random() - 0.5) * winnerRect.width * 0.25;
-    const targetX = currentX + (centerX - winnerCenter) + jitter;
-
-    stopLitTracking();
+    const animation = galleryTrack.animate([
+      { transform: 'translate3d(0,0,0)' },
+      { transform: `translate3d(${targetX}px,0,0)` }
+    ], { duration: GALLERY_SPIN_MS, easing: GALLERY_SPIN_EASE, fill: 'forwards' });
+    reelAnimation = animation;
     lastCenterCard = null;
     lastTickAt = 0;
-    const localCenter = centerX - galleryTrack.getBoundingClientRect().left + currentX;
-    trackLitCard(step, cardWidth, localCenter, galleryTrack.children.length);
-
-    galleryTrack.style.transition = `transform ${GALLERY_SPIN_MS}ms ${GALLERY_SPIN_EASE}`;
-    galleryTrack.style.transform = `translateX(${targetX}px)`;
-
-    function onEnd(e){
-      if (e.target !== galleryTrack || e.propertyName !== 'transform') return;
-      galleryTrack.removeEventListener('transitionend', onEnd);
-      clearTimeout(fallback);
+    trackLitCard(step, cardWidth, center, cards.length, targetX);
+    animation.finished.then(() => {
+      if (reelAnimation !== animation) return;
       stopLitTracking();
-      // The live rAF tracking should already have landed here, but pin it
-      // explicitly -- rounding across many frames of a multi-lap spin is
-      // the kind of thing that's cheap to just guarantee outright.
       setLitCard(winnerClone);
-      onDone(addedClones);
-    }
-    galleryTrack.addEventListener('transitionend', onEnd);
-    const fallback = setTimeout(() => onEnd({ target: galleryTrack, propertyName: 'transform' }), GALLERY_SPIN_MS + 100);
-    gallerySpinCleanup = () => {
-      galleryTrack.removeEventListener('transitionend', onEnd);
-      clearTimeout(fallback);
-      cleanupGallerySpin(addedClones);
-    };
+      onDone([]);
+    }).catch(() => {}); // Closing the dialog cancels the animation.
+    gallerySpinCleanup = () => cleanupGallerySpin([]);
   }
 
   function showFodMessage(text){
@@ -329,6 +290,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
   }
 
   function restoreGallery() {
+    galleryTrack.replaceChildren(...galleryCards);
     if (galleryHome && galleryWrap.parentNode !== galleryHome) {
       galleryHome.insertBefore(galleryWrap, galleryNext);
     }
@@ -338,15 +300,16 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     if (!realCards.length || !fodBtn || fodBtn.disabled || !galleryTrack || !reel) return;
     ++drawId;
     overlay.classList.remove('is-spinning', 'is-winner');
-    galleryTrack.querySelectorAll('.face-card').forEach(card => {
-      const mood = card.querySelector('.face-label')?.textContent.trim() || '';
-      card.dataset.rarity = rarityFor(mood);
-      card.dataset.tierLabel = card.dataset.rarity === 'normal' ? 'Everyday' : card.dataset.rarity;
-    });
-    imagesReady = Promise.all([...galleryTrack.querySelectorAll('img')].map(img => {
-      img.loading = 'eager';
-      return img.decode ? img.decode().catch(() => {}) : Promise.resolve();
-    }));
+    const strip = document.createDocumentFragment();
+    for (let i = 0; i < 29; i++) {
+      const back = document.createElement('div');
+      back.className = 'face-card';
+      back.setAttribute('aria-hidden', 'true');
+      strip.appendChild(back);
+    }
+    galleryTrack.replaceChildren(strip);
+    galleryTrack.style.animation = 'none';
+    galleryTrack.style.transform = 'translate3d(0,0,0)';
     fodBtn.disabled = true;
 
     pendingResult = null;
@@ -385,7 +348,7 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     primeSpinSound();
     const thisDraw = ++drawId;
     drawStatus.textContent = 'Preparing your cards…';
-    await imagesReady;
+
     // A closed or replaced dialog must never restart an old request.
     if (thisDraw !== drawId || overlay.hidden) return;
     playChime([220, 330, 440], .055, .18);
@@ -399,7 +362,9 @@ if (overlay && cardEl && cardInner && imgEl && labelEl && jokeEl && realCards.le
     const winnerImgSrc = winnerCard.querySelector('.face-img')?.src || '';
     // Eager-load the moving cards: off-screen lazy images otherwise only
     // begin loading as the fast reel carries them into view.
-    realCards.forEach(card => { card.querySelector('img').loading = 'eager'; });
+    const resultImage = winnerCard.querySelector('img');
+    resultImage.loading = 'eager';
+    resultImage.decode?.().catch(() => {});
     spinGallery(winnerIdx, (addedClones) => {
       playChime([164.81], 0, .16);
       overlay.classList.remove('is-spinning');
